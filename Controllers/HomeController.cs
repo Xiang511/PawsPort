@@ -15,7 +15,7 @@ namespace PawsPort.Controllers
         public IActionResult List()
         {
             PetdbContext db = new PetdbContext();
-            var p = db.UserTable.ToList();
+            var p = db.UserTables.ToList();
             return View(p);
         }
 

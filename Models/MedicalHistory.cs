@@ -1,0 +1,23 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace PawsPort.Models;
+
+public partial class MedicalHistory
+{
+    public int MedicalDetailId { get; set; }
+
+    public string? Location { get; set; }
+
+    public string? Disease { get; set; }
+
+    public string? DiseaseTreatment { get; set; }
+
+    public DateTime? Time { get; set; }
+
+    public int? PassportId { get; set; }
+
+    public DateTime? UpdatedAt { get; set; }
+
+    public DateTime? CreatedAt { get; set; }
+}

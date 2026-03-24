@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Models;
 
 namespace PawsPort.Controllers
@@ -9,6 +10,13 @@ namespace PawsPort.Controllers
         public IActionResult Index()
         {
             return View();
+        }
+
+        public IActionResult List()
+        {
+            PetdbContext db = new PetdbContext();
+            var p = db.UserTables.ToList();
+            return View(p);
         }
 
         public IActionResult Privacy()

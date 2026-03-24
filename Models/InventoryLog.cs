@@ -1,0 +1,19 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace PawsPort.Models;
+
+public partial class InventoryLog
+{
+    public int LogId { get; set; }
+
+    public int PlayerId { get; set; }
+
+    public int? SkinId { get; set; }
+
+    public DateTime? CreateTime { get; set; }
+
+    public int Price { get; set; }
+
+    public int Point { get; set; }
+}

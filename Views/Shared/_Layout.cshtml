@@ -1,4 +1,4 @@
-﻿@{
+﻿e, @{
     ViewBag.user = "TestAdmin";
     ViewBag.title = "PawsPort | Dashboard";
 }
@@ -241,21 +241,21 @@
 
             <!-- Nav Item - Pages Collapse Menu -->
             <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages"
-                   aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fas fa-fw fa-folder"></i>
-                    <span>Pages</span>
+                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#supportPages"
+                   aria-expanded="true" aria-controls="supportPages">
+                            <i class="fas fa-fw fa-comments"></i>
+                    <span>問答記錄</span>
                 </a>
-                <div id="collapsePages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                <div id="supportPages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                     <div class="bg-white py-2 collapse-inner rounded">
-                        <h6 class="collapse-header">Login Screens:</h6>
-                        <a class="collapse-item" href="login.html">Login</a>
-                        <a class="collapse-item" href="register.html">Register</a>
-                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a>
+                        @* <h6 class="collapse-header">常見問題:</h6> *@
+                        <a class="collapse-item" href="login.html">．常見問題</a>
+                        @* <a class="collapse-item" href="register.html">Register</a>
+                        <a class="collapse-item" href="forgot-password.html">Forgot Password</a> *@
                         <div class="collapse-divider"></div>
-                        <h6 class="collapse-header">Other Pages:</h6>
-                        <a class="collapse-item" href="404.html">404 Page</a>
-                        <a class="collapse-item" href="blank.html">Blank Page</a>
+                                @* <h6 class="collapse-header">Q&A記錄:</h6> *@
+                        <a class="collapse-item" href="404.html">．Q&A記錄</a>
+                        @* <a class="collapse-item" href="blank.html">Blank Page</a> *@
                     </div>
                 </div>
             </li>
@@ -263,16 +263,16 @@
             <!-- Nav Item - Charts -->
             <li class="nav-item">
                 <a class="nav-link" href="charts.html">
-                    <i class="fas fa-fw fa-chart-area"></i>
-                    <span>Charts</span>
+                            <i class="fas fa-fw fa-envelope"></i>
+                    <span>電子報專區</span>
                 </a>
             </li>
 
             <!-- Nav Item - Tables -->
             <li class="nav-item">
                 <a class="nav-link" href="tables.html">
-                    <i class="fas fa-fw fa-table"></i>
-                    <span>Tables</span>
+                            <i class="fas fa-fw fa-robot"></i>                               
+                    <span>Line Bot</span>
                 </a>
             </li>
 

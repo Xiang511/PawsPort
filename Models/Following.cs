@@ -1,0 +1,17 @@
+﻿using System;
+using System.Collections.Generic;
+
+namespace PawsPort.Models;
+
+public partial class Following
+{
+    public int FollowingIdPk { get; set; }
+
+    public int UserId { get; set; }
+
+    public int FollowingId { get; set; }
+
+    public bool IsExist { get; set; }
+
+    public DateTime CreateAt { get; set; }
+}

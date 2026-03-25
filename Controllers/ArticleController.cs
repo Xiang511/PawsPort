@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
+using PawsPort.ViewModels;
 
 namespace PawsPort.Controllers
 {
@@ -10,24 +11,21 @@ namespace PawsPort.Controllers
         //    return View();
         //}
 
-        public IActionResult List()
+        public IActionResult List(KeywordViewModel vm)
         {
-            PetdbContext db = new PetdbContext(); //建立資料庫上下文
-            string keyword = null; //這裡可以替換成實際的搜尋關鍵字
-            List<Article> datas = null;
-            if (string.IsNullOrEmpty(keyword))
+            PetDbContext db = new PetDbContext();
+
+            IEnumerable<Article> datas = null; //宣告一個變數來存放查詢結果
+            if (string.IsNullOrEmpty(vm.txtKeyword))
             {
                 datas = db.Articles.Where(a => a.IsExist).ToList(); //查詢所有存在的文章
-
             }
             else
             {
-                string searchTerm = null; //這裡可以替換成實際的搜尋條件
-                datas = db.Articles.Where(a => a.IsExist && (a.Title.Contains(searchTerm) || a.Content.Contains(searchTerm))).ToList(); //根據搜尋條件查詢文章
-
+                datas = db.Articles.Where(a => a.IsExist && (a.Title.Contains(vm.txtKeyword) || a.Content.Contains(vm.txtKeyword))).ToList(); //根據搜尋條件查詢文章
             }
 
-            return View();
+            return View(datas);
         }
     }
 }

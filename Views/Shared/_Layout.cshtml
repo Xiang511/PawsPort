@@ -109,7 +109,7 @@
                             <div id="petPages" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
                                 <div class="bg-white py-2 collapse-inner rounded">
                                     <h6 class="collapse-header">寵物相關:</h6>
-                                    <a class="collapse-item" href="login.html">寵物資訊一覽</a>
+                                    <a class="collapse-item" href="../Pet/List">寵物資訊一覽</a>
                                     <a class="collapse-item" href="forgot-password.html">寵物健康護照</a>
                                     <a class="collapse-item" href="register.html">領養紀錄一覽</a>
                                     <a class="collapse-item" href="forgot-password.html">寵物走失紀錄</a>
@@ -130,7 +130,7 @@
 
                         <!-- Nav Item - Tables -->
                         <li class="nav-item">
-                            <a class="nav-link" href="tables.html">
+                            <a class="nav-link" href="../Pet/Create">
                                 <i class="fas fa-edit"></i>
                                 <span>新增寵物資訊</span>
                             </a>
@@ -611,7 +611,7 @@
 
 
 
-
+                            @await RenderSectionAsync("Scripts", required: false)
                         </body>
 
                     </html>

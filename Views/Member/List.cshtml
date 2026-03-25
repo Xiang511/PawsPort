@@ -3,13 +3,12 @@
 @{
     ViewData["Title"] = "List";
 }
+<link href="~/css/MemberList.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<h1>Member</h1>
+<span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">基本資料維護</span></span>
 
-<h1>List</h1>
-
-<p>
-    <a asp-action="Create">Create New</a>
-</p>
-<table class="table table-bordered" id="dataTable" width="100%" cellspacing="0">
+<table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
     <thead>
         <tr>
             <th>
@@ -99,12 +98,12 @@
                 </td>
                 <td>
                     <p>@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })</p>
-                    <p>
-                        @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ })
-                    </p>
                     <p>@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })</p>
                 </td>
             </tr>
         }
     </tbody>
 </table>
+<script src="lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/demo/MemberListDataTable.js"></script>
+

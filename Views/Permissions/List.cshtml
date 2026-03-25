@@ -1,0 +1,41 @@
+﻿@model IEnumerable<PawsPort.Models.ViewModels.UserPermissionViewModel>
+
+@{
+    ViewData["Title"] = "使用者系統權限清單";
+}
+
+<h1>權限管理</h1>
+
+<p>
+    <a asp-action="Create" class="btn btn-primary">新增權限分配</a>
+</p>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>@Html.DisplayNameFor(model => model.UserId)</th>
+            <th>姓名</th>
+            <th>所屬系統</th>
+            <th>角色權限</th>
+            <th>分配時間</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                <td>@Html.DisplayFor(modelItem => item.UserName)</td>
+                <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
+                <td>
+                    <span class="badge bg-info text-dark">@item.RoleName</span>
+                </td>
+                <td>@item.AssignedAt?.ToString("yyyy-MM-dd")</td>
+                <td>
+                    <p>@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })</p>
+                    <p>@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })</p>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>

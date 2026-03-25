@@ -19,6 +19,7 @@ namespace PawsPort.Controllers
 
             if (string.IsNullOrEmpty(vm.txtCategoryId.ToString()))
             {
+               
                 datas = db.Categories.Where(a => a.IsExist).ToList(); //查詢所有存在的類別
             }
             else
@@ -32,7 +33,7 @@ namespace PawsPort.Controllers
         }
 
 
-
+        
         public IActionResult ArticleList(KeywordViewModel vm) //貼文管理頁面
         {
             PetDbContext db = new PetDbContext();
@@ -40,16 +41,40 @@ namespace PawsPort.Controllers
             IEnumerable<Article> datas = null; //宣告一個變數來存放查詢結果
             if (string.IsNullOrEmpty(vm.txtKeyword))
             {
-                datas = db.Articles.Where(a => a.IsExist).ToList(); //查詢所有存在的文章
+                datas = from p in db.Articles
+                        where p.IsExist
+                        select p;
             }
             else
             {
-                datas = db.Articles.Where(a => a.IsExist && (a.Title.Contains(vm.txtKeyword)
-                || a.Content.Contains(vm.txtKeyword))).ToList(); //根據搜尋條件查詢文章
+                datas = db.Articles.Where(p => p.IsExist 
+                && (p.Title.Contains(vm.txtKeyword)
+                || p.Content.Contains(vm.txtKeyword))); //根據搜尋條件查詢文章
             }
 
             return View(datas);
         }
+
+
+        public IActionResult CreateArticle()
+        {
+            return View();
+        }
+
+
+        [HttpPost]
+        public IActionResult CreateArticle(Article p)
+        {
+            PetDbContext db = new PetDbContext();
+
+            p.IsExist = true; //設定文章為存在狀態
+            db.Articles.Add(p);
+            db.SaveChanges();
+            return RedirectToAction("ArticleList");
+          
+        }
+
+
 
 
         public IActionResult ArticleImageList(KeywordViewModel vm)

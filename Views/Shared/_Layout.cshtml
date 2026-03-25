@@ -608,7 +608,8 @@
 
 
 
-
+    @await RenderSectionAsync("Scripts", required: false) 
+    @* 在新增子頁面時遇到問題，加入此行解決 *@
 </body>
 
 </html>

@@ -23,7 +23,7 @@
     <thead>
         <tr>
             <th>
-                @Html.DisplayNameFor(model => model.CategoryId)
+               序
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CategoryName)
@@ -40,23 +40,27 @@
             <th>
                 @Html.DisplayNameFor(model => model.SortOrder)
             </th>
-            <th>
+            @* <th>
                 @Html.DisplayNameFor(model => model.IsExist)
-            </th>
-            <th>
+            </th> *@
+            @* <th>
                 @Html.DisplayNameFor(model => model.CreateAt)
-            </th>
-            <th>
+            </th> *@
+            @* <th>
                 @Html.DisplayNameFor(model => model.LastEditTime)
-            </th>
+            </th> *@
             <th></th>
         </tr>
     </thead>
     <tbody>
-@foreach (var item in Model) {
+
+        @{
+            int count = 0;
+            foreach (var item in Model) {
+                count++;
         <tr>
             <td>
-                @Html.DisplayFor(modelItem => item.CategoryId)
+                @count
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.CategoryName)
@@ -73,21 +77,21 @@
             <td>
                 @Html.DisplayFor(modelItem => item.SortOrder)
             </td>
-            <td>
+            @*<td>
                 @Html.DisplayFor(modelItem => item.IsExist)
-            </td>
-            <td>
+            </td>*@
+            @*<td>
                 @Html.DisplayFor(modelItem => item.CreateAt)
-            </td>
-            <td>
+            </td>*@
+            @*<td>
                 @Html.DisplayFor(modelItem => item.LastEditTime)
-            </td>
+            </td>*@
             <td>
                 @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
                 @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
                 @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
             </td>
         </tr>
-}
+}}
     </tbody>
 </table>

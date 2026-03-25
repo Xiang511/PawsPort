@@ -21,9 +21,9 @@
 <table class="table">
     <thead>
         <tr>
-           
+
             <th>
-               序
+                序
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CreateAt)
@@ -40,7 +40,7 @@
             <th>
                 @Html.DisplayNameFor(model => model.Status)
             </th>
-            <th>
+            @* <th>
                 @Html.DisplayNameFor(model => model.ViewCount)
             </th>
             <th>
@@ -57,7 +57,7 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.EventLocation)
-            </th>
+            </th>*@
             <th>
                 @Html.DisplayNameFor(model => model.IsExist)
             </th>
@@ -73,28 +73,29 @@
     <tbody>
         @{
             int count = 0;
-            foreach (var item in Model) {
+            foreach (var item in Model)
+            {
                 count++;
-        <tr>
-            <td>
-                @count
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CreateAt)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.LastEditTime)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Title)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Content)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Status)
-            </td>
-            <td>
+                <tr>
+                    <td>
+                        @count
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CreateAt)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LastEditTime)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Title)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Content)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Status)
+                    </td>
+                    @* <td>
                 @Html.DisplayFor(modelItem => item.ViewCount)
             </td>
             <td>
@@ -111,22 +112,23 @@
             </td>
             <td>
                 @Html.DisplayFor(modelItem => item.EventLocation)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsExist)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.UserId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryId)
-            </td>
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}}
+            </td>*@
+                    <td>
+                        @Html.DisplayFor(modelItem => item.IsExist)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.UserId)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CategoryId)
+                    </td>
+                    <td>
+                        @Html.ActionLink("編輯", "EditArticle", "Article", new { id = item.ArticleId }, null) |
+                        @Html.ActionLink("刪除", "Delete", "Article", new { id = item.ArticleId }, new { onclick = "return confirm('確定要刪除嗎?')" })
+                    </td>
+                </tr>
+            }
+        
+}
     </tbody>
 </table>

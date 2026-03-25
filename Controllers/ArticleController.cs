@@ -17,16 +17,17 @@ namespace PawsPort.Controllers
 
             IEnumerable<Category> datas = null; //宣告一個變數來存放查詢結果
 
-            if (string.IsNullOrEmpty(vm.txtCategoryId.ToString()))
+            if (string.IsNullOrEmpty(vm.txtKeyword))
             {
-               
-                datas = db.Categories.Where(a => a.IsExist).ToList(); //查詢所有存在的類別
+                datas = from p in db.Categories
+                        where p.IsExist
+                        select p;
             }
             else
             {
                 datas = db.Categories.Where(a => a.IsExist
                 && (a.CategoryName.Contains(vm.txtKeyword)
-                )).ToList(); //根據搜尋條件查詢類別
+                )); //根據搜尋條件查詢類別
             }
 
             return View(datas);
@@ -61,7 +62,6 @@ namespace PawsPort.Controllers
             return View();
         }
 
-
         [HttpPost]
         public IActionResult CreateArticle(Article p)
         {
@@ -71,10 +71,48 @@ namespace PawsPort.Controllers
             db.Articles.Add(p);
             db.SaveChanges();
             return RedirectToAction("ArticleList");
-          
+
+        }
+
+        public IActionResult EditArticle(int? id)
+        {
+            PetDbContext db = new PetDbContext();
+            Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
+            if (x == null)
+            {
+                return RedirectToAction("ArticleList");
+            }
+            return View(x);
+        }
+
+        [HttpPost]
+        public IActionResult EditArticle(Article uiArticle) 
+        {
+            PetDbContext db = new PetDbContext(); //建立資料庫上下文
+            Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == uiArticle.ArticleId); //從資料庫中查找要編輯的文章
+            if(dbArticle != null)
+            {
+                dbArticle.Title = uiArticle.Title; //更新文章標題
+                dbArticle.Content = uiArticle.Content; //更新文章內容
+                dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
+                db.SaveChanges(); //保存更改到資料庫
+
+            }
+            return RedirectToAction("ArticleList");
         }
 
 
+        public IActionResult Delete(int? id)
+        {
+            PetDbContext db = new PetDbContext();
+            Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
+            if (x !=null)
+            {
+                x.IsExist = false;
+                db.SaveChanges();
+            }
+            return RedirectToAction("ArticleList");
+        }
 
 
         public IActionResult ArticleImageList(KeywordViewModel vm)

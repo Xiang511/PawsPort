@@ -1,10 +1,19 @@
 ﻿@model IEnumerable<PawsPort.Models.Article>
 
 @{
-    ViewData["Title"] = "List";
+    ViewData["Title"] = "ArticleList";
 }
 
 <h1>貼文列表</h1>
+@using (Html.BeginForm())
+//beginform的參數是(動作,控制器,方法)
+//如果不寫參數，預設就是當前的動作和控制器，方法預設是post
+{
+    @:關鍵字 @Html.TextBox("txtKeyword")
+    //三個參數分別是(欄位名稱,預設值,html屬性)
+    //txtKeyword是欄位名稱，預設值是空字串，html屬性是class="form-control"
+    <input type="submit" value="查詢" />
+}
 
 <p>
     <a asp-action="Create">新增貼文</a>

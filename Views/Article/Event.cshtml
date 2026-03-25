@@ -1,0 +1,119 @@
+﻿@model IEnumerable<PawsPort.Models.Article>
+
+@{
+    ViewData["Title"] = "Event";
+}
+
+<h1>活動管理</h1>
+
+<p>
+    <a asp-action="Create">新增活動</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.ArticleId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CreateAt)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LastEditTime)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Title)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Content)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ViewCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReportedCount)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.LastReported)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EventStartDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EventEndDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.EventLocation)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsExist)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.CategoryId)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.ArticleId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CreateAt)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LastEditTime)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Title)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Content)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ViewCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReportedCount)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.LastReported)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EventStartDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EventEndDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.EventLocation)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsExist)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.CategoryId)
+            </td>
+            <td>
+                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

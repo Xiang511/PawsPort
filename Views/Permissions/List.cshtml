@@ -3,39 +3,71 @@
 @{
     ViewData["Title"] = "使用者系統權限清單";
 }
+<link href="~/css/XiangList.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<style>
+    .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link >button{
+        background:#FFF!important;
+    }
+</style>
 
-<h1>權限管理</h1>
 
-<p>
+<h1>Member</h1>
+<span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">權限管理</span></span>
+
+@* <p>
     <a asp-action="Create" class="btn btn-primary">新增權限分配</a>
-</p>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>@Html.DisplayNameFor(model => model.UserId)</th>
-            <th>姓名</th>
-            <th>所屬系統</th>
-            <th>角色權限</th>
-            <th>分配時間</th>
-            <th>操作</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@Html.DisplayFor(modelItem => item.UserId)</td>
-                <td>@Html.DisplayFor(modelItem => item.UserName)</td>
-                <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
-                <td>
-                    <span class="badge bg-info text-dark">@item.RoleName</span>
-                </td>
-                <td>@item.AssignedAt?.ToString("yyyy-MM-dd")</td>
-                <td>
-                    <span>@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })</span>
-                    <span>@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })</span>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+</p> *@
+
+<ul class="nav nav-tabs mt-4" id="myTab" role="tablist">
+    <li class="nav-item " role="presentation">
+        <button class="nav-link active bg-light" id="home-tab" data-toggle="tab" data-target="#home" type="button" role="tab" aria-controls="home" aria-selected="true">權限分配</button>
+    </li>
+    <li class="nav-item " role="presentation">
+        <button class="nav-link bg-light" id="profile-tab" data-toggle="tab" data-target="#profile" type="button" role="tab" aria-controls="profile" aria-selected="false">角色管理</button>
+    </li>
+</ul>
+<div class="tab-content" id="myTabContent">
+    <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
+        <div class="card shadow mb-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0" >
+                        <thead>
+                            <tr>
+                                <th>@Html.DisplayNameFor(model => model.UserId)</th>
+                                <th>姓名</th>
+                                <th>所屬系統</th>
+                                <th>角色權限</th>
+                                <th>分配時間</th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model)
+                            {
+                                <tr>
+                                    <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.UserName)</td>
+                                    <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
+                                    <td>
+                                        <span class="badge badge-pill bg-info text-dark">@item.RoleName</span>
+                                    </td>
+                                    <td>@item.AssignedAt?.ToString("yyyy-MM-dd")</td>
+                                    <td>
+                                        <span>@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })</span>
+                                        <span>@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="tab-pane fade" id="profile" role="tabpanel" aria-labelledby="profile-tab">...</div>
+</div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/demo/MemberListDataTable.js"></script>

@@ -16,7 +16,7 @@ namespace PawsPort.Controllers
         public IActionResult ArticleList(KeywordViewModel vm) //貼文管理頁面
         {
 
-            using (PetDbContext db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext()) //查詢完畢後就關閉
             {
                 var query = db.Articles.Where(p => p.IsExist); //查詢所有存在的文章
 
@@ -42,55 +42,75 @@ namespace PawsPort.Controllers
         [HttpPost]
         public IActionResult CreateArticle(ArticleWrap p)
         {
-            PetDbContext db = new PetDbContext();
+            using (PetDbContext db = new PetDbContext()) 
+            {
+                p.IsExist = true; //設定文章為存在狀態
+                p.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
 
-            p.IsExist = true; //設定文章為存在狀態
-            p.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
-
-            db.Articles.Add(p.article);
-            db.SaveChanges();
-            return RedirectToAction("ArticleList");
+                db.Articles.Add(p.article);
+                db.SaveChanges();
+                return RedirectToAction("ArticleList");
+            }
 
         }
 
         public IActionResult EditArticle(int? id)
         {
-            PetDbContext db = new PetDbContext();
-            Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-            if (x == null)
+            using (PetDbContext db = new PetDbContext())
             {
-                return RedirectToAction("ArticleList");
+                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                if (x == null)
+                {
+                    return RedirectToAction("ArticleList");
+                }
+
+                ArticleWrap p = new ArticleWrap(); //創建一個ArticleWrap物件
+                p.article = x;  //將從資料庫中查找到的文章賦值給ArticleWrap物件的article屬性
+
+                return View(p);
             }
-            return View(x);
         }
 
         [HttpPost]
-        public IActionResult EditArticle(Article uiArticle)
+        public IActionResult EditArticle(ArticleWrap uiArticle)
         {
-            PetDbContext db = new PetDbContext(); //建立資料庫上下文
-            Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == uiArticle.ArticleId); //從資料庫中查找要編輯的文章
-            if (dbArticle != null)
+            using (PetDbContext db = new PetDbContext())
             {
-                dbArticle.Title = uiArticle.Title; //更新文章標題
-                dbArticle.Content = uiArticle.Content; //更新文章內容
-                dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
-                db.SaveChanges(); //保存更改到資料庫
 
+                int targetId = uiArticle.article.ArticleId; //從傳入的ArticleWrap物件中獲取要編輯的文章ID
+
+                Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == targetId); //從資料庫中查找要編輯的文章
+            
+
+                if (dbArticle != null && dbArticle.IsExist == true)
+                {
+                    dbArticle.Title = uiArticle.article.Title; //更新文章標題
+                    dbArticle.Content = uiArticle.article.Content; //更新文章內容
+                    dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
+                    db.SaveChanges(); //保存更改到資料庫
+
+                }
+                return RedirectToAction("ArticleList");
             }
-            return RedirectToAction("ArticleList");
+
         }
 
-
+        [HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
         public IActionResult DeleteArticle(int? id)
         {
-            PetDbContext db = new PetDbContext();
-            Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-            if (x != null)
+            if (id == null)
+                return RedirectToAction("ArticleList");
+
+            using (PetDbContext db = new PetDbContext())
             {
-                x.IsExist = false;
-                db.SaveChanges();
+                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                if (x != null)
+                {
+                    x.IsExist = false;
+                    db.SaveChanges();
+                }
+                return RedirectToAction("ArticleList");
             }
-            return RedirectToAction("ArticleList");
         }
 
 

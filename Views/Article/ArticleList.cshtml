@@ -128,7 +128,12 @@
                     </td>
                     <td>
                         @Html.ActionLink("編輯", "EditArticle", "Article", new { id = item.ArticleId }, null) |
-                        @Html.ActionLink("刪除", "DeleteArticle", "Article", new { id = item.ArticleId }, new { onclick = "return confirm('確定要刪除嗎?')" })
+                        <form asp-action="DeleteArticle" asp-route-id="@item.article.ArticleId" method="post" style="display:inline;">
+                            <button type="submit" class="btn btn-link" onclick="return confirm('確定要刪除嗎?')">
+                                刪除
+                            </button>
+                        </form>
+                        @* 由於DeleteArticle是[HttpPost]，所以這裡要改成form *@
                     </td>
                 </tr>
             }

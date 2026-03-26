@@ -11,27 +11,26 @@ namespace PawsPort.Controllers
         //    return View();
         //}
 
-       
-        
+
+
         public IActionResult ArticleList(KeywordViewModel vm) //貼文管理頁面
         {
-            PetDbContext db = new PetDbContext();
 
-            IEnumerable<Article> datas = null; //宣告一個變數來存放查詢結果
-            if (string.IsNullOrEmpty(vm.txtKeyword))
+            using (PetDbContext db = new PetDbContext())
             {
-                datas = from p in db.Articles
-                        where p.IsExist
-                        select p;
-            }
-            else
-            {
-                datas = db.Articles.Where(p => p.IsExist 
-                && (p.Title.Contains(vm.txtKeyword)
-                || p.Content.Contains(vm.txtKeyword))); //根據搜尋條件查詢文章
+                var query = db.Articles.Where(p => p.IsExist); //查詢所有存在的文章
+
+                if (!string.IsNullOrEmpty(vm.txtKeyword))
+                {
+                    query = query.Where(p => p.Title.Contains(vm.txtKeyword)
+                  || p.Content.Contains(vm.txtKeyword)); //根據搜尋條件查詢文章
+                }
+
+                var datas = query.ToList().Select(p => new ArticleWrap { article = p }); //將查詢結果轉換為ArticleWrap物件的列表
+
+                return View(datas);
             }
 
-            return View(datas);
         }
 
 
@@ -41,14 +40,14 @@ namespace PawsPort.Controllers
         }
 
         [HttpPost]
-        public IActionResult CreateArticle(Article p)
+        public IActionResult CreateArticle(ArticleWrap p)
         {
             PetDbContext db = new PetDbContext();
 
             p.IsExist = true; //設定文章為存在狀態
             p.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
-          
-            db.Articles.Add(p);
+
+            db.Articles.Add(p.article);
             db.SaveChanges();
             return RedirectToAction("ArticleList");
 
@@ -66,11 +65,11 @@ namespace PawsPort.Controllers
         }
 
         [HttpPost]
-        public IActionResult EditArticle(Article uiArticle) 
+        public IActionResult EditArticle(Article uiArticle)
         {
             PetDbContext db = new PetDbContext(); //建立資料庫上下文
             Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == uiArticle.ArticleId); //從資料庫中查找要編輯的文章
-            if(dbArticle != null)
+            if (dbArticle != null)
             {
                 dbArticle.Title = uiArticle.Title; //更新文章標題
                 dbArticle.Content = uiArticle.Content; //更新文章內容
@@ -86,7 +85,7 @@ namespace PawsPort.Controllers
         {
             PetDbContext db = new PetDbContext();
             Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-            if (x !=null)
+            if (x != null)
             {
                 x.IsExist = false;
                 db.SaveChanges();
@@ -102,16 +101,18 @@ namespace PawsPort.Controllers
             IEnumerable<ArticleImage> datas = null; //宣告一個變數來存放查詢結果
             if (string.IsNullOrEmpty(vm.txtArticleId.ToString()))
             {
-                datas = db.ArticleImages.Where(a => a.IsExist).ToList(); //查詢所有存在的文章圖片
+                datas = db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
             }
             else
             {
-                datas = db.ArticleImages.Where(a => a.IsExist 
-                && (a.ArticleId == vm.txtArticleId
+                datas = db.ArticleImages.Where(p => p.IsExist
+                && (p.ArticleId == vm.txtArticleId
                 )).ToList(); //根據搜尋條件查詢文章圖片
             }
             return View(datas);
         }
+
+
 
 
 
@@ -122,11 +123,11 @@ namespace PawsPort.Controllers
 
             IEnumerable<Article> datas = null; //宣告一個變數來存放查詢結果
 
-            datas = db.Articles.Where(a => a.IsExist
-            && (a.CategoryId == vm.txtCategoryId) //篩選出活動類別的文章
-            || (a.Title.Contains(vm.txtKeyword)
-            || a.Content.Contains(vm.txtKeyword))
-            || a.EventLocation.Contains(vm.txtKeyword)
+            datas = db.Articles.Where(p => p.IsExist
+            && (p.CategoryId == vm.txtCategoryId) //篩選出活動類別的文章
+            || (p.Title.Contains(vm.txtKeyword)
+            || p.Content.Contains(vm.txtKeyword))
+            || p.EventLocation.Contains(vm.txtKeyword)
                  ); //根據搜尋條件查詢文章
 
             return View(datas);

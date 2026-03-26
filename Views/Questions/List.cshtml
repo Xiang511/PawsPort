@@ -9,7 +9,7 @@
 <p>
     <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
         <span class="icon text-white-50">
-            <i class="fas fa-flag"></i>
+            <i class="fa-solid fa-plus"></i>
         </span>
         <span class="text">新增題目</span>
     </button>
@@ -31,10 +31,6 @@
                     <!-- CSRF Token（防止跨站請求偽造） -->
                     @* @Html.AntiForgeryToken() *@
                     <!-- 遊戲名稱 -->
-                    @* <div class="form-group">
-                        <label for="GameId">id <span style="color: red;">*</span></label>
-                        <input type="text" class="form-control" id="GameId" name="GameId" placeholder="輸入id" required />
-                    </div> *@
                     <div class="form-group">
                         <label for="GameName">題目類型 <span style="color: red;">*</span></label>
                         <input type="text" class="form-control" id="GameName" name="GameName" placeholder="輸入題目類型" required />
@@ -77,7 +73,7 @@
                     <!-- 是否啟用 -->
                     <div class="form-group">
                         <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" value="true"  checked />
+                            <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" value="true" checked />
                             <label class="custom-control-label" for="IsActive" >
                                 啟用此題目
                             </label>
@@ -93,6 +89,84 @@
         </div>
     </div>
 </div>
+<!-- 編輯 Modal -->
+<div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">編輯題目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- 編輯表單開始 -->
+            <form method="post" asp-action="Edit" asp-controller="Questions">
+                <div class="modal-body">
+                    <!-- GameId（隱藏欄位） -->
+                    <input type="hidden" id="EditGameId" name="GameId" />
+
+                    <!-- 遊戲名稱 -->
+                    <div class="form-group">
+                        <label for="EditGameName">題目類型 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="EditGameName" name="GameName" placeholder="輸入題目類型" required />
+                    </div>
+
+                    <!-- 題目內容 -->
+                    <div class="form-group">
+                        <label for="EditQuestions">題目內容 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="EditQuestions" name="Questions" rows="3" placeholder="輸入題目內容" required></textarea>
+                    </div>
+
+                    <!-- 正確答案 -->
+                    <div class="form-group">
+                        <label for="EditAnswers">正確答案 <span style="color: red;">*</span></label>
+                        <select class="form-control" id="EditAnswers" name="Answers" required>
+                            <option value="">-- 請選擇 --</option>
+                            <option value="true">是</option>
+                            <option value="false">否</option>
+                        </select>
+                    </div>
+
+                    <!-- 詳細解答 -->
+                    <div class="form-group">
+                        <label for="EditAnswersDetail">詳細解答 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="EditAnswersDetail" name="AnswersDetail" rows="3" placeholder="輸入詳細解答" required></textarea>
+                    </div>
+
+                    <!-- 解題獎勵 -->
+                    <div class="form-group">
+                        <label for="EditRewards">解題獎勵 (點數) <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="EditRewards" name="Rewards" placeholder="輸入獎勵點數" min="0" required />
+                    </div>
+
+                    <!-- 題目類型 -->
+                    <div class="form-group">
+                        <label for="EditType">題目類型</label>
+                        <input type="text" class="form-control" id="EditType" name="Type" placeholder="例：是非題" />
+                    </div>
+
+                    <!-- 是否啟用 -->
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="hidden" name="IsActive" value="false" />
+                            <input type="checkbox" class="custom-control-input" id="EditIsActive" name="IsActive" value="true" />
+                            <label class="custom-control-label" for="EditIsActive">
+                                啟用此題目
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="EditSubmitBtn">保存變更</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+            <!-- 編輯表單結束 -->
+        </div>
+    </div>
+</div>
+
 <table class="table">
     <thead>
         <tr>
@@ -104,6 +178,9 @@
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Questions)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AnswersDetail)
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.Answers)
@@ -136,6 +213,9 @@
                 @Html.DisplayFor(modelItem => item.Questions)
             </td>
             <td>
+                @Html.DisplayFor(modelItem => item.AnswersDetail)
+            </td>
+            <td>
                 @Html.DisplayFor(modelItem => item.Answers)
             </td>
             <td>
@@ -148,10 +228,49 @@
                 @Html.DisplayFor(modelItem => item.Type)
             </td>
             <td>
-                @Html.ActionLink("編輯", "Edit", new { /* id=item.PrimaryKey */ }) |
+                        <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                data-id="@item.GameId"
+                                data-name="@item.GameName"
+                                data-questions="@item.Questions"
+                                data-answers="@item.Answers"
+                                data-detail="@item.AnswersDetail"
+                                data-rewards="@item.Rewards"
+                                data-type="@item.Type"
+                                data-active="@item.IsActive"
+                                data-toggle="modal"
+                                data-target="#EditBn">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+
                 @Html.ActionLink("刪除", "Delete", new { /* id=item.PrimaryKey */ })
             </td>
         </tr>
 }}
     </tbody>
 </table>
+
+<script>
+    // 編輯按鈕點擊事件
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const gameId = this.dataset.id;
+            const gameName = this.dataset.name;
+            const questions = this.dataset.questions;
+            const answers = this.dataset.answers;
+            const answersDetail = this.dataset.detail;
+            const rewards = this.dataset.rewards;
+            const type = this.dataset.type;
+            const isActive = this.dataset.active;
+
+            // 填充 Modal 欄位
+            document.getElementById('EditGameId').value = gameId;
+            document.getElementById('EditGameName').value = gameName;
+            document.getElementById('EditQuestions').value = questions;
+            document.getElementById('EditAnswers').value = (answers === 'True' || answers === true) ? 'true' : 'false';
+            document.getElementById('EditAnswersDetail').value = answersDetail;
+            document.getElementById('EditRewards').value = rewards;
+            document.getElementById('EditType').value = type;
+            document.getElementById('EditIsActive').checked = (isActive === 'True');
+        });
+    });
+</script>

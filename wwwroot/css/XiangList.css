@@ -12,7 +12,8 @@
 }
 
     #ListDatatable_filter > label {
-        width: 60% !important;
+        width: 55% !important;
+        margin-right:.5em;
     }
 
 #ListDatatable_paginate{
@@ -27,6 +28,6 @@
 
     #ListDatatable_filter {
         text-align: start !important;
-        margin-left: -0.5em;
+        margin-left: -1.2em !important;
     }
 }

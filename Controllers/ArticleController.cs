@@ -80,7 +80,7 @@ namespace PawsPort.Controllers
         }
 
 
-        public IActionResult Delete(int? id)
+        public IActionResult DeleteArticle(int? id)
         {
             PetDbContext db = new PetDbContext();
             Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);

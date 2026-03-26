@@ -17,13 +17,13 @@
 }
 
 <p>
-    <a asp-action="Create">Create New</a>
+    <a asp-action="CreateCategory">新增分類</a>
 </p>
 <table class="table">
     <thead>
         <tr>
             <th>
-               序
+                序
             </th>
             <th>
                 @Html.DisplayNameFor(model => model.CategoryName)
@@ -56,42 +56,46 @@
 
         @{
             int count = 0;
-            foreach (var item in Model) {
+            foreach (var item in Model)
+            {
                 count++;
-        <tr>
-            <td>
-                @count
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.CategoryDescription)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.ParentId)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Level)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.SortOrder)
-            </td>
-            @*<td>
+                <tr>
+                    <td>
+                        @count
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CategoryName)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CategoryDescription)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.ParentId)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Level)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SortOrder)
+                    </td>
+
+                    @*<td>
                 @Html.DisplayFor(modelItem => item.IsExist)
             </td>*@
-            @*<td>
+                    @*<td>
                 @Html.DisplayFor(modelItem => item.CreateAt)
             </td>*@
-            @*<td>
+                    @*<td>
                 @Html.DisplayFor(modelItem => item.LastEditTime)
             </td>*@
-            <td>
-                @Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Details", "Details", new { /* id=item.PrimaryKey */ }) |
-                @Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })
-            </td>
-        </tr>
-}}
+
+                    <td>
+                        @Html.ActionLink("編輯", "EditCategory", "Category", new { id = item.CategoryId }, null) |
+                        @Html.ActionLink("刪除", "DeleteCategory", "Category", new { id = item.CategoryId }, new { onclick = "return confirm('確定要刪除嗎？');" })
+                    </td>
+                </tr>
+            }
+        
+}
     </tbody>
 </table>

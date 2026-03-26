@@ -125,7 +125,7 @@
                     </td>
                     <td>
                         @Html.ActionLink("編輯", "EditArticle", "Article", new { id = item.ArticleId }, null) |
-                        @Html.ActionLink("刪除", "Delete", "Article", new { id = item.ArticleId }, new { onclick = "return confirm('確定要刪除嗎?')" })
+                        @Html.ActionLink("刪除", "DeleteArticle", "Article", new { id = item.ArticleId }, new { onclick = "return confirm('確定要刪除嗎?')" })
                     </td>
                 </tr>
             }

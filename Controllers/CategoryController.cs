@@ -26,12 +26,30 @@ namespace PawsPort.Controllers
             }
             else
             {
-                datas = db.Categories.Where(a => a.IsExist
-                && (a.CategoryName.Contains(vm.txtKeyword)
+                datas = db.Categories.Where(p => p.IsExist
+                && (p.CategoryName.Contains(vm.txtKeyword)
                 )); //根據搜尋條件查詢類別
             }
 
             return View(datas);
+        }
+
+
+        public IActionResult CreateCategory()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult CreateCategory(Category p)
+        {
+            PetDbContext db = new PetDbContext();
+
+            p.IsExist = true; //設定類別為存在狀態
+            db.Categories.Add(p);
+            db.SaveChanges();
+            return RedirectToAction("CategoryList");
+
         }
     }
 }

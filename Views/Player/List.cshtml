@@ -1,11 +1,11 @@
 ﻿@model IEnumerable<dynamic>
 
 @{
-    ViewData["Title"] = "玩家資訊";
+    ViewData["Title"] = "玩家管理";
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="m-0">玩家資訊</h1>
+    <h1 class="m-0">玩家管理</h1>
 </div>
 
 <table class="table table-sm">
@@ -34,6 +34,11 @@
                             data-toggle="modal"
                             data-target="#EditBn">
                         編輯
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info"
+                            data-toggle="modal"
+                            data-target="#ViewLogsBn_@item.PlayerId">
+                        消費紀錄
                     </button>
                     <button type="button" class="btn btn-sm btn-danger" onclick="deletePlayer(@item.PlayerId)">
                         刪除
@@ -117,6 +122,60 @@
         </div>
     </div>
 </div>
+
+<!-- 為每個玩家生成一個消費紀錄 Modal -->
+@foreach (var player in Model)
+{
+    <div class="modal fade" id="ViewLogsBn_@player.PlayerId" tabindex="-1" aria-labelledby="viewLogsModalLabel_@player.PlayerId" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="margin-left: auto; margin-right: auto;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewLogsModalLabel_@player.PlayerId">玩家 @player.PlayerId 的消費紀錄</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">造型ID</th>
+                                <th style="width: 25%;">消費時間</th>
+                                <th style="width: 20%;">金額</th>
+                                <th style="width: 20%;">剩餘點數</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (player.InventoryLogs == null || player.InventoryLogs.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #999;">該玩家沒有消費紀錄</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var log in player.InventoryLogs)
+                                {
+                                    <tr>
+                                        <td>@log.SkinId</td>
+                                        <td>@log.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@log.Price</td>
+                                        <td>@log.Point</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
 
 <script>
     // 編輯按鈕點擊事件

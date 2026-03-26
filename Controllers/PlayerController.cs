@@ -28,7 +28,12 @@ namespace PawsPort.Controllers
                         .Where(h => h.PlayerId == p.PlayerId)
                         .OrderByDescending(h => h.LastPlayedDate)
                         .Select(h => h.LastPlayedDate)
-                        .FirstOrDefault()
+                        .FirstOrDefault(),
+                    InventoryLogs = db.InventoryLogs
+                        .Where(l => l.PlayerId == p.PlayerId)
+                        .OrderByDescending(l => l.CreateTime)
+                        .ToList()
+
                 })
                 .ToList();
 

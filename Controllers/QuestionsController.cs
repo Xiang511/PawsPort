@@ -22,6 +22,9 @@ namespace PawsPort.Controllers
         public IActionResult Create(GameContent G)
         {
             PetDbContext db = new PetDbContext();
+
+            var count = db.GameContents.Count();
+            G.GameId = count + 1;
             Debug.WriteLine($"Create GameContent id : {G.GameId}");
 
             db.GameContents.Add(G);

@@ -31,10 +31,10 @@
                     <!-- CSRF Token（防止跨站請求偽造） -->
                     @* @Html.AntiForgeryToken() *@
                     <!-- 遊戲名稱 -->
-                    <div class="form-group">
+                    @* <div class="form-group">
                         <label for="GameId">id <span style="color: red;">*</span></label>
                         <input type="text" class="form-control" id="GameId" name="GameId" placeholder="輸入id" required />
-                    </div>
+                    </div> *@
                     <div class="form-group">
                         <label for="GameName">題目類型 <span style="color: red;">*</span></label>
                         <input type="text" class="form-control" id="GameName" name="GameName" placeholder="輸入題目類型" required />
@@ -51,8 +51,8 @@
                         <label for="Answers">正確答案 <span style="color: red;">*</span></label>
                         <select class="form-control" id="Answers" name="Answers" required>
                             <option value="">-- 請選擇 --</option>
-                            <option value="1">是</option>
-                            <option value="0">否</option>
+                            <option value="true">是</option>
+                            <option value="false">否</option>
                         </select>
                     </div>
 
@@ -77,8 +77,8 @@
                     <!-- 是否啟用 -->
                     <div class="form-group">
                         <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" checked />
-                            <label class="custom-control-label" for="IsActive" value="1">
+                            <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" value="true"  checked />
+                            <label class="custom-control-label" for="IsActive" >
                                 啟用此題目
                             </label>
                         </div>

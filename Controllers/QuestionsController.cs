@@ -58,5 +58,21 @@ namespace PawsPort.Controllers
             return RedirectToAction("List");
         }
 
+        // 刪除題目 - POST 方法
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            PetDbContext db = new PetDbContext();
+            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == id);
+
+            if (game != null)
+            {
+                db.GameContents.Remove(game);
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("List");
+        }
+
     }
 }

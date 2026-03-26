@@ -4,18 +4,17 @@
     ViewData["Title"] = "List";
 }
 
-<h1>題庫管理</h1>
-
-<p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">題庫管理</h1>
     <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
         <span class="icon text-white-50">
             <i class="fa-solid fa-plus"></i>
         </span>
         <span class="text">新增題目</span>
     </button>
-</p>
+</div>
 
-<!-- Modal -->
+<!-- 新增 Modal -->
 <div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
@@ -166,35 +165,72 @@
         </div>
     </div>
 </div>
+<!-- 刪除確認 Modal -->
+<div class="modal fade" id="DeleteBn" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>確定要刪除題目「<span id="DeleteGameName"></span>」嗎？</p>
+                <p style="color: red;">此操作無法撤銷！</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-action="Delete" asp-controller="Questions" style="display: inline;">
+                    <input type="hidden" id="DeleteGameId" name="id" />
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
 
-<table class="table">
+<script>
+    function deleteQuestion(gameId, gameName) {
+        // 填充刪除確認 Modal
+        document.getElementById('DeleteGameId').value = gameId;
+        document.getElementById('DeleteGameName').textContent = gameName;
+        
+        // 打開 Modal
+        $('#DeleteBn').modal('show');
+    }
+</script>
+
+<table class="table table-sm">
     <thead>
         <tr>
-            <th>
+            <th style="width: 5%;">
                 編號
             </th>
-            <th>
+            <th style="width: 10%;">
                 @Html.DisplayNameFor(model => model.GameName)
             </th>
-            <th>
+            <th style="width: 25%;">
                 @Html.DisplayNameFor(model => model.Questions)
             </th>
-            <th>
+            <th style="width: 25%;">
                 @Html.DisplayNameFor(model => model.AnswersDetail)
             </th>
-            <th>
+            <th style="width: 5%;">
                 @Html.DisplayNameFor(model => model.Answers)
             </th>
-            <th>
+            <th style="width: 5%;">
                 @Html.DisplayNameFor(model => model.IsActive)
             </th>
-            <th>
+            <th style="width: 5%;">
                 @Html.DisplayNameFor(model => model.Rewards)
             </th>
-            <th>
+            <th style="width: 5%;">
                 @Html.DisplayNameFor(model => model.Type)
             </th>
-            <th></th>
+            <th style="width: 5%;">
+                操作
+            </th>
         </tr>
     </thead>
     <tbody>
@@ -241,8 +277,9 @@
                                 data-target="#EditBn">
                             <i class="fa-solid fa-pen-to-square"></i>
                         </button>
-
-                @Html.ActionLink("刪除", "Delete", new { /* id=item.PrimaryKey */ })
+                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(@item.GameId, '@item.GameName')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
             </td>
         </tr>
 }}

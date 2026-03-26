@@ -1,0 +1,93 @@
+﻿@model IEnumerable<PawsPort.ViewModels.AdoptionRecordViewModel>
+
+@{
+    ViewData["Title"] = "List";
+}
+
+<h1>領養紀錄</h1>
+@using (Html.BeginForm())
+{
+    @:關鍵字 @Html.TextBox("txtKeyword")
+    <input type="submit" value="查詢" />
+}
+<p>
+    <a asp-action="Create" class="btn btn-primary">新增領養紀錄</a>
+</p>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                @Html.DisplayNameFor(model => model.AdoptionId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Name)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.PetId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.UserId)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ApplyDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.AdoptDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReturnDate)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.ReturnReason)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Status)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.FollowUpDeadline)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+@foreach (var item in Model) {
+        <tr>
+            <td>
+                @Html.DisplayFor(modelItem => item.AdoptionId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Name)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.PetId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.UserId)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ApplyDate)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AdoptDate)
+            </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.ReturnDate)
+                </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.ReturnReason)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Status)
+            </td>
+                <td>
+                    @Html.DisplayFor(modelItem => item.FollowUpDeadline)
+                </td>
+            <td>
+                    @Html.ActionLink("編輯", "Edit", "AdoptionRecord", new { id = item.AdoptionId }, new { @class = "btn btn-success" }) |
+
+                    @Html.ActionLink("刪除", "Delete", "AdoptionRecord", new { id = item.AdoptionId }, new { onclick = "return confirm('確定要刪除嗎?')", Class = "btn btn-danger" })
+            </td>
+        </tr>
+}
+    </tbody>
+</table>

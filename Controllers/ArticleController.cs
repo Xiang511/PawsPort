@@ -46,6 +46,8 @@ namespace PawsPort.Controllers
             PetDbContext db = new PetDbContext();
 
             p.IsExist = true; //設定文章為存在狀態
+            p.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
+          
             db.Articles.Add(p);
             db.SaveChanges();
             return RedirectToAction("ArticleList");

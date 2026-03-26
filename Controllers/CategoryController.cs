@@ -46,10 +46,55 @@ namespace PawsPort.Controllers
             PetDbContext db = new PetDbContext();
 
             p.IsExist = true; //設定類別為存在狀態
+            p.CreateAt = DateTime.Now; //設定類別的建立時間為目前時間
+   
             db.Categories.Add(p);
             db.SaveChanges();
             return RedirectToAction("CategoryList");
 
         }
+
+        public IActionResult EditCategory(int? id)
+        {
+            PetDbContext db = new PetDbContext();
+            Category x = db.Categories.FirstOrDefault(p => p.CategoryId == id);
+            if (x == null)
+            {
+                return RedirectToAction("CategoryList");
+            }
+            return View(x);
+        }
+
+        [HttpPost]
+        public IActionResult EditCategory(Category uiCategory)
+        {
+            PetDbContext db = new PetDbContext(); //建立資料庫上下文
+            Category dbCategory = db.Categories.FirstOrDefault(p => p.CategoryId == uiCategory.CategoryId); //從資料庫中查找要編輯的文章
+            if (dbCategory != null)
+            {
+                dbCategory.CategoryName = uiCategory.CategoryName; //更新類別名稱
+                dbCategory.CategoryDescription = uiCategory.CategoryDescription; //更新類別描述
+                dbCategory.ParentId = uiCategory.ParentId; //更新父類別ID
+                dbCategory.Level = uiCategory.Level; //更新類別層級
+                dbCategory.SortOrder = uiCategory.SortOrder; //更新類別排序
+                dbCategory.LastEditTime = DateTime.Now; //更新最後編輯時間
+                db.SaveChanges(); //保存更改到資料庫
+
+            }
+            return RedirectToAction("CategoryList");
+        }
+
+        public IActionResult DeleteCategory(int? id)
+        {
+            PetDbContext db = new PetDbContext();
+            Category x = db.Categories.FirstOrDefault(p => p.CategoryId == id);
+            if (x != null)
+            {
+                x.IsExist = false;
+                db.SaveChanges();
+            }
+            return RedirectToAction("CategoryList");
+        }
+
     }
 }

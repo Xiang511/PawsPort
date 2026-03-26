@@ -43,12 +43,12 @@
             @* <th>
                 @Html.DisplayNameFor(model => model.IsExist)
             </th> *@
-            @* <th>
+            <th>
                 @Html.DisplayNameFor(model => model.CreateAt)
-            </th> *@
-            @* <th>
+            </th>
+            <th>
                 @Html.DisplayNameFor(model => model.LastEditTime)
-            </th> *@
+            </th>
             <th></th>
         </tr>
     </thead>
@@ -82,12 +82,12 @@
                     @*<td>
                 @Html.DisplayFor(modelItem => item.IsExist)
             </td>*@
-                    @*<td>
-                @Html.DisplayFor(modelItem => item.CreateAt)
-            </td>*@
-                    @*<td>
-                @Html.DisplayFor(modelItem => item.LastEditTime)
-            </td>*@
+                    <td>
+                        @Html.DisplayFor(modelItem => item.CreateAt)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.LastEditTime)
+                    </td>
 
                     <td>
                         @Html.ActionLink("編輯", "EditCategory", "Category", new { id = item.CategoryId }, null) |
@@ -95,7 +95,7 @@
                     </td>
                 </tr>
             }
-        
-}
+
+        }
     </tbody>
 </table>

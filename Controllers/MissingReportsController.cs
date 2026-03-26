@@ -4,40 +4,39 @@ using PawsPort.ViewModels;
 
 namespace PawsPort.Controllers
 {
-    public class PassPortController : Controller
+    public class MissingReportsController : Controller
     {
         public IActionResult List(KeywordViewModel vm)
         {
             PetDbContext db = new PetDbContext();
 
-            // 步驟 1：先寫好基礎查詢 (把兩張表 Join 起來，並轉換成 ViewModel)
-            // 注意：這時候還沒有真正去資料庫抓資料喔，只是先寫好「查詢計畫」
-            var query = from h in db.HealthPassports
+           
+            var query = from h in db.MissingReports
                         join p in db.Pets on h.PetId equals p.PetId
-                        // 過濾掉已經被軟刪除的寵物 (確保資料是乾淨的)
+                        
                         where p.DeletedAt == null
-                        select new HealthPassportListViewModel
+                        select new MissingReportListViewModel
                         {
-                            PassportId = h.PassportId,
+                            ReportId = h.ReportId,
                             PetId = h.PetId,
                             Name = p.Name, // 順利拿到名字
-                            Weight = h.Weight,
-                            Note = h.Note,
-                            RecordType = h.RecordType,
-                            RecordDate = h.RecordDate,
+                            LastSeenDate = h.LastSeenDate,
+                            IsActive = h.IsActive,
+                            LastSeenLat = h.LastSeenLat,
+                            LastSeenLng = h.LastSeenLng,
+                            LostLocation = h.LostLocation,
                             UpdatedAt = h.UpdatedAt,
-                            CreatedAt = h.CreatedAt
+                            CreatedAt = h.CreatedAt,
+                            UserId = h.UserId
                         };
-            
 
-            // 步驟 2：加上你的「搜尋功能」邏輯！
+            
             if (!string.IsNullOrEmpty(vm.txtKeyword))
             {
-                // 輸入關鍵字，就在剛才組好的 ViewModel 裡面，尋找符合「寵物名字」的資料
+                
                 query = query.Where(v => v.Name.Contains(vm.txtKeyword));
 
-                // 搜尋名字，也能搜尋護照的備註 (Note)，可以改成這樣寫：
-                // query = query.Where(v => v.PetName.Contains(vm.txtKeyword) || (v.Note != null && v.Note.Contains(vm.txtKeyword)));
+                
             }
 
             // 步驟 3：執行查詢，把資料變成 List，然後傳給 View
@@ -49,11 +48,11 @@ namespace PawsPort.Controllers
             return View();
         }
         [HttpPost]
-        public IActionResult Create(HealthPassport p)
+        public IActionResult Create(MissingReport p)
         {
             PetDbContext db = new PetDbContext();
-            p.PassportId = 0;
-            db.HealthPassports.Add(p);
+            p.ReportId = 0;
+            db.MissingReports.Add(p);
             db.SaveChanges();
             return RedirectToAction("List");
         }
@@ -64,12 +63,12 @@ namespace PawsPort.Controllers
             PetDbContext db = new PetDbContext();
 
             // 2. 找到那筆健康資料
-            HealthPassport x = db.HealthPassports.FirstOrDefault(p => p.PassportId == id);
+            MissingReport x = db.MissingReports.FirstOrDefault(p => p.ReportId == id);
 
             if (x != null)
             {
                 // 這裡到時候要改成軟刪除
-                db.HealthPassports.Remove(x);
+                db.MissingReports.Remove(x);
                 db.SaveChanges();
             }
 
@@ -79,31 +78,33 @@ namespace PawsPort.Controllers
         public IActionResult Edit(int? id)
         {
             PetDbContext db = new PetDbContext();
-            HealthPassport x = db.HealthPassports.FirstOrDefault(p => p.PassportId == id);
+            MissingReport x = db.MissingReports.FirstOrDefault(p => p.ReportId == id);
             if (x == null)
                 return RedirectToAction("List");
             return View(x);
         }
         [HttpPost]
-        public IActionResult Edit(HealthPassport uiPassport) // 變數名稱改叫 uiPassport 比較不會搞混
+        public IActionResult Edit(MissingReport uiReport) // 變數名稱改叫 uiPassport 比較不會搞混
         {
             PetDbContext db = new PetDbContext();
 
             // 1. 根據使用者傳回來的 PassportId，從資料庫把「舊的那筆資料」抓出來
-            HealthPassport dbPassport = db.HealthPassports.FirstOrDefault(p => p.PassportId == uiPassport.PassportId);
+            MissingReport dbReport = db.MissingReports.FirstOrDefault(p => p.ReportId == uiReport.ReportId);
 
             // 2. 確保資料庫真的有這筆資料！(這一步很重要)
-            if (dbPassport != null)
+            if (dbReport != null)
             {
                 // 3. 將表單傳進來的新資料 (uiPassport)，覆蓋掉資料庫裡的舊資料 (dbPassport)
                 // (這裡我列出了你第一張截圖裡的寵物屬性，你可以把你不想被修改的欄位刪除)
-                dbPassport.Weight = uiPassport.Weight;
-                dbPassport.Note = uiPassport.Note;
-                dbPassport.RecordType = uiPassport.RecordType;
+                dbReport.LastSeenDate = uiReport.LastSeenDate;
+                dbReport.LastSeenLat = uiReport.LastSeenLat;
+                dbReport.LastSeenLng = uiReport.LastSeenLng;
+                dbReport.IsActive = uiReport.IsActive;
+                dbReport.LostLocation = uiReport.LostLocation;
 
 
                 // ✨ 小細節：如果你的資料表有 UpdatedAt 欄位，這時候剛好可以寫入修改時間
-                dbPassport.UpdatedAt = DateTime.Now;
+                dbReport.UpdatedAt = DateTime.Now;
 
                 // 4. 告訴資料庫把變更存起來
                 db.SaveChanges();

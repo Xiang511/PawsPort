@@ -5,9 +5,14 @@
 }
 
 <h1>寵物資料一覽表</h1>
+@using (Html.BeginForm())
+{
+    @:關鍵字 @Html.TextBox("txtKeyword")
+    <input type="submit" value="查詢" />
+}
 
 <p>
-    <a asp-action="Create">建立新資料</a>
+    <a asp-action="Create" class="btn btn-primary ">建立新資料</a>
 </p>
 <table class="table">
     <thead>
@@ -109,9 +114,9 @@
                 @Html.DisplayFor(modelItem => item.DeletedAt)
             </td>
             <td>
-                    @Html.ActionLink("資料修改", "Edit", new { id = item.PetId }) |
-                    @Html.ActionLink("Details", "Details", new { id = item.PetId }) |
-                    @Html.ActionLink("資料刪除", "Delete", new { id = item.PetId })
+                    @Html.ActionLink("資料修改", "Edit", "Pet", new { id = item.PetId }, new { @class = "btn btn-success" }) |
+                    
+                    @Html.ActionLink("資料刪除", "Delete", "Pet", new { id = item.PetId }, new { onclick = "return confirm('確定要刪除嗎?')", Class = "btn btn-danger" })
             </td>
         </tr>
 }

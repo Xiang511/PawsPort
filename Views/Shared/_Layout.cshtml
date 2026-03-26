@@ -146,7 +146,7 @@
 
                         <!-- Nav Item - Tables -->
                         <li class="nav-item">
-                            <a class="nav-link" href="#">
+                            <a class="nav-link" href="~/Questions/List">
                                 <i class="fa-solid fa-file-circle-question"></i>
                                 <span>題庫管理</span>
                             </a>
@@ -610,7 +610,8 @@
                             <script src="~/js/demo/datatables-demo.js"></script>
 
 
-
+                            @await RenderSectionAsync("Scripts", required: false)
+                            
 
                         </body>
 

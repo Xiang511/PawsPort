@@ -1,0 +1,157 @@
+﻿@model IEnumerable<PawsPort.Models.GameContent>
+
+@{
+    ViewData["Title"] = "List";
+}
+
+<h1>題庫管理</h1>
+
+<p>
+    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
+        <span class="icon text-white-50">
+            <i class="fas fa-flag"></i>
+        </span>
+        <span class="text">新增題目</span>
+    </button>
+</p>
+
+<!-- Modal -->
+<div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增題目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- 表單開始 -->
+            <form method="post" asp-action="Create" asp-controller="Questions">
+                <div class="modal-body">
+                    <!-- CSRF Token（防止跨站請求偽造） -->
+                    @* @Html.AntiForgeryToken() *@
+                    <!-- 遊戲名稱 -->
+                    <div class="form-group">
+                        <label for="GameId">id <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="GameId" name="GameId" placeholder="輸入id" required />
+                    </div>
+                    <div class="form-group">
+                        <label for="GameName">題目類型 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="GameName" name="GameName" placeholder="輸入題目類型" required />
+                    </div>
+
+                    <!-- 題目內容 -->
+                    <div class="form-group">
+                        <label for="Questions">題目內容 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="Questions" name="Questions" rows="3" placeholder="輸入題目內容" required></textarea>
+                    </div>
+
+                    <!-- 正確答案 -->
+                    <div class="form-group">
+                        <label for="Answers">正確答案 <span style="color: red;">*</span></label>
+                        <select class="form-control" id="Answers" name="Answers" required>
+                            <option value="">-- 請選擇 --</option>
+                            <option value="1">是</option>
+                            <option value="0">否</option>
+                        </select>
+                    </div>
+
+                    <!-- 詳細解答 -->
+                    <div class="form-group">
+                        <label for="AnswersDetail">詳細解答 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="AnswersDetail" name="AnswersDetail" rows="3" placeholder="輸入詳細解答" required></textarea>
+                    </div>
+
+                    <!-- 解題獎勵 -->
+                    <div class="form-group">
+                        <label for="Rewards">解題獎勵 (點數) <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="Rewards" name="Rewards" placeholder="輸入獎勵點數" min="0" required />
+                    </div>
+
+                    <!-- 題目類型 -->
+                    <div class="form-group">
+                        <label for="Type">題目類型</label>
+                        <input type="text" class="form-control" id="Type" name="Type" placeholder="例：是非題" value="問答" />
+                    </div>
+
+                    <!-- 是否啟用 -->
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" checked />
+                            <label class="custom-control-label" for="IsActive" value="1">
+                                啟用此題目
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="SubmitBtn">新增題目</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+            <!-- 表單結束 -->
+        </div>
+    </div>
+</div>
+<table class="table">
+    <thead>
+        <tr>
+            <th>
+                編號
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.GameName)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Questions)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Answers)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.IsActive)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Rewards)
+            </th>
+            <th>
+                @Html.DisplayNameFor(model => model.Type)
+            </th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+            foreach (var item in Model) {
+                count++;
+        <tr>
+            <td>
+                @count
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GameName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Questions)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Answers)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsActive)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Rewards)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Type)
+            </td>
+            <td>
+                @Html.ActionLink("編輯", "Edit", new { /* id=item.PrimaryKey */ }) |
+                @Html.ActionLink("刪除", "Delete", new { /* id=item.PrimaryKey */ })
+            </td>
+        </tr>
+}}
+    </tbody>
+</table>

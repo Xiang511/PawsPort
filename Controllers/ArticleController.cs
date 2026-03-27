@@ -135,10 +135,15 @@ namespace PawsPort.Controllers
                 if (x != null)
                 {
                     x.IsExist = false;
+                    var ImageList = Db.ArticleImages.Where(p => p.ArticleId == id).ToList();
+                    foreach (var img in ImageList)
+                    {
+                        img.IsExist = false; //將與該文章相關的圖片標記為不存在
+                    }
                     Db.SaveChanges();
                 }
-                return RedirectToAction("ArticleList");
             }
+            return RedirectToAction("ArticleList");
         }
 
 

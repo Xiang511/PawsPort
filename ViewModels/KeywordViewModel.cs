@@ -2,6 +2,9 @@
 {
     public class KeywordViewModel
     {
+        public string TxtKeyword { get; set; }
+        public int TxtCategoryId { get; set; }
+        public int TxtArticleId { get; set; }
         public string txtKeyword { get; set; }
     }
 }

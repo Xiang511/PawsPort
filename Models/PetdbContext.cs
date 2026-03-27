@@ -1,6 +1,7 @@
-﻿using System;
+﻿using Microsoft.EntityFrameworkCore;
+using PawsPort.ViewModels;
+using System;
 using System.Collections.Generic;
-using Microsoft.EntityFrameworkCore;
 
 namespace PawsPort.Models;
 
@@ -50,6 +51,7 @@ public partial class PetDbContext : DbContext
     public virtual DbSet<LoginActivityTable> LoginActivityTables { get; set; }
 
     public virtual DbSet<MedicalHistory> MedicalHistories { get; set; }
+    
 
     public virtual DbSet<Message> Messages { get; set; }
 

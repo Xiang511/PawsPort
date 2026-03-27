@@ -48,10 +48,20 @@
                 <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
                 <td>
                     @Html.ActionLink("編輯", "Edit", "PassPort", new { id = item.PassportId }, new { @class = "btn btn-success" }) |
+                    @Html.ActionLink("Details", "Details", "PassPort", new { id = item.PassportId }, new { @class = "btn btn-primary" }) |
                     
                     @Html.ActionLink("刪除", "Delete", "PassPort", new { id = item.PassportId }, new { onclick = "return confirm('確定要刪除嗎?')", Class = "btn btn-danger" }) 
                 </td>
             </tr>
         }
+        
     </tbody>
 </table>
+
+@if (TempData["ErrorMessage"] != null)
+{
+    <script>
+        // 加入 Html.Raw() 讓系統輸出原本的中文字！
+        alert('@Html.Raw(TempData["ErrorMessage"])');
+    </script>
+}

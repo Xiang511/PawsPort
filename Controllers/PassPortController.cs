@@ -112,5 +112,48 @@ namespace PawsPort.Controllers
             // 修改完成後，回到列表頁看結果
             return RedirectToAction("List");
         }
+
+        public IActionResult Details(int? id)
+        {
+            PetDbContext db = new PetDbContext();
+            if (id == null) return RedirectToAction("List");
+
+            // 1. 分開查詢：去病歷表找，找不到的話 m 就會是 null
+            var m = db.MedicalHistories.FirstOrDefault(x => x.PassportId == id);
+
+            // 2. 分開查詢：去疫苗表找，找不到的話 v 就會是 null
+            var v = db.VaccinationStatuses.FirstOrDefault(x => x.PassportId == id);
+
+            // 3. 防呆機制：如果「病歷」和「疫苗」都完全沒資料，才退回列表
+            if (m == null && v == null)
+            {
+                TempData["ErrorMessage"] = "該名寵物目前沒有任何病歷與疫苗資料喔！";
+                return RedirectToAction("List");
+            }
+
+            // 4. 組裝 ViewModel (使用 ? 和 ?? 魔法)
+            HealthPassportDetailsViewModel pet = new HealthPassportDetailsViewModel
+            {
+                PassportId = (int)id,
+
+                // --- 病歷資料 ---
+                // m?.MedicalDetailId 意思是：如果 m 不是空的，就給我 ID；如果是空的，就給 null，不要報錯！
+                MedicalDetailId = m?.MedicalDetailId,
+
+                // m?.Location ?? "尚未有資料" 意思是：給我 Location，如果沒有，就顯示"尚未有資料"！
+                TreatmentLocation = m?.Location ?? "尚未有資料",
+                Disease = m?.Disease ?? "尚未有資料",
+                DiseaseTreatment = m?.DiseaseTreatment ?? "尚未有資料",
+                TreatmentTime = m?.Time, // 時間欄位先保持原樣
+
+                // --- 疫苗資料 ---
+                HistoryId = v?.HistoryId,
+                Type = v?.Type ?? "尚未有資料",
+                VaccinationLocation = v?.Location ?? "尚未有資料",
+                VaccinationTime = v?.Time
+            };
+
+            return View(pet);
+        }
     }
 }

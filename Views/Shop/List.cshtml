@@ -1,0 +1,348 @@
+﻿@model IEnumerable<PawsPort.Models.SkinShop>
+
+@{
+    ViewData["Title"] = "List";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">商店管理</h1>
+    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
+        <span class="icon text-white-50">
+            <i class="fa-solid fa-plus"></i>
+        </span>
+        <span class="text">新增造型</span>
+    </button>
+</div>
+
+<!-- 新增 Modal -->
+<div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增造型</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- 表單開始 -->
+            <form method="post" asp-action="Create" asp-controller="Shop" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- CSRF Token（防止跨站請求偽造） -->
+                    @* @Html.AntiForgeryToken() *@
+                    <!-- 造型名稱 -->
+                    <div class="form-group">
+                        <label for="SkinName">造型名稱 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="SkinName" name="SkinName" placeholder="輸入造型名稱" required />
+                    </div>
+
+                    <!-- 描述 -->
+                    <div class="form-group">
+                        <label for="Description">描述 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="Description" name="Description" rows="3" placeholder="輸入造型描述" required></textarea>
+                    </div>
+
+                    <!-- 價格 -->
+                    <div class="form-group">
+                        <label for="Price">價格 <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="Price" name="Price" placeholder="輸入價格" min="0" required />
+                    </div>
+
+                    <!-- 圖片上傳 -->
+                    <div class="form-group">
+                        <label for="ImageFile">圖片 <span style="color: red;">*</span></label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="ImageFile" name="imageFile" accept=".jpg,.jpeg,.png" required onchange="previewImage(event, 'CreateImagePreview')" />
+                            <label class="custom-file-label" for="ImageFile">選擇圖片...</label>
+                        </div>
+                        <small class="form-text text-muted">只允許上傳 JPG 或 PNG 格式的圖片</small>
+                        <!-- 圖片預覽 -->
+                        <div class="mt-3">
+                            <img id="CreateImagePreview" src="" alt="圖片預覽" style="display: none; max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
+                        </div>
+                    </div>
+
+                    <!-- 是否上架 -->
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="IsAvailable" name="IsAvailable" value="true" checked />
+                            <label class="custom-control-label" for="IsAvailable">
+                                上架此造型
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="SubmitBtn">新增造型</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+            <!-- 表單結束 -->
+        </div>
+    </div>
+</div>
+
+<!-- 編輯 Modal -->
+<div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">編輯造型 - </h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- 編輯表單開始 -->
+            <form method="post" asp-action="Edit" asp-controller="Shop" enctype="multipart/form-data">
+                <div class="modal-body">
+                    <!-- SkinId（隱藏欄位） -->
+                    <input type="hidden" id="EditSkinId" name="SkinId" />
+
+                    <!-- 造型名稱 -->
+                    <div class="form-group">
+                        <label for="EditSkinName">造型名稱 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="EditSkinName" name="SkinName" placeholder="輸入造型名稱" required />
+                    </div>
+
+                    <!-- 描述 -->
+                    <div class="form-group">
+                        <label for="EditDescription">描述 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="EditDescription" name="Description" rows="3" placeholder="輸入造型描述" required></textarea>
+                    </div>
+
+                    <!-- 價格 -->
+                    <div class="form-group">
+                        <label for="EditPrice">價格 <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="EditPrice" name="Price" placeholder="輸入價格" min="0" required />
+                    </div>
+
+                    <!-- 目前圖片顯示 -->
+                    <div class="form-group">
+                        <label>目前圖片</label>
+                        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
+                            <img id="EditCurrentImage" src="" alt="目前圖片" style="max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
+                        </div>
+                    </div>
+
+                    <!-- 圖片上傳 -->
+                    <div class="form-group">
+                        <label for="EditImageFile">上傳新圖片</label>
+                        <div class="custom-file">
+                            <input type="file" class="custom-file-input" id="EditImageFile" name="imageFile" accept=".jpg,.jpeg,.png" onchange="previewImage(event, 'EditImagePreview')" />
+                            <label class="custom-file-label" for="EditImageFile">選擇圖片（不選則保持原圖片）...</label>
+                        </div>
+                        <small class="form-text text-muted">只允許上傳 JPG 或 PNG 格式的圖片</small>
+                        <!-- 新圖片預覽 -->
+                        <div class="mt-3">
+                            <img id="EditImagePreview" src="" alt="新圖片預覽" style="display: none; max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
+                        </div>
+                    </div>
+
+                    <!-- 是否上架 -->
+                    <div class="form-group">
+                        <label for="EditIsAvailable">上架狀態 <span style="color: red;">*</span></label>
+                        <select class="form-control" id="EditIsAvailable" name="IsAvailable" required>
+                            <option value="false">下架</option>
+                            <option value="true">上架</option>
+                        </select>
+                    </div>
+
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="EditSubmitBtn">保存變更</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+            <!-- 編輯表單結束 -->
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認 Modal -->
+<div class="modal fade" id="DeleteBn" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>確定要刪除造型「<span id="DeleteSkinName"></span>」嗎？</p>
+                <p style="color: red;">此操作無法撤銷！</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-action="Delete" asp-controller="Shop" style="display: inline;">
+                    <input type="hidden" id="DeleteSkinId" name="id" />
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 圖片放大預覽 Modal -->
+<div class="modal fade" id="ImageViewerBn" tabindex="-1" aria-labelledby="imageViewerLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="imageViewerLabel">圖片預覽</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body" style="text-align: center;">
+                <img id="ViewerImage" src="" alt="圖片預覽" style="max-width: 100%; max-height: 500px;" />
+            </div>
+        </div>
+    </div>
+</div>
+
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th style="width: 5%;">
+                編號
+            </th>
+            <th style="width: 12%;">
+                造型名稱
+            </th>
+            <th style="width: 20%;">
+                描述
+            </th>
+            <th style="width: 8%;">
+                價格
+            </th>
+            <th style="width: 15%;">
+                圖片
+            </th>
+            <th style="width: 8%;">
+                是否上架
+            </th>
+            <th style="width: 12%;">
+                操作
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+            foreach (var item in Model)
+            {
+                count++;
+                <tr>
+                    <td>
+                        @count
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.SkinName)
+                    </td>
+                    <td>
+                        @{
+                            string displayDesc = item.Description.Length > 15 ? item.Description.Substring(0, 15) + "..." : item.Description;
+                        }
+                        <span title="@item.Description">@displayDesc</span>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Price)
+                    </td>
+                    <td style="text-align: center;">
+                        @if (!string.IsNullOrEmpty(item.SkinImage))
+                        {
+                            <img src="@item.SkinImage" alt="@item.SkinName" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;"
+                                 onclick="viewImage('@item.SkinImage', '@item.SkinName')" title="點擊查看大圖" />
+                        }
+                        else
+                        {
+                            <span style="color: #999;">無圖片</span>
+                        }
+                    </td>
+                    <td>
+                        @(item.IsAvailable ? "是" : "否")
+                    </td>
+                    <td>
+                        <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                data-id="@item.SkinId"
+                                data-name="@item.SkinName"
+                                data-description="@item.Description"
+                                data-price="@item.Price"
+                                data-image="@item.SkinImage"
+                                data-available="@item.IsAvailable"
+                                data-toggle="modal"
+                                data-target="#EditBn">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteSkin(@item.SkinId, '@item.SkinName')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>
+<script>
+    function deleteSkin(skinId, skinName) {
+        // 填充刪除確認 Modal
+        document.getElementById('DeleteSkinId').value = skinId;
+        document.getElementById('DeleteSkinName').textContent = skinName;
+        
+        // 打開 Modal
+        $('#DeleteBn').modal('show');
+    }
+
+    // 文件選擇器顯示文件名和預覽圖片
+    function previewImage(event, previewId) {
+        const file = event.target.files[0];
+        if (file) {
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const preview = document.getElementById(previewId);
+                preview.src = e.target.result;
+                preview.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+
+            // 更新文件名標籤
+            const label = event.target.nextElementSibling;
+            label.textContent = file.name;
+        }
+    }
+
+    // 圖片放大預覽
+    function viewImage(imageSrc, imageName) {
+        document.getElementById('ViewerImage').src = imageSrc;
+        document.getElementById('imageViewerLabel').textContent = imageName + ' - 圖片預覽';
+        $('#ImageViewerBn').modal('show');
+    }
+
+    // 編輯按鈕點擊事件
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const skinId = this.dataset.id;
+            const skinName = this.dataset.name;
+            const description = this.dataset.description;
+            const price = this.dataset.price;
+            const image = this.dataset.image;
+            const isAvailable = this.dataset.available;
+
+            // 填充 Modal 欄位
+            document.getElementById('EditSkinId').value = skinId;
+            document.getElementById('EditSkinName').value = skinName;
+            document.getElementById('EditDescription').value = description;
+            document.getElementById('EditPrice').value = price;
+            document.getElementById('EditIsAvailable').value = isAvailable === 'True' ? 'true' : 'false';
+            
+            // 顯示目前圖片
+            document.getElementById('EditCurrentImage').src = image;
+            
+            // 清除新圖片預覽
+            document.getElementById('EditImagePreview').src = '';
+            document.getElementById('EditImagePreview').style.display = 'none';
+            document.getElementById('EditImageFile').value = '';
+            document.querySelector('label[for="EditImageFile"]').textContent = '選擇圖片（不選則保持原圖片）...';
+        });
+    });
+</script>

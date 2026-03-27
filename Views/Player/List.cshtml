@@ -1,0 +1,229 @@
+﻿@model IEnumerable<dynamic>
+
+@{
+    ViewData["Title"] = "玩家管理";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">玩家管理</h1>
+</div>
+
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th style="width: 8%;">玩家ID</th>
+            <th style="width: 10%;">點數</th>
+            <th style="width: 12%;">持有造型數量</th>
+            <th style="width: 10%;">遊玩進度</th>
+            <th style="width: 15%;">最後遊玩時間</th>
+            <th style="width: 15%;">操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.PlayerId</td>
+                <td>@item.Point</td>
+                <td>@item.SkinCount</td>
+                <td>@(item.MaxGameId > 0 ? "第 " + item.MaxGameId + " 關" : "未開始")</td>
+                <td>@(item.LastPlayedDate != null ? item.LastPlayedDate.ToString("yyyy-MM-dd HH:mm") : "未遊玩")</td>
+                <td style="white-space: nowrap;">
+                    <button type="button" class="btn btn-sm btn-warning edit-btn"
+                            data-id="@item.PlayerId"
+                            data-toggle="modal"
+                            data-target="#EditBn">
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePlayer(@item.PlayerId)">
+                        <i class="fa-solid fa-trash"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-info"
+                            data-toggle="modal"
+                            data-target="#ViewLogsBn_@item.PlayerId">
+                        <i class="fa-solid fa-receipt"></i>  消費紀錄
+                    </button>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<!-- 編輯 Modal -->
+<div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg" style="margin-left: auto; margin-right: auto;">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">編輯玩家 - <span id="EditPlayerIdDisplay"></span></h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <form method="post" asp-action="Edit" asp-controller="Player">
+                <div class="modal-body">
+                    <input type="hidden" id="EditPlayerId" name="PlayerId" />
+
+                    <!-- 玩家點數 -->
+                    <div class="form-group">
+                        <label for="EditPoint">點數</label>
+                        <input type="number" class="form-control" id="EditPoint" name="Point" placeholder="輸入點數" min="0" required />
+                    </div>
+
+                    <!-- 遊玩進度 -->
+                    <div class="form-group">
+                        <label>遊玩進度</label>
+                        <input type="text" class="form-control" id="EditGameProgress" readonly />
+                    </div>
+
+                    <!-- 最後遊玩時間 -->
+                    <div class="form-group">
+                        <label>最後遊玩時間</label>
+                        <input type="text" class="form-control" id="EditLastPlayedDate" readonly />
+                    </div>
+
+                    <!-- 持有造型 -->
+                    <div class="form-group">
+                        <label>持有造型</label>
+                        <div id="SkinsList" style="border: 1px solid #ddd; padding: 10px; border-radius: 4px; max-height: 300px; overflow-y: auto;">
+                            <!-- 造型列表將由 JavaScript 動態生成 -->
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="EditSubmitBtn">保存變更</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<!-- 刪除確認 Modal -->
+<div class="modal fade" id="DeleteBn" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>確定要刪除玩家「<span id="DeletePlayerId"></span>」嗎？</p>
+                <p style="color: red;">此操作無法撤銷！</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-action="Delete" asp-controller="Player" style="display: inline;">
+                    <input type="hidden" id="DeletePlayerIdInput" name="id" />
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- 為每個玩家生成一個消費紀錄 Modal -->
+@foreach (var player in Model)
+{
+    <div class="modal fade" id="ViewLogsBn_@player.PlayerId" tabindex="-1" aria-labelledby="viewLogsModalLabel_@player.PlayerId" aria-hidden="true">
+        <div class="modal-dialog modal-lg" style="margin-left: auto; margin-right: auto;">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="viewLogsModalLabel_@player.PlayerId">玩家 @player.PlayerId 的消費紀錄</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th style="width: 15%;">造型ID</th>
+                                <th style="width: 25%;">消費時間</th>
+                                <th style="width: 20%;">金額</th>
+                                <th style="width: 20%;">剩餘點數</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @if (player.InventoryLogs == null || player.InventoryLogs.Count == 0)
+                            {
+                                <tr>
+                                    <td colspan="4" style="text-align: center; color: #999;">該玩家沒有消費紀錄</td>
+                                </tr>
+                            }
+                            else
+                            {
+                                @foreach (var log in player.InventoryLogs)
+                                {
+                                    <tr>
+                                        <td>@log.SkinId</td>
+                                        <td>@log.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td>@log.Price</td>
+                                        <td>@log.Point</td>
+                                    </tr>
+                                }
+                            }
+                        </tbody>
+                    </table>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+                </div>
+            </div>
+        </div>
+    </div>
+}
+
+
+
+<script>
+    // 編輯按鈕點擊事件
+    document.addEventListener('click', function(e) {
+        if (e.target.closest('.edit-btn')) {
+            const btn = e.target.closest('.edit-btn');
+            const playerId = btn.dataset.id;
+            
+            // 獲取玩家詳細信息
+            fetch(`/Player/GetPlayerDetails?playerId=${playerId}`)
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('EditPlayerIdDisplay').textContent = data.playerId;
+                    document.getElementById('EditPlayerId').value = data.playerId;
+                    document.getElementById('EditPoint').value = data.point;
+                    document.getElementById('EditGameProgress').value = data.maxGameId > 0 ? `第 ${data.maxGameId} 關` : '未開始';
+                    document.getElementById('EditLastPlayedDate').value = data.lastPlayedDate;
+                    
+                    // 生成造型列表
+                    const skinsList = document.getElementById('SkinsList');
+                    skinsList.innerHTML = '';
+                    
+                    if (data.skins.length === 0) {
+                        skinsList.innerHTML = '<p style="margin: 0; color: #999;">該玩家沒有持有任何造型</p>';
+                    } else {
+                        data.skins.forEach(skin => {
+                            const skinItem = document.createElement('div');
+                            skinItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;';
+                            skinItem.innerHTML = `
+                                <span>造型 ID: <strong>${skin.skinId}</strong></span>
+                                <div class="custom-control custom-checkbox">
+                                    <input type="checkbox" class="custom-control-input skin-checkbox" name="EnabledSkinIds" value="${skin.inventoryId}" id="skin_${skin.inventoryId}" ${skin.enable ? 'checked' : ''} />
+                                    <label class="custom-control-label" for="skin_${skin.inventoryId}">
+                                        啟用
+                                    </label>
+                                </div>
+                            `;
+                            skinsList.appendChild(skinItem);
+                        });
+                    }
+                })
+                .catch(error => console.error('Error:', error));
+        }
+    });
+
+    function deletePlayer(playerId) {
+        document.getElementById('DeletePlayerId').textContent = playerId;
+        document.getElementById('DeletePlayerIdInput').value = playerId;
+        $('#DeleteBn').modal('show');
+    }
+</script>

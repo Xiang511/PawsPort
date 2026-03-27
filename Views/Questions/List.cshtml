@@ -1,0 +1,313 @@
+﻿@model IEnumerable<PawsPort.Models.GameContent>
+
+@{
+    ViewData["Title"] = "List";
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1 class="m-0">題庫管理</h1>
+    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
+        <span class="icon text-white-50">
+            <i class="fa-solid fa-plus"></i>
+        </span>
+        <span class="text">新增題目</span>
+    </button>
+</div>
+
+<!-- 新增 Modal -->
+<div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="exampleModalLabel">新增題目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- 表單開始 -->
+            <form method="post" asp-action="Create" asp-controller="Questions">
+                <div class="modal-body">
+                    <!-- CSRF Token（防止跨站請求偽造） -->
+                    @* @Html.AntiForgeryToken() *@
+                    <!-- 遊戲名稱 -->
+                    <div class="form-group">
+                        <label for="GameName">題目類型 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="GameName" name="GameName" placeholder="輸入題目類型" required />
+                    </div>
+
+                    <!-- 題目內容 -->
+                    <div class="form-group">
+                        <label for="Questions">題目內容 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="Questions" name="Questions" rows="3" placeholder="輸入題目內容" required></textarea>
+                    </div>
+
+                    <!-- 正確答案 -->
+                    <div class="form-group">
+                        <label for="Answers">正確答案 <span style="color: red;">*</span></label>
+                        <select class="form-control" id="Answers" name="Answers" required>
+                            <option value="">-- 請選擇 --</option>
+                            <option value="true">是</option>
+                            <option value="false">否</option>
+                        </select>
+                    </div>
+
+                    <!-- 詳細解答 -->
+                    <div class="form-group">
+                        <label for="AnswersDetail">詳細解答 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="AnswersDetail" name="AnswersDetail" rows="3" placeholder="輸入詳細解答" required></textarea>
+                    </div>
+
+                    <!-- 解題獎勵 -->
+                    <div class="form-group">
+                        <label for="Rewards">解題獎勵 (點數) <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="Rewards" name="Rewards" placeholder="輸入獎勵點數" min="0" required />
+                    </div>
+
+                    <!-- 題目類型 -->
+                    <div class="form-group">
+                        <label for="Type">題目類型</label>
+                        <input type="text" class="form-control" id="Type" name="Type" placeholder="例：是非題" value="問答" />
+                    </div>
+
+                    <!-- 是否啟用 -->
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" value="true" checked />
+                            <label class="custom-control-label" for="IsActive" >
+                                啟用此題目
+                            </label>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="SubmitBtn">新增題目</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+            <!-- 表單結束 -->
+        </div>
+    </div>
+</div>
+<!-- 編輯 Modal -->
+<div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editModalLabel">編輯題目</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <!-- 編輯表單開始 -->
+            <form method="post" asp-action="Edit" asp-controller="Questions">
+                <div class="modal-body">
+                    <!-- GameId（隱藏欄位） -->
+                    <input type="hidden" id="EditGameId" name="GameId" />
+
+                    <!-- 遊戲名稱 -->
+                    <div class="form-group">
+                        <label for="EditGameName">題目類型 <span style="color: red;">*</span></label>
+                        <input type="text" class="form-control" id="EditGameName" name="GameName" placeholder="輸入題目類型" required />
+                    </div>
+
+                    <!-- 題目內容 -->
+                    <div class="form-group">
+                        <label for="EditQuestions">題目內容 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="EditQuestions" name="Questions" rows="3" placeholder="輸入題目內容" required></textarea>
+                    </div>
+
+                    <!-- 正確答案 -->
+                    <div class="form-group">
+                        <label for="EditAnswers">正確答案 <span style="color: red;">*</span></label>
+                        <select class="form-control" id="EditAnswers" name="Answers" required>
+                            <option value="">-- 請選擇 --</option>
+                            <option value="true">是</option>
+                            <option value="false">否</option>
+                        </select>
+                    </div>
+
+                    <!-- 詳細解答 -->
+                    <div class="form-group">
+                        <label for="EditAnswersDetail">詳細解答 <span style="color: red;">*</span></label>
+                        <textarea class="form-control" id="EditAnswersDetail" name="AnswersDetail" rows="3" placeholder="輸入詳細解答" required></textarea>
+                    </div>
+
+                    <!-- 解題獎勵 -->
+                    <div class="form-group">
+                        <label for="EditRewards">解題獎勵 (點數) <span style="color: red;">*</span></label>
+                        <input type="number" class="form-control" id="EditRewards" name="Rewards" placeholder="輸入獎勵點數" min="0" required />
+                    </div>
+
+                    <!-- 題目類型 -->
+                    <div class="form-group">
+                        <label for="EditType">題目類型</label>
+                        <input type="text" class="form-control" id="EditType" name="Type" placeholder="例：是非題" />
+                    </div>
+
+                    <!-- 是否啟用 -->
+                    <div class="form-group">
+                        <div class="custom-control custom-checkbox">
+                            <input type="hidden" name="IsActive" value="false" />
+                            <input type="checkbox" class="custom-control-input" id="EditIsActive" name="IsActive" value="true" />
+                            <label class="custom-control-label" for="EditIsActive">
+                                啟用此題目
+                            </label>
+                        </div>
+                    </div>
+
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" id="EditSubmitBtn">保存變更</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </div>
+            </form>
+            <!-- 編輯表單結束 -->
+        </div>
+    </div>
+</div>
+<!-- 刪除確認 Modal -->
+<div class="modal fade" id="DeleteBn" tabindex="-1" aria-labelledby="deleteModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel">確認刪除</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <p>確定要刪除題目「<span id="DeleteGameName"></span>」嗎？</p>
+                <p style="color: red;">此操作無法撤銷！</p>
+            </div>
+            <div class="modal-footer">
+                <form method="post" asp-action="Delete" asp-controller="Questions" style="display: inline;">
+                    <input type="hidden" id="DeleteGameId" name="id" />
+                    <button type="submit" class="btn btn-danger">確認刪除</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function deleteQuestion(gameId, gameName) {
+        // 填充刪除確認 Modal
+        document.getElementById('DeleteGameId').value = gameId;
+        document.getElementById('DeleteGameName').textContent = gameName;
+        
+        // 打開 Modal
+        $('#DeleteBn').modal('show');
+    }
+</script>
+
+<table class="table table-sm">
+    <thead>
+        <tr>
+            <th style="width: 5%;">
+                編號
+            </th>
+            <th style="width: 10%;">
+                @Html.DisplayNameFor(model => model.GameName)
+            </th>
+            <th style="width: 25%;">
+                @Html.DisplayNameFor(model => model.Questions)
+            </th>
+            <th style="width: 25%;">
+                @Html.DisplayNameFor(model => model.AnswersDetail)
+            </th>
+            <th style="width: 5%;">
+                @Html.DisplayNameFor(model => model.Answers)
+            </th>
+            <th style="width: 5%;">
+                @Html.DisplayNameFor(model => model.IsActive)
+            </th>
+            <th style="width: 5%;">
+                @Html.DisplayNameFor(model => model.Rewards)
+            </th>
+            <th style="width: 5%;">
+                @Html.DisplayNameFor(model => model.Type)
+            </th>
+            <th style="width: 5%;">
+                操作
+            </th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+            foreach (var item in Model) {
+                count++;
+        <tr>
+            <td>
+                @count
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.GameName)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Questions)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.AnswersDetail)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Answers)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.IsActive)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Rewards)
+            </td>
+            <td>
+                @Html.DisplayFor(modelItem => item.Type)
+            </td>
+            <td>
+                        <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                data-id="@item.GameId"
+                                data-name="@item.GameName"
+                                data-questions="@item.Questions"
+                                data-answers="@item.Answers"
+                                data-detail="@item.AnswersDetail"
+                                data-rewards="@item.Rewards"
+                                data-type="@item.Type"
+                                data-active="@item.IsActive"
+                                data-toggle="modal"
+                                data-target="#EditBn">
+                            <i class="fa-solid fa-pen-to-square"></i>
+                        </button>
+                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(@item.GameId, '@item.GameName')">
+                            <i class="fa-solid fa-trash"></i>
+                        </button>
+            </td>
+        </tr>
+}}
+    </tbody>
+</table>
+
+<script>
+    // 編輯按鈕點擊事件
+    document.querySelectorAll('.edit-btn').forEach(btn => {
+        btn.addEventListener('click', function() {
+            const gameId = this.dataset.id;
+            const gameName = this.dataset.name;
+            const questions = this.dataset.questions;
+            const answers = this.dataset.answers;
+            const answersDetail = this.dataset.detail;
+            const rewards = this.dataset.rewards;
+            const type = this.dataset.type;
+            const isActive = this.dataset.active;
+
+            // 填充 Modal 欄位
+            document.getElementById('EditGameId').value = gameId;
+            document.getElementById('EditGameName').value = gameName;
+            document.getElementById('EditQuestions').value = questions;
+            document.getElementById('EditAnswers').value = (answers === 'True' || answers === true) ? 'true' : 'false';
+            document.getElementById('EditAnswersDetail').value = answersDetail;
+            document.getElementById('EditRewards').value = rewards;
+            document.getElementById('EditType').value = type;
+            document.getElementById('EditIsActive').checked = (isActive === 'True');
+        });
+    });
+</script>

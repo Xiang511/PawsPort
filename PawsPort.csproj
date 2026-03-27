@@ -22,4 +22,8 @@
     <Folder Include="wwwroot\Images\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\images\skins\" />
+  </ItemGroup>
+
 </Project>

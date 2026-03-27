@@ -1,0 +1,83 @@
+﻿@model IEnumerable<PawsPort.Models.Faq>
+
+@{
+    ViewData["Title"] = "FAQ";
+}
+
+<h2 class="font-weight-bold">．常見問題</h2>
+
+<h6>
+    <div class="d-flex justify-content-end mb-3">
+        <a asp-action="Create" class="btn btn-warning text-dark font-weight-bold">
+            <i class="fas fa-plus mr-2"></i>新增常見問題
+        </a>
+    </div>
+    
+</h6>
+<table class="table">
+    <thead>
+        <tr class="text-center text-nowrap">
+            <th>NO.</th>
+            <th>類型</th>
+            <th>問題</th>
+            <th>回答</th>
+            <th>備註</th>
+            <th>建立日期</th>
+            <th>停刊日期</th>
+            <th>發佈狀態</th>
+            <th>是否上架</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+
+        @{
+            int count = 0;
+            @foreach (var item in Model)
+            {
+                count++;
+                <tr>
+                    <td class="text-center font-weight-bold">
+                        @count
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.QuestionType)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Question)
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Answer)
+                    </td>
+                    <td class="text-center">
+                        @Html.DisplayFor(modelItem => item.Note)
+                    </td>
+                    <td class="text-nowrap align-middle">
+                        @Html.DisplayFor(modelItem => item.CreateAt)
+                    </td>
+                    <td class="text-nowrap align-middle">
+                        @Html.DisplayFor(modelItem => item.StoppedDate)
+                    </td>
+                    <td class="text-center text-nowrap align-middle">
+                        @Html.DisplayFor(modelItem => item.Status)
+                    </td>
+                    <td class="text-center text-nowrap align-middle">
+                        @if (item.Status == "已發佈")
+                        {
+                            <input type="checkbox" checked disabled />
+                        }
+                        else
+                        {
+                            <input type="checkbox" disabled />
+                        }
+                    </td>
+                    <td class="text-nowrap">
+                        @Html.ActionLink("修改", "Edit", new { id = item.Faqid }, new { @class = "btn btn-sm btn btn-info" }) |
+                        @Html.ActionLink("刪除", "Delete", new { id = item.Faqid },
+                       new { onclick = "return confirm('確定要刪除嗎?')", Class = "btn btn-sm btn btn-danger" })
+                    </td>
+                </tr>
+            }
+        }
+    </tbody>
+</table>

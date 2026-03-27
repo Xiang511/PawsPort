@@ -1,0 +1,93 @@
+﻿@model PawsPort.Models.QARecord
+
+@{
+    ViewData["Title"] = "QA查看";
+}
+
+<h2 class="font-weight-bold">．Ｑ＆Ａ記錄查看</h2>
+
+<h6>※此頁面僅供檢視，無法修改資料</h6>
+
+<hr />
+
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light font-weight-bold">
+        會員發問內容（會員ID： @Model.UserId）
+    </div>
+    <div class="card-body bg-light">
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．問題類型</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@Model.QuestionType">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．發問時間</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@Model.QuestionDate.ToString("yyyy/MM/dd HH:mm:ss")">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．主訴</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@Model.ChiefComplaint">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．詳細內容</label>
+            <div class="col-sm-10">
+                <textarea readonly class="form-control-plaintext" rows="4">@Model.ChatContent</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white font-weight-bold text-success">
+        客服回覆紀錄
+    </div>
+    <div class="card-body">
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．處理客服</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@(string.IsNullOrEmpty(Model.Csname) ? "尚未回覆" : Model.Csname)">
+            </div>
+        </div>
+        
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．回覆時間</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@(Model.ReplyDate.Year == 1 ? "尚未回覆" : Model.ReplyDate.ToString("yyyy/MM/dd HH:mm:ss"))">
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．回覆內容</label>
+            <div class="col-sm-10">
+                <textarea readonly class="form-control-plaintext" rows="5">@Model.ReplyContent</textarea>
+            </div>
+        </div>
+
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．內部備註</label>
+            <div class="col-sm-10">
+                <textarea readonly class="form-control-plaintext" rows="2">@Model.Note</textarea>
+            </div>
+        </div>
+        
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．會員滿意度</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@(Model.Score == null ? "尚未評分" : Model.Score.ToString() + " 分")">
+            </div>
+        </div>
+
+        <div class="col-md-12 mt-4">
+            <div class="d-flex justify-content-center align-items-center">
+                <a href="@Url.Action("QaList", "Support")" class="btn btn-outline-secondary px-5 font-weight-bold">
+                    <i class="fas fa-arrow-left mr-2"></i> 返回Ｑ＆Ａ列表
+                </a>
+            </div>
+        </div>
+    </div>
+</div>

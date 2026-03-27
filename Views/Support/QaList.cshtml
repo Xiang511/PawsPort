@@ -1,0 +1,68 @@
+﻿@model IEnumerable<PawsPort.Models.QARecord>
+
+@{
+    ViewData["Title"] = "QA記錄";
+}
+
+<h2 class="font-weight-bold">．Q&A記錄</h2>
+
+
+<table class="table">
+    <thead>
+        <tr class="text-center text-nowrap">
+            <th>NO.</th>
+            <th>會員ID</th>
+            <th>問題類型</th>
+            <th>主訴</th>
+            <th>處理客服</th>
+            <th>發問時間</th>
+            <th>內部備註</th>
+            <th>回覆時間</th>
+            <th>滿意度</th>
+            <th>操作</th>
+        </tr>
+    </thead>
+    <tbody>
+        @{
+            int count = 0;
+            @foreach (var item in Model)
+            {
+                count++;
+                <tr>
+                    <td class="text-center font-weight-bold align-middle">
+                        @count
+                    </td>
+                    <td class="text-center align-middle">
+                        @Html.DisplayFor(modelItem => item.UserId)
+                    </td>
+                    <td class="text-center align-middle">
+                        @Html.DisplayFor(modelItem => item.QuestionType)
+                    </td>
+                    <td class="text-center align-middle">
+                        @Html.DisplayFor(modelItem => item.ChiefComplaint)
+                    </td>
+                    <td class="text-center align-middle">
+                        @Html.DisplayFor(modelItem => item.Csname)
+                    </td>
+                    <td class="text-center text-nowrap align-middle">
+                        @Html.DisplayFor(modelItem => item.QuestionDate)
+                    </td>
+                    <td class="text-center text-nowrap align-middle">
+                        @Html.DisplayFor(modelItem => item.Note)
+                    </td>
+                    <td class="text-center text-nowrap align-middle">
+                        @Html.DisplayFor(modelItem => item.ReplyDate)
+                    </td>
+                    <td class="text-center align-middle">
+                        @Html.DisplayFor(modelItem => item.Score)
+                    </td>
+                    <td class="text-center text-nowrap align-middle">
+                        @Html.ActionLink("查看", "QaDetails", new { id = item.Qaid }, new { @class = "btn btn-sm btn-secondary font-weight-bold" }) |
+                        @Html.ActionLink("回覆", "QaEdit", new { id = item.Qaid }, new { @class = "btn btn-sm btn btn-success" })
+                    </td>
+                        
+                </tr>
+            }
+        }
+    </tbody>
+</table>

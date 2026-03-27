@@ -1,0 +1,93 @@
+﻿@model PawsPort.Models.QARecord
+
+@{
+    ViewData["Title"] = "QA回覆";
+}
+
+<h2 class="font-weight-bold">．客服人員回覆</h2>
+
+<h6>※請依民眾提問回覆對應內容</h6>
+
+<hr />
+<div class="card shadow-sm mb-4">
+    <div class="card-header bg-light font-weight-bold">
+        會員發問內容（會員ID： @Model.UserId）
+    </div>
+    <div class="card-body bg-light">
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．問題類型</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@Model.QuestionType">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．發問時間</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@Model.QuestionDate.ToString("yyyy/MM/dd HH:mm:ss")">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．主訴</label>
+            <div class="col-sm-10">
+                <input type="text" readonly class="form-control-plaintext" value="@Model.ChiefComplaint">
+            </div>
+        </div>
+        <div class="form-group row">
+            <label class="col-sm-2 col-form-label font-weight-bold">．詳細內容</label>
+            <div class="col-sm-10">
+                <textarea readonly class="form-control" rows="4">@Model.ChatContent</textarea>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="card shadow-sm">
+    <div class="card-header bg-white font-weight-bold text-primary text-success">
+        客服回覆區
+    </div>
+    <div class="card-body">
+        <form asp-action="QaEdit" method="post">
+            <input type="hidden" asp-for="Qaid" />
+
+            <div class="form-group row">
+                <label asp-for="Csname" class="col-sm-2 col-form-label font-weight-bold">．處理客服</label>
+                <div class="col-sm-10">
+                    <input asp-for="Csname" class="form-control" placeholder="請輸入您的名字" required />
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label asp-for="ReplyContent" class="col-sm-2 col-form-label font-weight-bold">．回覆內容</label>
+                <div class="col-sm-10">
+                    <textarea asp-for="ReplyContent" class="form-control" rows="5" placeholder="請輸入回覆給會員的內容..." required></textarea>
+                </div>
+            </div>
+
+            <div class="form-group row">
+                <label asp-for="Note" class="col-sm-2 col-form-label font-weight-bold">．內部備註<br />（填入回覆狀態）</label>
+                <div class="col-sm-10">
+                    <textarea asp-for="Note" class="form-control" rows="2" placeholder="僅內部人員可見的備註"></textarea>
+                </div>
+            </div>
+
+            <div class="col-md-12 mt-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-action="QaList" class="btn btn-outline-secondary px-4 font-weight-bold">
+                        <i class="fas fa-arrow-left mr-2"></i> 取消回覆並返回
+                    </a>
+                   
+                    <button type="submit"
+                            class="btn btn-success text-dark px-4 font-weight-bold"
+                            id="btnSubmit"
+                            onclick="return confirm('確定要儲存這筆＂回覆＂嗎？');">
+                        <i class="bi bi-floppy2 mr-2"></i> 確認回覆
+                    </button>
+                </form>
+            </div>
+        </div>
+
+        @section Scripts {
+            @{
+                await Html.RenderPartialAsync("_ValidationScriptsPartial");
+            }
+        }

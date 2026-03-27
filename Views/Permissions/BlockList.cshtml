@@ -1,0 +1,65 @@
+﻿@model IEnumerable<PawsPort.ViewModels.UserPermissionViewModel>
+
+@{
+    ViewData["Title"] = "使用者系統權限清單";
+}
+<link href="~/css/XiangList.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+<style>
+    .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link > button {
+        background: #FFF !important;
+    }
+</style>
+
+
+<h1>Member</h1>
+<span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">封鎖名單管理</span></span>
+
+<div class="card shadow mb-4 mt-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">
+    <div class="card-body">
+        <div class="w-100 d-flex justify-content-end">
+            <a asp-action="BlockListCreate" class="btn btn-light btn-icon-split">
+                <span class="icon text-gray-600">
+                    <i class="fa-solid fa-plus"></i>
+                </span>
+                <span class="text">新增黑名單</span>
+            </a>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th class="d-none">@Html.DisplayNameFor(model => model.MappingId)</th>
+                        <th style="width:8%!important">@Html.DisplayNameFor(model => model.UserId)</th>
+                        <th>姓名</th>
+                        <th>所屬系統</th>
+                        <th style="width:8%!important">權限</th>
+                        <th>分配時間</th>
+                        <th>操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="d-none">@Html.DisplayFor(modelItem => item.MappingId)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UserId)</td>
+                            <td>@Html.DisplayFor(modelItem => item.UserName)</td>
+                            <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
+                            <td>
+                                <span class="badge badge-pill bg-info text-dark">@item.RoleName</span>
+                            </td>
+                            <td>@item.AssignedAt?.ToString("yyyy-MM-dd")</td>
+                            <td>
+                                <span>@Html.ActionLink("Edit", "BlockListEdit", new { id = item.MappingId })</span>
+                                <span>@Html.ActionLink("Delete", "BlockListDelete", new { id = item.MappingId })</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/demo/MemberListDataTable.js"></script>

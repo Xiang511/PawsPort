@@ -33,15 +33,15 @@
                             data-id="@item.PlayerId"
                             data-toggle="modal"
                             data-target="#EditBn">
-                        編輯
+                        <i class="fa-solid fa-pen-to-square"></i>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePlayer(@item.PlayerId)">
+                        <i class="fa-solid fa-trash"></i>
                     </button>
                     <button type="button" class="btn btn-sm btn-info"
                             data-toggle="modal"
                             data-target="#ViewLogsBn_@item.PlayerId">
-                        消費紀錄
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePlayer(@item.PlayerId)">
-                        刪除
+                        <i class="fa-solid fa-receipt"></i>  消費紀錄
                     </button>
                 </td>
             </tr>

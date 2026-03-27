@@ -15,10 +15,14 @@ namespace PawsPort.Controllers
                     p.Point,
                     SkinCount = db.Inventories
                         .Where(i => i.PlayerId == p.PlayerId && i.Enable)
+                        .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),  // ← 添加這行
+                              i => i.SkinId,
+                              s => s.SkinId,
+                              (i, s) => i)
                         .Select(i => i.SkinId)
                         .Distinct()
                         .Count(),
-                    IsDisabled = false, // 如果 PlayerProfile 中沒有 IsDisabled 欄位，先設為 false
+                    IsDisabled = false,
                     MaxGameId = db.GameHistories
                         .Where(h => h.PlayerId == p.PlayerId)
                         .OrderByDescending(h => h.GameId)
@@ -39,6 +43,7 @@ namespace PawsPort.Controllers
 
             return View(playerList);
         }
+
         // 編輯玩家 - GET 方法（用於載入 Modal 中的詳細資訊）
         public IActionResult GetPlayerDetails(int playerId)
         {
@@ -50,11 +55,16 @@ namespace PawsPort.Controllers
 
             var skins = db.Inventories
                 .Where(i => i.PlayerId == playerId)
-                .Select(i => new
-                {
+                .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),
+                i => i.SkinId,
+              s => s.SkinId,
+              (i, s) => new
+              {
                     i.InventoryId,
                     i.SkinId,
-                    i.Enable
+                    i.Enable,
+                    s.SkinName,
+                    s.SkinImage
                 })
                 .ToList();
 

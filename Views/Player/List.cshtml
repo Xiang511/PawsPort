@@ -201,20 +201,26 @@
                     if (data.skins.length === 0) {
                         skinsList.innerHTML = '<p style="margin: 0; color: #999;">該玩家沒有持有任何造型</p>';
                     } else {
-                        data.skins.forEach(skin => {
-                            const skinItem = document.createElement('div');
-                            skinItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;';
-                            skinItem.innerHTML = `
-                                <span>造型 ID: <strong>${skin.skinId}</strong></span>
-                                <div class="custom-control custom-checkbox">
-                                    <input type="checkbox" class="custom-control-input skin-checkbox" name="EnabledSkinIds" value="${skin.inventoryId}" id="skin_${skin.inventoryId}" ${skin.enable ? 'checked' : ''} />
-                                    <label class="custom-control-label" for="skin_${skin.inventoryId}">
-                                        啟用
-                                    </label>
-                                </div>
-                            `;
-                            skinsList.appendChild(skinItem);
-                        });
+                            data.skins.forEach(skin => {
+        const skinItem = document.createElement('div');
+        skinItem.style.cssText = 'display: flex; justify-content: space-between; align-items: center; padding: 8px; border-bottom: 1px solid #eee;';
+        skinItem.innerHTML = `
+            <div style="display: flex; align-items: center; gap: 10px;">
+                ${skin.skinImage ? `<img src="${skin.skinImage}" alt="${skin.skinName}" style="width: 50px; height: 50px; border: 1px solid #ddd; border-radius: 4px; object-fit: cover;" />` : '<span style="width: 50px; height: 50px; background-color: #f0f0f0; border: 1px solid #ddd; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #999;">無圖片</span>'}
+                <div>
+                    <div><strong>${skin.skinName}</strong></div>
+                    <div style="font-size: 12px; color: #666;">造型 ID: ${skin.skinId}</div>
+                </div>
+            </div>
+            <div class="custom-control custom-checkbox">
+                <input type="checkbox" class="custom-control-input skin-checkbox" name="EnabledSkinIds" value="${skin.inventoryId}" id="skin_${skin.inventoryId}" ${skin.enable ? 'checked' : ''} />
+                <label class="custom-control-label" for="skin_${skin.inventoryId}">
+                    啟用
+                </label>
+            </div>
+        `;
+        skinsList.appendChild(skinItem);
+    });
                     }
                 })
                 .catch(error => console.error('Error:', error));

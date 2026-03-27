@@ -8,7 +8,7 @@ namespace PawsPort.Controllers
     {
         public ActionResult List()
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
 
             var enewsList =db.ENewsletters.OrderByDescending(n => n.NewsLetterId).ToList();
 
@@ -46,7 +46,7 @@ namespace PawsPort.Controllers
             }
 
            
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
             db.ENewsletters.Add(n);
             db.SaveChanges();
 

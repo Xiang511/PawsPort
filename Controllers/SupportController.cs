@@ -10,7 +10,7 @@ namespace PawsPort.Controllers
 
         public ActionResult List()
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
             var faq = db.Faqs.Where(f => f.IsExist == true).ToList();
             return View(faq);
         }
@@ -30,7 +30,7 @@ namespace PawsPort.Controllers
 
             if (ModelState.IsValid)
             {
-                PetdbContext db = new PetdbContext();
+                PetDbContext db = new PetDbContext();
 
                 f.CreateAt = DateTime.Now;
                 f.IsExist = true;
@@ -55,7 +55,7 @@ namespace PawsPort.Controllers
 
         public ActionResult Edit(int id)
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
 
             // 根據傳進來的id，去資料庫找對應的資料
             var faq = db.Faqs.FirstOrDefault(f => f.Faqid == id);
@@ -79,7 +79,7 @@ namespace PawsPort.Controllers
 
             if (ModelState.IsValid)
             {
-                PetdbContext db = new PetdbContext();
+                PetDbContext db = new PetDbContext();
 
                 // 從資料庫把舊資料抓出來
                 var Faqdata = db.Faqs.FirstOrDefault(x => x.Faqid == f.Faqid);
@@ -117,7 +117,7 @@ namespace PawsPort.Controllers
         public ActionResult Delete(int id)
         {
            
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
                         
             var faqItem = db.Faqs.FirstOrDefault(f => f.Faqid == id);
 
@@ -146,7 +146,7 @@ namespace PawsPort.Controllers
 
         public ActionResult QaList()
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
             var qaList = db.QARecords.ToList();
             return View(qaList);
         }
@@ -156,7 +156,7 @@ namespace PawsPort.Controllers
         
         public ActionResult QaEdit(int id)
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
                     
             var qa = db.QARecords.FirstOrDefault(q => q.Qaid == id);
 
@@ -172,7 +172,7 @@ namespace PawsPort.Controllers
         [HttpPost]
         public ActionResult QaEdit(QARecord q)
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
                  
             var Qadata = db.QARecords.FirstOrDefault(x => x.Qaid == q.Qaid);
 
@@ -196,7 +196,7 @@ namespace PawsPort.Controllers
 
         public ActionResult QaDetails(int id)
         {
-            PetdbContext db = new PetdbContext();
+            PetDbContext db = new PetDbContext();
 
             
             var qa = db.QARecords.FirstOrDefault(q => q.Qaid == id);

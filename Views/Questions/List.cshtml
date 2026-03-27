@@ -16,7 +16,7 @@
 
 <!-- 新增 Modal -->
 <div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">新增題目</h5>
@@ -90,7 +90,7 @@
 </div>
 <!-- 編輯 Modal -->
 <div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editModalLabel">編輯題目</h5>
@@ -204,16 +204,16 @@
 <table class="table table-sm">
     <thead>
         <tr>
-            <th style="width: 5%;">
+            <th style="width: 3%;">
                 編號
             </th>
-            <th style="width: 10%;">
+            <th style="width: 5%;">
                 @Html.DisplayNameFor(model => model.GameName)
             </th>
-            <th style="width: 25%;">
+            <th style="width: 28%;">
                 @Html.DisplayNameFor(model => model.Questions)
             </th>
-            <th style="width: 25%;">
+            <th style="width: 28%;">
                 @Html.DisplayNameFor(model => model.AnswersDetail)
             </th>
             <th style="width: 5%;">
@@ -228,8 +228,8 @@
             <th style="width: 5%;">
                 @Html.DisplayNameFor(model => model.Type)
             </th>
-            <th style="width: 5%;">
-                操作
+            <th style="width: 10%;">
+                
             </th>
         </tr>
     </thead>
@@ -275,10 +275,10 @@
                                 data-active="@item.IsActive"
                                 data-toggle="modal"
                                 data-target="#EditBn">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                            <i class="fa-solid fa-pen-to-square"></i> 編輯
                         </button>
                         <button type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(@item.GameId, '@item.GameName')">
-                            <i class="fa-solid fa-trash"></i>
+                            <i class="fa-solid fa-trash"></i> 刪除
                         </button>
             </td>
         </tr>

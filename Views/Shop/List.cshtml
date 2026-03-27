@@ -16,7 +16,7 @@
 
 <!-- 新增 Modal -->
 <div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">新增造型</h5>
@@ -83,10 +83,10 @@
 
 <!-- 編輯 Modal -->
 <div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">編輯造型 - </h5>
+                <h5 class="modal-title" id="editModalLabel">編輯造型</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -209,20 +209,20 @@
             <th style="width: 12%;">
                 造型名稱
             </th>
-            <th style="width: 20%;">
+            <th style="width: 10%;">
+                圖片
+            </th>
+            <th style="width: 45%;">
                 描述
             </th>
             <th style="width: 8%;">
                 價格
             </th>
-            <th style="width: 15%;">
-                圖片
-            </th>
             <th style="width: 8%;">
                 是否上架
             </th>
             <th style="width: 12%;">
-                操作
+                
             </th>
         </tr>
     </thead>
@@ -239,16 +239,7 @@
                     <td>
                         @Html.DisplayFor(modelItem => item.SkinName)
                     </td>
-                    <td>
-                        @{
-                            string displayDesc = item.Description.Length > 15 ? item.Description.Substring(0, 15) + "..." : item.Description;
-                        }
-                        <span title="@item.Description">@displayDesc</span>
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Price)
-                    </td>
-                    <td style="text-align: center;">
+                    <td style="">
                         @if (!string.IsNullOrEmpty(item.SkinImage))
                         {
                             <img src="@item.SkinImage" alt="@item.SkinName" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;"
@@ -258,6 +249,15 @@
                         {
                             <span style="color: #999;">無圖片</span>
                         }
+                    </td>
+                    <td>
+                        @{
+                            string displayDesc = item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description;
+                        }
+                        <span title="@item.Description">@displayDesc</span>
+                    </td>
+                    <td>
+                        @Html.DisplayFor(modelItem => item.Price)
                     </td>
                     <td>
                         @(item.IsAvailable ? "是" : "否")
@@ -272,10 +272,10 @@
                                 data-available="@item.IsAvailable"
                                 data-toggle="modal"
                                 data-target="#EditBn">
-                            <i class="fa-solid fa-pen-to-square"></i>
+                            <i class="fa-solid fa-pen-to-square"></i> 編輯
                         </button>
                         <button type="button" class="btn btn-sm btn-danger" onclick="deleteSkin(@item.SkinId, '@item.SkinName')">
-                            <i class="fa-solid fa-trash"></i>
+                            <i class="fa-solid fa-trash"></i> 刪除
                         </button>
                     </td>
                 </tr>
@@ -329,6 +329,7 @@
             const isAvailable = this.dataset.available;
 
             // 填充 Modal 欄位
+            document.getElementById('editModalLabel').textContent = `編輯造型 - ${skinName}`;
             document.getElementById('EditSkinId').value = skinId;
             document.getElementById('EditSkinName').value = skinName;
             document.getElementById('EditDescription').value = description;

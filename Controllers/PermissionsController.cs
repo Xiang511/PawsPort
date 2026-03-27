@@ -1,11 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
-using PawsPort.Models.ViewModels;
+using PawsPort.ViewModels;
 
 namespace PawsPort.Controllers
 {
     public class PermissionsController : Controller
-    {
+    {   
         public IActionResult List()
         {
             PetDbContext db = new PetDbContext();
@@ -21,9 +21,75 @@ namespace PawsPort.Controllers
                                       UserName = u.Name,
                                       SystemName = s.SystemName,
                                       RoleName = r.RoleName,
-                                      AssignedAt = usr.AssignedAt
+                                      AssignedAt = usr.AssignedAt,
+                                      MappingId= usr.MappingId
                                   };
             return View(userPermissions);
+        }
+
+        public IActionResult Create()
+        {   
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Create(UserSystemRole US)
+        {
+            PetDbContext db = new PetDbContext();
+            db.UserSystemRoles.Add(US);
+            db.SaveChanges();
+            return RedirectToAction("List");
+        }
+
+
+        public IActionResult Edit(int? id)
+        {
+            if (id == null)
+                return RedirectToAction("List");
+
+            PetDbContext db = new PetDbContext();
+            UserSystemRole x = db.UserSystemRoles.Where(m => m.UserId == id).FirstOrDefault();
+
+            if (x == null)
+                return RedirectToAction("List");
+
+            return View(x);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(UserSystemRole uiUserSystemRole)
+        {
+            PetDbContext db = new PetDbContext();
+            UserSystemRole dbUserSystemRole = db.UserSystemRoles.Where(m => m.UserId == uiUserSystemRole.UserId).FirstOrDefault();
+
+            if (dbUserSystemRole != null)
+            {
+                dbUserSystemRole.SystemId = uiUserSystemRole.SystemId;
+                dbUserSystemRole.RoleId = uiUserSystemRole.RoleId;
+                dbUserSystemRole.AssignedAt = uiUserSystemRole.AssignedAt;
+                dbUserSystemRole.UserId = uiUserSystemRole.UserId;
+
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("List");
+        }
+
+        public IActionResult Delete(int? id)
+        {
+            if (id == null)
+                return RedirectToAction("List");
+
+            PetDbContext db = new PetDbContext();
+            UserSystemRole x = db.UserSystemRoles.Where(m => m.MappingId == id).FirstOrDefault();
+
+            if (x != null)
+            {
+                db.UserSystemRoles.Remove(x);
+                db.SaveChanges();
+            }
+
+            return RedirectToAction("List");
         }
     }
 }

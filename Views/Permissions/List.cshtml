@@ -1,4 +1,4 @@
-﻿@model IEnumerable<PawsPort.Models.ViewModels.UserPermissionViewModel>
+﻿@model IEnumerable<PawsPort.ViewModels.UserPermissionViewModel>
 
 @{
     ViewData["Title"] = "使用者系統權限清單";
@@ -15,9 +15,6 @@
 <h1>Member</h1>
 <span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">權限管理</span></span>
 
-@* <p>
-    <a asp-action="Create" class="btn btn-primary">新增權限分配</a>
-</p> *@
 
 <ul class="nav nav-tabs mt-4" id="myTab" role="tablist">
     <li class="nav-item " role="presentation">
@@ -31,10 +28,19 @@
     <div class="tab-pane fade show active" id="home" role="tabpanel" aria-labelledby="home-tab">
         <div class="card shadow mb-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">
             <div class="card-body">
+                <div class="w-100 d-flex justify-content-end">
+                    <a asp-action="Create" class="btn btn-light btn-icon-split">
+                        <span class="icon text-gray-600">
+                            <i class="fa-solid fa-plus"></i>
+                        </span>
+                        <span class="text">新增權限</span>
+                    </a>
+                </div>
                 <div class="table-responsive">
                     <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0" >
                         <thead>
                             <tr>
+                                <th class="d-none">@Html.DisplayNameFor(model => model.MappingId)</th>
                                 <th style="width:8%!important">@Html.DisplayNameFor(model => model.UserId)</th>
                                 <th>姓名</th>
                                 <th>所屬系統</th>
@@ -47,6 +53,7 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
+                                    <td class="d-none">@Html.DisplayFor(modelItem => item.MappingId)</td> 
                                     <td>@Html.DisplayFor(modelItem => item.UserId)</td>
                                     <td>@Html.DisplayFor(modelItem => item.UserName)</td>
                                     <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
@@ -55,8 +62,8 @@
                                     </td>
                                     <td>@item.AssignedAt?.ToString("yyyy-MM-dd")</td>
                                     <td>
-                                        <span>@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })</span>
-                                        <span>@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })</span>
+                                        <span>@Html.ActionLink("Edit", "Edit", new { id=item.MappingId })</span>
+                                        <span>@Html.ActionLink("Delete", "Delete", new { id = item.MappingId })</span>
                                     </td>
                                 </tr>
                             }

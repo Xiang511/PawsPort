@@ -1,0 +1,76 @@
+﻿@model PawsPort.Models.Faq
+
+@{
+    ViewData["Title"] = "FAQ修改項目";
+}
+
+<h2 class="font-weight-bold">修改項目</h2>
+
+<h6>※請修改常見問題內容</h6>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Edit">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <input type="hidden" asp-for="Faqid" />
+            <div class="form-group">
+                <label asp-for="QuestionType" class="control-label font-weight-bold">類型<small class="text-danger ml-2">* 必填 *</small></label>
+                <select asp-for="QuestionType" class="form-control">
+                    <option value="">-- 請選擇問題類型 --</option>
+                    <option value="帳號問題">帳號問題</option>
+                    <option value="領養諮詢">領養諮詢</option>
+                    <option value="健康護照">健康護照</option>
+                    <option value="互動遊戲">互動遊戲</option>
+                    <option value="論壇社交">論壇社交</option>
+                    <option value="法規規範">法規規範</option>
+                    <option value="其他問題">其他問題</option>
+                </select>
+                <span asp-validation-for="QuestionType" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Question" class="control-label font-weight-bold">問題<small class="text-danger ml-2">* 必填 *</small></label>
+                <input asp-for="Question" class="form-control" />
+                <span asp-validation-for="Question" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Answer" class="control-label font-weight-bold">回答<small class="text-danger ml-2">* 必填 *</small></label>
+                <textarea asp-for="Answer" class="form-control" rows="5"></textarea>
+                <span asp-validation-for="Answer" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Note" class="control-label font-weight-bold">備註</label>
+                <textarea asp-for="Note" class="form-control" rows="3" placeholder="若沒有，請寫『無』"></textarea>
+                <span asp-validation-for="Note" class="text-danger"></span>
+            </div>
+          
+            <div class="form-group">
+                <label asp-for="Status" class="control-label font-weight-bold">發佈狀態</label>
+                <select asp-for="Status" class="form-control">
+                    <option value="待發佈">待發佈</option>
+                    <option value="已發佈">已發佈</option>
+                    <option value="已下架">已下架</option>
+                </select>
+                <span asp-validation-for="Status" class="text-danger"></span>
+            </div>
+            <div class="col-md-12 mt-4">
+                <div class="d-flex justify-content-between align-items-center">
+                    <a asp-action="List" class="btn btn-outline-secondary px-4 font-weight-bold">
+                        <i class="fas fa-arrow-left mr-2"></i> 取消修改並返回
+                    </a>
+                   
+                    <button type="submit"
+                            class="btn btn-info text-dark px-4 font-weight-bold"
+                            id="btnSubmit"
+                            onclick="return confirm('確定要儲存這筆＂修改＂嗎？');">
+                        <i class="bi bi-floppy2 mr-2"></i> 確認修改
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

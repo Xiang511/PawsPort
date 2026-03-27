@@ -1,0 +1,92 @@
+﻿@model IEnumerable<PawsPort.Models.ENewsletter>
+
+@{
+    ViewData["Title"] = "電子報管理專區";
+}
+
+<h2 class="font-weight-bold">．電子報管理專區</h2>
+<h6 class="text-muted mb-4">※管理與發布所有最新消息與電子報內容</h6>
+
+<div class="d-flex justify-content-end mb-4">
+    <a asp-controller="ENewsletter" asp-action="Create" class="btn btn-warning text-dark font-weight-bold shadow-sm">
+        <i class="fas fa-plus mr-2"></i>發布新電子報
+    </a>
+</div>
+
+@{
+    
+    var groupedNews = Model.GroupBy(n => string.IsNullOrEmpty(n.Category) ? "未分類" : n.Category);
+}
+
+@foreach (var group in groupedNews)
+{
+    <h4 class="mt-4 mb-3 font-weight-bold border-bottom pb-2" style="color: peru;">
+        <i class="fas fa-folder-open mr-2"></i> @group.Key
+    </h4>
+
+    <div class="row mb-4">
+        @foreach (var item in group)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card h-100 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                    
+                    <div class="card-header bg-white border-bottom-0 pt-4 pb-0 d-flex justify-content-end align-items-center">
+                        <span class="text-muted small font-weight-bold">
+                            <i class="far fa-calendar-alt mr-1"></i>
+                            @(item.PublishDate.HasValue? item.PublishDate.Value.ToString("yyyy/MM/dd") : "尚未發布")
+                        </span>
+                    </div>
+
+                    <div class="card-body">
+                        <h5 class="card-title font-weight-bold text-dark mt-2 mb-3">@item.Title</h5>
+                        <p class="card-text text-secondary" style="display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden;">
+                            @item.Summary
+                        </p>
+                    </div>
+
+                    <div class="card-footer bg-light border-top-0 py-3">
+                        <div class="d-flex justify-content-between align-items-center">
+                            @{
+                                
+                                string displayStatus = string.IsNullOrEmpty(item.Status) ? "尚未發布" : item.Status;
+    
+                                string statusClass = "";
+                                string statusStyle = "";
+                                string statusIcon = "";
+
+                                if (displayStatus == "已發送")
+                                {
+                                    statusStyle = "color: #519A66";
+                                    statusIcon = "fa-check-circle";      
+                                }
+                                else if (displayStatus == "已下架")
+                                {
+                                    statusClass = "text-danger";         
+                                    statusIcon = "fa-times-circle";      
+                                }
+                                else if (displayStatus == "預約發送")
+                                {
+                                    statusStyle = "color: #0992C2;";
+                                    statusIcon = "fa-paper-plane";
+                                }
+                                else
+                                {                                    
+                                    statusStyle = "color: #F16D34;";
+                                    statusIcon = "fa-hourglass-half";    
+                                }
+                            }
+                            <span class="font-weight-bold @statusClass small" style="@statusStyle">
+                                <i class="fas @statusIcon mr-1"></i> @displayStatus
+                            </span>
+
+                            <div>
+                                <a href="~/ENewsletter/Edit?id=@item.NewsLetterId" class="btn btn-sm btn-outline-info font-weight-bold mr-1">修改</a>
+                                <a href="~/ENewsletter/Delete?id=@item.NewsLetterId" class="btn btn-sm btn-outline-danger font-weight-bold" onclick="return confirm('確定要刪除「@(item.Title)」這份電子報嗎？');">刪除</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}

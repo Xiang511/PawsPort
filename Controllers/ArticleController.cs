@@ -8,10 +8,13 @@ namespace PawsPort.Controllers
 {
     public class ArticleController : Controller
     {
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
+       
+        IWebHostEnvironment _Env = null; 
+
+        public ArticleController(IWebHostEnvironment p)
+        {
+            _Env = p;
+        }
 
 
 
@@ -49,9 +52,29 @@ namespace PawsPort.Controllers
                 p.IsExist = true; //設定文章為存在狀態
                 p.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
                 Db.Articles.Add(p.article);
-                Db.SaveChanges();
+                Db.SaveChanges(); //建立文章並存到資料庫
 
-            
+                if (p.ImageFiles != null&& p.ImageFiles.Count > 0)
+                {
+                    FileService F = new FileService(_Env);
+                    foreach(IFormFile File in p.ImageFiles)
+                    {
+                        string ImageName = F.SaveImage(File); //將圖片保存到伺服器並獲取圖片名稱
+                        if (ImageName != null)
+                        {
+                            ArticleImage Img = new ArticleImage();
+                            Img.ArticleId = p.ArticleId; //將圖片與文章關聯
+                            Img.Image ="/Image/"+ ImageName; //存入路徑
+                            Db.ArticleImages.Add(Img); //圖片資訊存入資料庫
+                        }
+                        else
+                        {
+                            //上傳失敗的報錯，例如記錄錯誤日誌或返回錯誤訊息給使用者
+                        }
+
+                    }
+                    Db.SaveChanges(); //保存更改到資料庫
+                }
                 return RedirectToAction("ArticleList");
             }
 
@@ -80,18 +103,11 @@ namespace PawsPort.Controllers
             using (PetDbContext Db = new PetDbContext())
             {
 
-                //int targetId = uiArticle.article.ArticleId; //從傳入的ArticleWrap物件中獲取要編輯的文章ID
-
                 Article DbArticle = Db.Articles.FirstOrDefault(p => p.ArticleId == UiArticle.ArticleId); //從資料庫中查找要編輯的文章
 
 
                 if (DbArticle != null && DbArticle.IsExist == true)
                 {
-
-                    if (UiArticle.ArticleImage != null)
-                    {
-                        string ImageName = Guid.NewGuid().ToString() + Path.GetExtension(UiArticle.ArticleImage.FileName); //生成唯一的圖片名稱
-                    }
 
                     DbArticle.Title = UiArticle.Title; //更新文章標題
                     DbArticle.Content = UiArticle.Content; //更新文章內容

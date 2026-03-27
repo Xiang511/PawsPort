@@ -112,7 +112,7 @@ namespace PawsPort.Models
             set { _article.CategoryId = value; }
         }
 
-        public IFormFile ArticleImage { get; set; }
+        public List<IFormFile> ImageFiles { get; set; }
 
     }
 }

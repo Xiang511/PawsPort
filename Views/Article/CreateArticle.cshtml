@@ -10,7 +10,7 @@
 <hr />
 <div class="row">
     <div class="col-md-4">
-        <form asp-action="CreateArticle">
+        <form asp-action="CreateArticle" enctype="multipart/form-data">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
 
             @* <div class="form-group">
@@ -102,6 +102,10 @@
                 <input asp-for="CategoryId" class="form-control" />
                 <span asp-validation-for="CategoryId" class="text-danger"></span>
             </div>
+
+            <label>選擇圖片 (可多選)</label>
+            @* multiple 屬性讓使用者可以一次選好幾張圖 *@
+            <input type="file" asp-for="ImageFiles" class="form-control" multiple />
 
             <div class="form-group">
                 <input type="submit" value="新增貼文" class="btn btn-primary" />

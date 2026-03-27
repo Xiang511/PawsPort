@@ -18,7 +18,7 @@ namespace PawsPort.Controllers
 
             IEnumerable<Category> datas = null; //宣告一個變數來存放查詢結果
 
-            if (string.IsNullOrEmpty(vm.txtKeyword))
+            if (string.IsNullOrEmpty(vm.TxtKeyword))
             {
                 datas = from p in db.Categories
                         where p.IsExist
@@ -27,7 +27,7 @@ namespace PawsPort.Controllers
             else
             {
                 datas = db.Categories.Where(p => p.IsExist
-                && (p.CategoryName.Contains(vm.txtKeyword)
+                && (p.CategoryName.Contains(vm.TxtKeyword)
                 )); //根據搜尋條件查詢類別
             }
 

@@ -5,6 +5,7 @@
 }
 <link href="~/css/XiangList.css" rel="stylesheet" />
 <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+
 <h1>Member</h1>
 <span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">基本資料維護</span></span>
 
@@ -190,8 +191,8 @@
                                 @Html.DisplayFor(modelItem => item.IsVerify)
                             </td>
                             <td>
-                                <p>@Html.ActionLink("Edit", "Edit", new { /* id=item.PrimaryKey */ })</p>
-                                <p>@Html.ActionLink("Delete", "Delete", new { /* id=item.PrimaryKey */ })</p>
+                                <p>@Html.ActionLink("Edit", "Edit", new { id=item.UserId })</p>
+                                <p>@Html.ActionLink("Delete", "Delete", new { id = item.UserId })</p>
                             </td>
                         </tr>
                     }

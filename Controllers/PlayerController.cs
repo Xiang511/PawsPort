@@ -15,7 +15,7 @@ namespace PawsPort.Controllers
                     p.Point,
                     SkinCount = db.Inventories
                         .Where(i => i.PlayerId == p.PlayerId && i.Enable)
-                        .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),  // ← 添加這行
+                        .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),  // ← 加入商店的資料表
                               i => i.SkinId,
                               s => s.SkinId,
                               (i, s) => i)
@@ -36,8 +36,11 @@ namespace PawsPort.Controllers
                     InventoryLogs = db.InventoryLogs
                         .Where(l => l.PlayerId == p.PlayerId)
                         .OrderByDescending(l => l.CreateTime)
+                        .ToList(),
+                    PointRecords = db.PointRecords  
+                        .Where(pr => pr.PlayerId == p.PlayerId)
+                        .OrderByDescending(pr => pr.CreateTime)
                         .ToList()
-
                 })
                 .ToList();
 

@@ -1,0 +1,79 @@
+﻿@model PawsPort.ViewModels.MissingReportListViewModel
+
+@{
+    ViewData["Title"] = "Create";
+}
+
+<h1>新增寵物遺失資料</h1>
+
+<h4>MissingReportListViewModel</h4>
+<hr />
+<div class="row">
+    <div class="col-md-4">
+        <form asp-action="Create">
+            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UserId" class="control-label"></label>
+                <input asp-for="UserId" class="form-control" />
+                <span asp-validation-for="UserId" class="text-danger"></span>
+            </div>
+            
+            <div class="form-group">
+                <label asp-for="PetId" class="control-label"></label>
+                <input asp-for="PetId" class="form-control" />
+                <span asp-validation-for="PetId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LastSeenDate" class="control-label"></label>
+                <input asp-for="LastSeenDate" class="form-control" />
+                <span asp-validation-for="LastSeenDate" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="IsActive" class="control-label"></label>
+                <input asp-for="IsActive" class="form-control" />
+                <span asp-validation-for="IsActive" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LastSeenLat" class="control-label"></label>
+                <input asp-for="LastSeenLat" class="form-control" />
+                <span asp-validation-for="LastSeenLat" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LastSeenLng" class="control-label"></label>
+                <input asp-for="LastSeenLng" class="form-control" />
+                <span asp-validation-for="LastSeenLng" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="LostLocation" class="control-label"></label>
+                <input asp-for="LostLocation" class="form-control" />
+                <span asp-validation-for="LostLocation" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="CreatedAt" class="control-label"></label>
+                <input asp-for="CreatedAt" class="form-control" />
+                <span asp-validation-for="CreatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="UpdatedAt" class="control-label"></label>
+                <input asp-for="UpdatedAt" class="form-control" />
+                <span asp-validation-for="UpdatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="新增資料" class="btn btn-primary" />
+            </div>
+        </form>
+    </div>
+</div>
+
+<div>
+    <a asp-action="List">取消</a>
+</div>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

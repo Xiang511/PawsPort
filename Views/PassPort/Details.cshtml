@@ -1,0 +1,156 @@
+﻿@model PawsPort.ViewModels.HealthPassportDetailsViewModel
+
+@{
+    ViewData["Title"] = "Details";
+}
+
+<h1>Details</h1>
+
+<div>
+    <h4>病歷&疫苗</h4>
+    <hr />
+    <dl class="row">
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.MedicalDetailId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.MedicalDetailId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TreatmentLocation)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.TreatmentLocation)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Disease)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Disease)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.DiseaseTreatment)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.DiseaseTreatment)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TreatmentTime)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.TreatmentTime.HasValue)
+            {
+                // 如果有時間，就正常顯示時間
+                @Html.DisplayFor(model => model.TreatmentTime)
+            }
+            else
+            {
+                // 如果沒時間，就在畫面上印出這行字
+                <span class="text-muted">尚未有資料</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.PassportId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.PassportId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TreatmentUpdatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.TreatmentUpdatedAt.HasValue)
+            {
+                // 如果有時間，就正常顯示時間
+                @Html.DisplayFor(model => model.TreatmentUpdatedAt)
+            }
+            else
+            {
+                // 如果沒時間，就在畫面上印出這行字
+                <span class="text-muted">尚未有資料</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.TreatmentCreatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.TreatmentCreatedAt.HasValue)
+            {
+                // 如果有時間，就正常顯示時間
+                @Html.DisplayFor(model => model.TreatmentCreatedAt)
+            }
+            else
+            {
+                // 如果沒時間，就在畫面上印出這行字
+                <span class="text-muted">尚未有資料</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.HistoryId)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.HistoryId)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.Type)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.Type)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.VaccinationLocation)
+        </dt>
+        <dd class = "col-sm-10">
+            @Html.DisplayFor(model => model.VaccinationLocation)
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.VaccinationTime)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.VaccinationTime.HasValue)
+            {
+                // 如果有時間，就正常顯示時間
+                @Html.DisplayFor(model => model.VaccinationTime)
+            }
+            else
+            {
+                // 如果沒時間，就在畫面上印出這行字
+                <span class="text-muted">尚未有資料</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.VaccinationUpdatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.VaccinationUpdatedAt.HasValue)
+            {
+                // 如果有時間，就正常顯示時間
+                @Html.DisplayFor(model => model.VaccinationUpdatedAt)
+            }
+            else
+            {
+                // 如果沒時間，就在畫面上印出這行字
+                <span class="text-muted">尚未有資料</span>
+            }
+        </dd>
+        <dt class = "col-sm-2">
+            @Html.DisplayNameFor(model => model.VaccinationCreatedAt)
+        </dt>
+        <dd class="col-sm-10">
+            @if (Model.VaccinationCreatedAt.HasValue)
+            {
+                // 如果有時間，就正常顯示時間
+                @Html.DisplayFor(model => model.VaccinationCreatedAt)
+            }
+            else
+            {
+                // 如果沒時間，就在畫面上印出這行字
+                <span class="text-muted">尚未有資料</span>
+            }
+        </dd>
+    </dl>
+</div>
+<div>
+    @Html.ActionLink("Edit", "Edit", new { /* id = Model.PrimaryKey */ }) |
+    <a asp-action="List">取消</a>
+</div>

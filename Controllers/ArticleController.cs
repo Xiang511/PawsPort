@@ -1,15 +1,16 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.Data.SqlClient;
 using PawsPort.Models;
-using PawsPort.ViewModels;
 using PawsPort.Services;
+using PawsPort.ViewModels;
 
 
 namespace PawsPort.Controllers
 {
     public class ArticleController : Controller
     {
-       
-        IWebHostEnvironment _Env = null; 
+
+        IWebHostEnvironment _Env = null;
 
         public ArticleController(IWebHostEnvironment p)
         {
@@ -47,38 +48,55 @@ namespace PawsPort.Controllers
         [HttpPost]
         public IActionResult CreateArticle(ArticleWrap p)
         {
+            FileService F = new FileService(_Env);
+            if (p.ImageFiles != null && p.ImageFiles.Count > 0)
+            {
+                List<string> ErrorFile = new List<string>();
+
+                foreach (IFormFile File in p.ImageFiles)
+                {
+                    if (!F.IsValidImage(File))
+                    
+                        ErrorFile.Add(File.FileName);
+                }
+                if (ErrorFile.Count > 0)
+                {
+                    string AllErrorFiles = string.Join(", ", ErrorFile);
+                    ModelState.AddModelError("ImageFiles", $"檔案 {AllErrorFiles} 格式錯誤");
+                    TempData["ErrorMsg"] = $"圖片格式不符：{AllErrorFiles}，上傳已取消。";
+
+                    return View(p);
+                }
+            }
             using (PetDbContext Db = new PetDbContext())
             {
-                p.IsExist = true; //設定文章為存在狀態
-                p.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
+                p.article.IsExist = true; //設定文章為存在狀態
+                p.article.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
                 Db.Articles.Add(p.article);
                 Db.SaveChanges(); //建立文章並存到資料庫
 
-                if (p.ImageFiles != null&& p.ImageFiles.Count > 0)
+                if (p.ImageFiles != null && p.ImageFiles.Count > 0)
                 {
-                    FileService F = new FileService(_Env);
-                    foreach(IFormFile File in p.ImageFiles)
+                    foreach (IFormFile File in p.ImageFiles)
                     {
                         string ImageName = F.SaveImage(File); //將圖片保存到伺服器並獲取圖片名稱
                         if (ImageName != null)
                         {
                             ArticleImage Img = new ArticleImage();
-                            Img.ArticleId = p.ArticleId; //將圖片與文章關聯
-                            Img.Image ="/Image/"+ ImageName; //存入路徑
+                            Img.ArticleId = p.article.ArticleId; //將圖片與文章關聯
+                            Img.Image = "/Image/" + ImageName; //存入路徑
                             Db.ArticleImages.Add(Img); //圖片資訊存入資料庫
                         }
-                        else
-                        {
-                            //上傳失敗的報錯，例如記錄錯誤日誌或返回錯誤訊息給使用者
-                        }
-
                     }
                     Db.SaveChanges(); //保存更改到資料庫
                 }
-                return RedirectToAction("ArticleList");
             }
-
+            return RedirectToAction("ArticleList");
         }
+
+
+
+
 
         public IActionResult EditArticle(int? id)
         {

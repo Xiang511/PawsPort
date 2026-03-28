@@ -7,52 +7,130 @@
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="m-0">玩家管理</h1>
 </div>
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;text-align:center">玩家ID</th>
+                        <th style="width: 10%;text-align:center">點數</th>
+                        <th style="width: 10%;text-align:center">持有造型數量</th>
+                        <th style="width: 10%;text-align:center">遊玩進度</th>
+                        <th style="width: 20%;text-align:center">最後遊玩時間</th>
+                        <th style="width: 20%;text-align:center">動作</th>
+                        <th style="width: 10%;text-align:center">會員</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td style="text-align:center;vertical-align:middle">
+                                @item.PlayerId
+                            </td>
+                            <td style="text-align:center;vertical-align:middle">@item.Point</td>
+                            <td style="text-align:center;vertical-align:middle">@item.SkinCount</td>
+                            <td style="text-align:center;vertical-align:middle">@(item.MaxGameId > 0 ? "第 " + item.MaxGameId + " 關" : "未開始")</td>
+                            <td style="text-align:center;vertical-align:middle">@(item.LastPlayedDate != null ? item.LastPlayedDate.ToString("yyyy-MM-dd HH:mm") : "未遊玩")</td>
+                            <td style="white-space: nowrap;text-align:center;vertical-align:middle">
+                                <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                        data-id="@item.PlayerId"
+                                        data-toggle="modal"
+                                        data-target="#EditBn">
+                                    <i class="fa-solid fa-pen-to-square"></i> 編輯
+                                </button>
+                                <button type="button" class="btn btn-sm btn-danger" onclick="deletePlayer(@item.PlayerId)">
+                                    <i class="fa-solid fa-trash"></i> 刪除
+                                </button>
+                                <button type="button" class="btn btn-sm btn-info"
+                                        data-toggle="modal"
+                                        data-target="#ViewLogsBn_@item.PlayerId">
+                                    <i class="fa-solid fa-receipt"></i> 消費紀錄
+                                </button>
+                                <button type="button" class="btn btn-sm btn-success"
+                                        data-toggle="modal"
+                                        data-target="#ViewPointRecordsBn_@item.PlayerId">
+                                    <i class="fa-solid fa-coins"></i> 點數紀錄
+                                </button>
+                                
+                            </td>
+                            <td style="text-align:center">
+                                <a href="~/Member/List">
+                                <button type="button" class="btn btn-sm">
+                                    <i class="fa-solid fa-user"></i> 查看會員檔案
+                                </button>
+                                </a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
 
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th style="width: 8%;">玩家ID</th>
-            <th style="width: 10%;">點數</th>
-            <th style="width: 12%;">持有造型數量</th>
-            <th style="width: 10%;">遊玩進度</th>
-            <th style="width: 15%;">最後遊玩時間</th>
-            <th style="width: 15%;"></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.PlayerId</td>
-                <td>@item.Point</td>
-                <td>@item.SkinCount</td>
-                <td>@(item.MaxGameId > 0 ? "第 " + item.MaxGameId + " 關" : "未開始")</td>
-                <td>@(item.LastPlayedDate != null ? item.LastPlayedDate.ToString("yyyy-MM-dd HH:mm") : "未遊玩")</td>
-                <td style="white-space: nowrap;">
-                    <button type="button" class="btn btn-sm btn-warning edit-btn"
-                            data-id="@item.PlayerId"
-                            data-toggle="modal"
-                            data-target="#EditBn">
-                        <i class="fa-solid fa-pen-to-square"></i> 編輯
-                    </button>
-                    <button type="button" class="btn btn-sm btn-danger" onclick="deletePlayer(@item.PlayerId)">
-                        <i class="fa-solid fa-trash"></i> 刪除
-                    </button>
-                    <button type="button" class="btn btn-sm btn-info"
-                            data-toggle="modal"
-                            data-target="#ViewLogsBn_@item.PlayerId">
-                        <i class="fa-solid fa-receipt"></i> 消費紀錄
-                    </button>
-                    <button type="button" class="btn btn-sm btn-success"
-                            data-toggle="modal"
-                            data-target="#ViewPointRecordsBn_@item.PlayerId">
-                        <i class="fa-solid fa-coins"></i> 點數紀錄
-                    </button>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
+            <!-- 分頁導航 -->
+            <nav aria-label="Page navigation" class="mt-4">
+                <ul class="pagination justify-content-center">
+                    <!-- 上一頁按鈕 -->
+                    @if (ViewBag.CurrentPage > 1)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("List", "Players", new { page = ViewBag.CurrentPage - 1 })">
+                                <i class="fa-solid fa-chevron-left"></i> 上一頁
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                <i class="fa-solid fa-chevron-left"></i> 上一頁
+                            </span>
+                        </li>
+                    }
+
+                    <!-- 頁碼按鈕 -->
+                    @for (int i = 1; i <= ViewBag.TotalPages; i++)
+                    {
+                        @if (i == ViewBag.CurrentPage)
+                        {
+                            <li class="page-item active">
+                                <span class="page-link">@i</span>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="page-item">
+                                <a class="page-link" href="@Url.Action("List", "Players", new { page = i })">@i</a>
+                            </li>
+                        }
+                    }
+
+                    <!-- 下一頁按鈕 -->
+                    @if (ViewBag.CurrentPage < ViewBag.TotalPages)
+                    {
+                        <li class="page-item">
+                            <a class="page-link" href="@Url.Action("List", "Players", new { page = ViewBag.CurrentPage + 1 })">
+                                下一頁 <i class="fa-solid fa-chevron-right"></i>
+                            </a>
+                        </li>
+                    }
+                    else
+                    {
+                        <li class="page-item disabled">
+                            <span class="page-link">
+                                下一頁 <i class="fa-solid fa-chevron-right"></i>
+                            </span>
+                        </li>
+                    }
+                </ul>
+                <div class="text-center text-muted mt-2">
+                    <small>第 @ViewBag.CurrentPage 頁，共 @ViewBag.TotalPages 頁（總計 @ViewBag.TotalCount 筆玩家）</small>
+                </div>
+            </nav>
+
+        </div>
+    </div>
+</div>
 
 <!-- 編輯 Modal -->
 <div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
@@ -162,7 +240,7 @@
                                 @foreach (var log in player.InventoryLogs)
                                 {
                                     <tr>
-                                        <td>@log.SkinId</td>
+                                        <td style="text-align:center">@log.SkinId</td>
                                         <td>@log.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
                                         <td>@log.Price</td>
                                         <td>@log.Point</td>
@@ -179,6 +257,7 @@
         </div>
     </div>
 }
+
 <!-- 點數來源紀錄 Modal -->
 @foreach (var player in Model)
 {

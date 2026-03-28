@@ -6,7 +6,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="m-0">商店管理</h1>
-    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
+    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn" style="margin-right:5px">
         <span class="icon text-white-50">
             <i class="fa-solid fa-plus"></i>
         </span>
@@ -200,89 +200,97 @@
     </div>
 </div>
 
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th style="width: 5%;">
-                編號
-            </th>
-            <th style="width: 12%;">
-                造型名稱
-            </th>
-            <th style="width: 10%;">
-                圖片
-            </th>
-            <th style="width: 45%;">
-                描述
-            </th>
-            <th style="width: 8%;">
-                價格
-            </th>
-            <th style="width: 8%;">
-                是否上架
-            </th>
-            <th style="width: 12%;">
-                
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @{
-            int count = 0;
-            foreach (var item in Model)
-            {
-                count++;
-                <tr>
-                    <td>
-                        @count
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.SkinName)
-                    </td>
-                    <td style="">
-                        @if (!string.IsNullOrEmpty(item.SkinImage))
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;text-align:center">
+                            編號
+                        </th>
+                        <th style="width: 12%;text-align:center">
+                            造型名稱
+                        </th>
+                        <th style="width: 10%;text-align:center">
+                            圖片
+                        </th>
+                        <th style="width: 45%;text-align:center">
+                            描述
+                        </th>
+                        <th style="width: 8%;text-align:center">
+                            價格
+                        </th>
+                        <th style="width: 8%;text-align:center">
+                            是否上架
+                        </th>
+                        <th style="width: 12%;text-align:center">
+                            動作
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int count = 0;
+                        foreach (var item in Model)
                         {
-                            <img src="@item.SkinImage" alt="@item.SkinName" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;"
-                                 onclick="viewImage('@item.SkinImage', '@item.SkinName')" title="點擊查看大圖" />
+                            count++;
+                            <tr>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @count
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.SkinName)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @if (!string.IsNullOrEmpty(item.SkinImage))
+                                    {
+                                        <img src="@item.SkinImage" alt="@item.SkinName" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;"
+                                             onclick="viewImage('@item.SkinImage', '@item.SkinName')" title="點擊查看大圖" />
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #999;;vertical-align:middle">無圖片</span>
+                                    }
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @{
+                                        string displayDesc = item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description;
+                                    }
+                                    <span title="@item.Description;vertical-align:middle">@displayDesc</span>
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.Price)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @(item.IsAvailable ? "是" : "否")
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                            data-id="@item.SkinId"
+                                            data-name="@item.SkinName"
+                                            data-description="@item.Description"
+                                            data-price="@item.Price"
+                                            data-image="@item.SkinImage"
+                                            data-available="@item.IsAvailable"
+                                            data-toggle="modal"
+                                            data-target="#EditBn">
+                                        <i class="fa-solid fa-pen-to-square"></i> 編輯
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteSkin(@item.SkinId, '@item.SkinName')">
+                                        <i class="fa-solid fa-trash"></i> 刪除
+                                    </button>
+                                </td>
+                            </tr>
                         }
-                        else
-                        {
-                            <span style="color: #999;">無圖片</span>
-                        }
-                    </td>
-                    <td>
-                        @{
-                            string displayDesc = item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description;
-                        }
-                        <span title="@item.Description">@displayDesc</span>
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Price)
-                    </td>
-                    <td>
-                        @(item.IsAvailable ? "是" : "否")
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-warning edit-btn"
-                                data-id="@item.SkinId"
-                                data-name="@item.SkinName"
-                                data-description="@item.Description"
-                                data-price="@item.Price"
-                                data-image="@item.SkinImage"
-                                data-available="@item.IsAvailable"
-                                data-toggle="modal"
-                                data-target="#EditBn">
-                            <i class="fa-solid fa-pen-to-square"></i> 編輯
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteSkin(@item.SkinId, '@item.SkinName')">
-                            <i class="fa-solid fa-trash"></i> 刪除
-                        </button>
-                    </td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 <script>
     function deleteSkin(skinId, skinName) {
         // 填充刪除確認 Modal

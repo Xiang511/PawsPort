@@ -22,4 +22,6 @@ public partial class AdoptionRecord
     public DateOnly? FollowUpDeadline { get; set; }
 
     public int? Status { get; set; }
+
+    public DateTime? DeletedAt { get; set; }
 }

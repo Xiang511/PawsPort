@@ -19,21 +19,21 @@ public partial class UserTable
 
     public string? City { get; set; }
 
+    public int? Point { get; set; }
+
     public string? Note { get; set; }
+
+    public bool? HasPriorExp { get; set; }
+
+    public bool Status { get; set; }
+
+    public bool? IsSubscribe { get; set; }
+
+    public bool? IsVerify { get; set; }
 
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? UpdatedAt { get; set; }
 
     public DateTime? DeleteDay { get; set; }
-
-    public bool Status { get; set; }
-
-    public bool? HasPriorExp { get; set; }
-
-    public int? Point { get; set; }
-
-    public bool? IsSubscribe { get; set; }
-
-    public bool? IsVerify { get; set; }
 }

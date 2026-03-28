@@ -13,5 +13,5 @@ public partial class UserSystemRole
 
     public int RoleId { get; set; }
 
-    public DateTime? AssignedAt { get; set; }
+    public DateTime? UpdatedAt { get; set; }
 }

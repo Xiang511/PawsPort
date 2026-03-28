@@ -49,7 +49,7 @@
                             <td>
                                 <span class="badge badge-pill bg-info text-dark">@item.RoleName</span>
                             </td>
-                            <td>@item.AssignedAt?.ToString("yyyy-MM-dd")</td>
+                            <td>@item.UpdatedAt?.ToString("yyyy-MM-dd")</td>
                             <td>
                                 <span>@Html.ActionLink("Edit", "BlockListEdit", new { id = item.MappingId })</span>
                                 <span>@Html.ActionLink("Delete", "BlockListDelete", new { id = item.MappingId })</span>

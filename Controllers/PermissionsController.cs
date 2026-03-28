@@ -21,7 +21,7 @@ namespace PawsPort.Controllers
                                       UserName = u.Name,
                                       SystemName = s.SystemName,
                                       RoleName = r.RoleName,
-                                      AssignedAt = usr.AssignedAt,
+                                      UpdatedAt = usr.UpdatedAt,
                                       MappingId= usr.MappingId
                                   };
             return View(userPermissions);
@@ -66,7 +66,7 @@ namespace PawsPort.Controllers
             {
                 dbUserSystemRole.SystemId = uiUserSystemRole.SystemId;
                 dbUserSystemRole.RoleId = uiUserSystemRole.RoleId;
-                dbUserSystemRole.AssignedAt = uiUserSystemRole.AssignedAt;
+                dbUserSystemRole.UpdatedAt = uiUserSystemRole.UpdatedAt;
                 dbUserSystemRole.UserId = uiUserSystemRole.UserId;
 
                 db.SaveChanges();
@@ -110,7 +110,7 @@ namespace PawsPort.Controllers
                                       UserName = u.Name,
                                       SystemName = s.SystemName,
                                       RoleName = r.RoleName,
-                                      AssignedAt = usr.AssignedAt,
+                                      UpdatedAt = usr.UpdatedAt,
                                       MappingId = usr.MappingId
                                   };
             return View(userPermissions);
@@ -155,7 +155,7 @@ namespace PawsPort.Controllers
             {
                 dbUserSystemRole.SystemId = uiUserSystemRole.SystemId;
                 dbUserSystemRole.RoleId = uiUserSystemRole.RoleId;
-                dbUserSystemRole.AssignedAt = uiUserSystemRole.AssignedAt;
+                dbUserSystemRole.UpdatedAt = uiUserSystemRole.UpdatedAt;
                 dbUserSystemRole.UserId = uiUserSystemRole.UserId;
 
                 db.SaveChanges();

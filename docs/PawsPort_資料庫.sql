@@ -199,7 +199,7 @@ CREATE TABLE [UserSystemRole] (
     UserId INT NOT NULL,
     SystemId INT NOT NULL,
     RoleId INT NOT NULL,
-    AssignedAt DATETIME DEFAULT GETDATE(),
+    UpdatedAt DATETIME DEFAULT GETDATE(),
     -- CONSTRAINT FK_Mapping_User FOREIGN KEY (UserId) REFERENCES [UserTable](UserId),
     -- CONSTRAINT FK_Mapping_System FOREIGN KEY (SystemId) REFERENCES [SystemTable](SystemId),
     -- CONSTRAINT FK_Mapping_Role FOREIGN KEY (RoleId) REFERENCES [RoleTable](RoleId)

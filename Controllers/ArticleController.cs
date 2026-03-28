@@ -29,8 +29,15 @@ namespace PawsPort.Controllers
                 if (!string.IsNullOrEmpty(vm.TxtKeyword))
                 {
                     Query = Query.Where(p => p.Title.Contains(vm.TxtKeyword)
-                  || p.Content.Contains(vm.TxtKeyword)); //根據搜尋條件查詢文章
+                  || p.Content.Contains(vm.TxtKeyword)); //根據搜尋條件(標題/內容關鍵字)查詢文章
+
+                    //依照作者查詢
+                    //依照檢舉數查詢
+                    //依照分類查詢
+                    //依照是否已刪除查詢(查詢被軟刪除文章)
+
                 }
+                //按照留言數/書籤數/閱覽數排序
 
                 var Datas = Query.Select(p => new ArticleWrap { article = p }).ToList(); 
                 //將查詢結果轉換為ArticleWrap物件的列表

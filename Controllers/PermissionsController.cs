@@ -20,6 +20,7 @@ namespace PawsPort.Controllers
                                       UserId = u.UserId,
                                       UserName = u.Name,
                                       SystemName = s.SystemName,
+                                      RoleId = r.RoleId,
                                       RoleName = r.RoleName,
                                       UpdatedAt = usr.UpdatedAt,
                                       MappingId = usr.MappingId
@@ -29,7 +30,16 @@ namespace PawsPort.Controllers
 
         public IActionResult Create()
         {
-            return View();
+            PetDbContext db = new PetDbContext();
+
+            var viewModel = new PermissionCreateViewModel
+            {
+                Users = db.UserTables.Where(u => u.Status == true).ToList(),
+                Systems = db.SystemTables.ToList(),
+                Roles = db.RoleTables.ToList()
+            };
+
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -48,26 +58,42 @@ namespace PawsPort.Controllers
                 return RedirectToAction("List");
 
             PetDbContext db = new PetDbContext();
-            UserSystemRole x = db.UserSystemRoles.Where(m => m.UserId == id).FirstOrDefault();
+            var userSystemRole = db.UserSystemRoles.Where(m => m.MappingId == id).FirstOrDefault();
 
-            if (x == null)
+            if (userSystemRole == null)
                 return RedirectToAction("List");
 
-            return View(x);
+            // 取得使用者名稱
+            var user = db.UserTables.Where(u => u.UserId == userSystemRole.UserId).FirstOrDefault();
+
+            // 建立 ViewModel
+            var viewModel = new PermissionEditViewModel
+            {
+                MappingId = userSystemRole.MappingId,
+                UserId = userSystemRole.UserId,
+                UserName = user?.Name ?? "未知使用者",
+                SystemId = userSystemRole.SystemId,
+                RoleId = userSystemRole.RoleId,
+                UpdatedAt = userSystemRole.UpdatedAt,
+                Systems = db.SystemTables.ToList(),
+                Roles = db.RoleTables.ToList()
+            };
+
+            return View(viewModel);
         }
 
         [HttpPost]
-        public IActionResult Edit(UserSystemRole uiUserSystemRole)
+        public IActionResult Edit(PermissionEditViewModel viewModel)
         {
             PetDbContext db = new PetDbContext();
-            UserSystemRole dbUserSystemRole = db.UserSystemRoles.Where(m => m.UserId == uiUserSystemRole.UserId).FirstOrDefault();
+            UserSystemRole dbUserSystemRole = db.UserSystemRoles.Where(m => m.MappingId == viewModel.MappingId).FirstOrDefault();
 
             if (dbUserSystemRole != null)
             {
-                dbUserSystemRole.SystemId = uiUserSystemRole.SystemId;
-                dbUserSystemRole.RoleId = uiUserSystemRole.RoleId;
-                dbUserSystemRole.UpdatedAt = uiUserSystemRole.UpdatedAt;
-                dbUserSystemRole.UserId = uiUserSystemRole.UserId;
+                dbUserSystemRole.UserId = viewModel.UserId;
+                dbUserSystemRole.SystemId = viewModel.SystemId;
+                dbUserSystemRole.RoleId = viewModel.RoleId;
+                dbUserSystemRole.UpdatedAt = DateTime.Now;
 
                 db.SaveChanges();
             }

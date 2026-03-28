@@ -113,7 +113,7 @@ namespace PawsPort.Controllers
 
         // 編輯玩家 - POST 方法
         [HttpPost]
-        public IActionResult Edit(int PlayerId, int Point, int[] EnabledSkinIds)
+        public IActionResult Edit(int PlayerId, int Point, int[] EnabledSkinIds, int page = 1)
         {
             PetDbContext db = new PetDbContext();
 
@@ -134,7 +134,7 @@ namespace PawsPort.Controllers
             }
             db.SaveChanges();
 
-            return RedirectToAction("List");
+            return RedirectToAction("List", new { page = page });
         }
 
         // 刪除玩家 - POST 方法

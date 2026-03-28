@@ -13,22 +13,29 @@
             <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
                 <thead>
                     <tr>
-                        <th style="width: 10%;text-align:center">玩家ID</th>
-                        <th style="width: 10%;text-align:center">點數</th>
+                        <th style="width: 10%;text-align:center">會員檔案</th>
+                        <th style="width: 5%;text-align:center">玩家ID</th>
+                        <th style="width: 15%;text-align:center">玩家資料建立時間</th>
+                        <th style="width: 8%;text-align:center">現有點數</th>
                         <th style="width: 10%;text-align:center">持有造型數量</th>
                         <th style="width: 10%;text-align:center">遊玩進度</th>
-                        <th style="width: 20%;text-align:center">最後遊玩時間</th>
+                        <th style="width: 15%;text-align:center">最後遊玩時間</th>
                         <th style="width: 20%;text-align:center">動作</th>
-                        <th style="width: 10%;text-align:center">會員</th>
                     </tr>
                 </thead>
                 <tbody>
                     @foreach (var item in Model)
                     {
                         <tr>
+                            <td style="text-align:center">
+                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                        <i class="fa-solid fa-user"></i> 查看會員檔案
+                                </button>
+                            </td>
                             <td style="text-align:center;vertical-align:middle">
                                 @item.PlayerId
                             </td>
+                            <td style="text-align:center;vertical-align:middle">@(item.LastPlayedDate != null ? item.LastPlayedDate.ToString("yyyy-MM-dd HH:mm") : "未遊玩")</td>
                             <td style="text-align:center;vertical-align:middle">@item.Point</td>
                             <td style="text-align:center;vertical-align:middle">@item.SkinCount</td>
                             <td style="text-align:center;vertical-align:middle">@(item.MaxGameId > 0 ? "第 " + item.MaxGameId + " 關" : "未開始")</td>
@@ -55,13 +62,7 @@
                                 </button>
                                 
                             </td>
-                            <td style="text-align:center">
-                                <a href="~/Member/List">
-                                <button type="button" class="btn btn-sm">
-                                    <i class="fa-solid fa-user"></i> 查看會員檔案
-                                </button>
-                                </a>
-                            </td>
+                            
                         </tr>
                     }
                 </tbody>
@@ -101,7 +102,7 @@
                         else
                         {
                             <li class="page-item">
-                                <a class="page-link" href="@Url.Action("List", "Players", new { page = i })">@i</a>
+                                <a class="page-link" href="/Player/List?page=@i">@i</a>
                             </li>
                         }
                     }
@@ -146,6 +147,7 @@
             <form method="post" asp-action="Edit" asp-controller="Player">
                 <div class="modal-body">
                     <input type="hidden" id="EditPlayerId" name="PlayerId" />
+                    <input type="hidden" id="CurrentPage" name="page" value="@ViewBag.CurrentPage" />
 
                     <!-- 玩家點數 -->
                     <div class="form-group">
@@ -223,10 +225,10 @@
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th style="width: 15%;">造型ID</th>
-                                <th style="width: 25%;">消費時間</th>
-                                <th style="width: 20%;">金額</th>
-                                <th style="width: 20%;">剩餘點數</th>
+                                <th style="width: 15%; text-align:center">造型ID</th>
+                                <th style="width: 25%; text-align:center">消費時間</th>
+                                <th style="width: 20%; text-align:center">金額</th>
+                                <th style="width: 20%; text-align:center">剩餘點數</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -242,9 +244,9 @@
                                 {
                                     <tr>
                                         <td style="text-align:center">@log.SkinId</td>
-                                        <td>@log.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
-                                        <td>@log.Price</td>
-                                        <td>@log.Point</td>
+                                        <td style="text-align:center">@log.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td style="text-align:center">@log.Price</td>
+                                        <td style="text-align:center">@log.Point</td>
                                     </tr>
                                 }
                             }
@@ -275,9 +277,9 @@
                     <table class="table table-sm">
                         <thead>
                             <tr>
-                                <th style="width: 25%;">創建時間</th>
-                                <th style="width: 35%;">來源</th>
-                                <th style="width: 20%;">點數</th>
+                                <th style="width: 25%;text-align:center">創建時間</th>
+                                <th style="width: 35%;text-align:center">來源</th>
+                                <th style="width: 20%;text-align:center">點數</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -292,8 +294,8 @@
                                 @foreach (var record in player.PointRecords)
                                 {
                                     <tr>
-                                        <td>@record.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
-                                        <td>
+                                        <td style="text-align:center">@record.CreateTime.ToString("yyyy-MM-dd HH:mm")</td>
+                                        <td style="text-align:center">
                                             @if (record.GameId > 0)
                                             {
                                                 <span>遊戲 第 @record.GameId 關</span>
@@ -303,7 +305,7 @@
                                                 <span>@record.Upstream</span>
                                             }
                                         </td>
-                                        <td>@record.Point</td>
+                                        <td style="text-align:center">@record.Point</td>
                                     </tr>
                                 }
                             }

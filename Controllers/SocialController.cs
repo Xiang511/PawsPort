@@ -46,9 +46,16 @@ namespace PawsPort.Controllers
                     //書籤雙向數據
                     MyBookmarkCount = db.Bookmarks.Count(b => b.UserId == p.UserId), //書籤數量
                     ReceivedBookmarkCount = db.Bookmarks.Count
-                    (b => db.Articles.Any(a => a.ArticleId == b.ArticleId && a.UserId == p.UserId))
+                    (b => db.Articles.Any(a => a.ArticleId == b.ArticleId && a.UserId == p.UserId)),
                     //收到的書籤數量(dbArticle裡符合(貼文表ID==書籤表ID && 貼文表UserID == 查到的UserID))
                     //未來須加上FK
+
+                    //人氣分數算法
+                    PopularityScore = (db.Followings.Count(f => f.FollowingId == p.UserId) * 10) +
+                 (db.Bookmarks.Count
+                 (b => db.Articles.Any(a => a.ArticleId == b.ArticleId && a.UserId == p.UserId)) * 5) +
+                 (db.Comments.Count
+                 (c => db.Articles.Any(a => a.ArticleId == c.ArticleId && a.UserId == p.UserId)) * 2)
                 });
 
                 switch (vm.SortBy) //根據vm.SortBy的值來決定排序方式
@@ -85,7 +92,7 @@ namespace PawsPort.Controllers
                         }
                         else
                         {
-                            ItemQuery = ItemQuery.OrderBy(i => i.PopularityScore);
+                            ItemQuery = ItemQuery.OrderBy (i => i.PopularityScore);
                             //按照人氣分數由少到多排序
                         }
                         break;
@@ -118,7 +125,7 @@ namespace PawsPort.Controllers
         }
 
 
-        public IActionResult Details(int id) 
+        public IActionResult Details(int id)
         {
             using (PetDbContext db = new PetDbContext())
             {
@@ -157,7 +164,7 @@ namespace PawsPort.Controllers
                 };
                 return View(vm);
             }
- 
+
         }
 
     }

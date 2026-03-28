@@ -31,9 +31,7 @@ namespace PawsPort.ViewModels
         [DisplayName("被收藏數")]
         public int ReceivedBookmarkCount { get; set; } //我收到的書籤數量
 
-        [DisplayName("人氣指數")]
-        public int PopularityScore => (FollowerCount * 2) + ReceivedCommentCount; 
-        //人氣指數計算方式：粉絲數量*2 + 收到的留言數量
+       public int PopularityScore { get; set; }
 
     }
 }

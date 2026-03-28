@@ -1,0 +1,93 @@
+﻿@model PawsPort.Models.LineBot
+
+@{
+    ViewData["Title"] = "LINE Bot 回覆";
+    string lineGreen = "#06C755";
+    string lineBg = "#abc1d1";
+}
+
+
+<style>
+   
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">" !important;
+        color: #6c757d;
+    }
+</style>
+
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent px-0 mb-2">
+        <li class="breadcrumb-item"><a href="~/Home/Index" class="text-decoration-none text-muted"><i class="fas fa-home mr-1"></i>首頁</a></li>
+
+        <li class="breadcrumb-item"><a href="~/LineBot/List" class="text-decoration-none text-muted">LINE Bot 收件匣</a></li>
+        
+        <li class="breadcrumb-item active font-weight-bold" aria-current="page" style="color: @lineGreen !important;">客服LINE Bot聊天室</li>
+    </ol>
+</nav>
+
+
+
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        
+        <div class="d-flex justify-content-between align-items-center mb-3">
+            <h3 class="font-weight-bold m-0" style="color: @lineGreen;">客服LINE Bot聊天室</h3>
+            <a href="~/LineBot/List" class="btn btn-sm btn-outline-secondary rounded-pill px-3">
+                <i class="fas fa-arrow-left mr-1"></i>返回收件匣
+            </a>
+        </div>
+
+
+
+        <div class="card shadow border-0" style="border-radius: 20px; overflow: hidden;">
+            
+            <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center">
+                <h5 class="font-weight-bold m-0 text-dark">
+                    主旨：@Model.ChiefComplaint
+                </h5>
+                <span class="badge text-white px-3 py-2" style="background-color: @lineGreen; font-size: 0.9rem; border-radius: 8px;">
+                    @Model.QuestionType
+                </span>
+            </div>
+
+            <div id="chat-scroll" class="card-body p-4" style="background-color: @lineBg; height: 500px; overflow-y: scroll;">
+                
+                <div class="text-center mb-4">
+                    <span class="badge text-white px-3 py-1 shadow-sm" style="background-color: rgba(0, 0, 0, 0.25); font-size: 0.85rem; border-radius: 20px;">
+                        @Model.ChatDate.ToString("yyyy年MM月dd日")
+                    </span>
+                </div>
+
+                <div class="d-flex justify-content-start mb-4">
+                    <div class="mr-2">
+                        <img src="https://ui-avatars.com/api/?name=User&background=ffffff&color=06C755&rounded=true" style="width: 45px; height: 45px; border-radius: 50%; box-shadow: 0 2px 4px rgba(0,0,0,0.1); " />
+                    </div>
+                    <div class="p-3 bg-white text-dark shadow-sm" style="border-radius: 0px 15px 15px 15px; max-width: 75%; font-size: 1.1rem; line-height: 1.5;">
+                        @Model.ChatContent
+                    </div>
+                    <div class="d-flex align-items-end ml-1 mb-1">
+                        <small class="text-white" style="opacity: 0.8;">@Model.ChatDate.ToString("HH:mm")</small>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="card-footer bg-white p-3">
+                <form action="~/LineBot/Reply" method="post" class="m-0">
+                    <input type="hidden" name="Id" value="@Model.Id" />
+                    
+                    <div class="input-group">
+                        <input type="text" name="ReplyText" class="form-control form-control-lg border-right-0" placeholder="Aa 輸入回覆訊息..." required style="border-radius: 25px 0 0 25px; background-color: #f1f1f1; border: none;">
+                        <div class="input-group-append">
+                            <button class="btn text-white px-4" type="submit" style="background-color: @lineGreen; border-radius: 0 25px 25px 0; border: none;">
+                                <i class="fas fa-paper-plane mr-1"></i>傳送
+                            </button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+            
+        </div>
+    </div>
+</div>

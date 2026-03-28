@@ -103,9 +103,6 @@ namespace PawsPort.Controllers
         }
 
 
-
-
-
         public IActionResult EditArticle(int? id)
         {
             using (PetDbContext db = new PetDbContext())
@@ -190,9 +187,6 @@ namespace PawsPort.Controllers
             }
             return View(Datas);
         }
-
-
-
 
 
         public IActionResult EventList(KeywordViewModel vm) //活動管理頁面

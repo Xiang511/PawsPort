@@ -28,7 +28,7 @@
                 </div>
                 <div class="col-md-3 mb-2">
                     <select name="SortBy" class="form-control form-control-sm custom-select shadow-sm">
-                        <option value="Default" selected="@(Model.SortBy == "Default")">排序：預設 ID</option>
+                        <option value="Default" selected="@(Model.SortBy == "Default")">排序：預設名稱</option>
                         <option value="PostCount" selected="@(Model.SortBy == "PostCount")">排序：發文數量</option>
                         <option value="FollowerCount" selected="@(Model.SortBy == "FollowerCount")">排序：粉絲數量</option>
                         <option value="Popularity" selected="@(Model.SortBy == "Popularity")">排序：人氣程度</option>
@@ -55,8 +55,10 @@
                     <tr>
                         <th>@Html.DisplayNameFor(model => model.SocialItems[0].UserName)</th>
                         <th>@Html.DisplayNameFor(model => model.SocialItems[0].PostCount)</th>
-                        <th>@Html.DisplayNameFor(model => model.SocialItems[0].FollowingCount)
-                            /@Html.DisplayNameFor(model => model.SocialItems[0].FollowerCount)</th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.SocialItems[0].FollowingCount)
+                            /@Html.DisplayNameFor(model => model.SocialItems[0].FollowerCount)
+                        </th>
                         <th>
                             @Html.DisplayNameFor(model => model.SocialItems[0].MyCommentCount)
                             /@Html.DisplayNameFor(model => model.SocialItems[0].ReceivedCommentCount)

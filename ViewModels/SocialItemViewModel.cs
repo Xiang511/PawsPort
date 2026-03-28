@@ -31,7 +31,13 @@ namespace PawsPort.ViewModels
         [DisplayName("被收藏數")]
         public int ReceivedBookmarkCount { get; set; } //我收到的書籤數量
 
-       public int PopularityScore { get; set; }
+        [DisplayName("貼文總閱覽次數")]
+        public int TotalViewCount { get; set; } //貼文被閱覽次數
+
+        [DisplayName("人氣程度")]
+       public int PopularityScore { get; set; } //加權算法在controller
+
+      
 
     }
 }

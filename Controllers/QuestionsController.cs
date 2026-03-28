@@ -8,10 +8,22 @@ namespace PawsPort.Controllers
     public class QuestionsController : Controller
     {
         // 題庫列表
-        public IActionResult List()
+        public IActionResult List(string category = "")
         {
             PetDbContext db = new PetDbContext();
             var GameList = db.GameContents.ToList();
+            if (!string.IsNullOrEmpty(category))
+            {
+                GameList = GameList.Where(g => g.GameName == category).ToList();
+            }
+            var categories = db.GameContents
+               .Select(g => g.GameName)
+               .Distinct()
+               .OrderBy(g => g)
+               .ToList();
+
+            ViewBag.Categories = categories;
+            ViewBag.SelectedCategory = category;
             return View(GameList);
         }
         public IActionResult Create()

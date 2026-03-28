@@ -74,9 +74,10 @@
                     @if (ViewBag.CurrentPage > 1)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("List", "Players", new { page = ViewBag.CurrentPage - 1 })">
+                            <a class="page-link" href="/Player/List?page=@(ViewBag.CurrentPage - 1)">
                                 <i class="fa-solid fa-chevron-left"></i> 上一頁
                             </a>
+
                         </li>
                     }
                     else
@@ -109,7 +110,7 @@
                     @if (ViewBag.CurrentPage < ViewBag.TotalPages)
                     {
                         <li class="page-item">
-                            <a class="page-link" href="@Url.Action("List", "Players", new { page = ViewBag.CurrentPage + 1 })">
+                            <a class="page-link" href="/Player/List?page=@(ViewBag.CurrentPage + 1)">
                                 下一頁 <i class="fa-solid fa-chevron-right"></i>
                             </a>
                         </li>

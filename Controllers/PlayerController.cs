@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
 
 namespace PawsPort.Controllers
 {
     public class PlayerController : Controller
     {
-        public IActionResult List()
+        public IActionResult List(int page = 1)
         {
             PetDbContext db = new PetDbContext();
+            int pageSize = 10; //每頁10筆
             var playerList = db.PlayerProfiles
                 .Select(p => new
                 {
@@ -43,8 +45,25 @@ namespace PawsPort.Controllers
                         .ToList()
                 })
                 .ToList();
+            // 計算總頁數
+            int totalCount = playerList.Count;
+            int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
-            return View(playerList);
+            // 確保頁碼有效
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // 進行分頁
+            var pagedList = playerList
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // 傳遞分頁信息到 View
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            return View(pagedList);
         }
 
         // 編輯玩家 - GET 方法（用於載入 Modal 中的詳細資訊）

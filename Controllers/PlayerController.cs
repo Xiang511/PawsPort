@@ -37,6 +37,16 @@ namespace PawsPort.Controllers
                         .FirstOrDefault(),
                     InventoryLogs = db.InventoryLogs
                         .Where(l => l.PlayerId == p.PlayerId)
+                        .Select(l => new
+                        {
+                            l.LogId,
+                            l.PlayerId,
+                            l.SkinId,
+                            l.Price,
+                            l.CreateTime,
+                            l.Point,
+                            SkinName = db.SkinShops.FirstOrDefault(s => s.SkinId == l.SkinId).SkinName ?? "未知造型"
+                        })
                         .OrderByDescending(l => l.CreateTime)
                         .ToList(),
                     PointRecords = db.PointRecords  

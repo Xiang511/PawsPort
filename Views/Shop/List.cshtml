@@ -114,28 +114,25 @@
                         <label for="EditPrice">價格 <span style="color: red;">*</span></label>
                         <input type="number" class="form-control" id="EditPrice" name="Price" placeholder="輸入價格" min="0" required />
                     </div>
-
-                    <!-- 目前圖片顯示 -->
+                    <!-- 圖片顯示區域（舊圖片和新預覽共用） -->
                     <div class="form-group">
-                        <label>目前圖片</label>
-                        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
-                            <img id="EditCurrentImage" src="" alt="目前圖片" style="max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
+                        <label>圖片預覽</label>
+                        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 4px; display: flex; justify-content: center; align-items: center; min-height: 320px;">
+                            <img id="EditCurrentImage" src="" alt="圖片預覽" style="max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
                         </div>
                     </div>
+
 
                     <!-- 圖片上傳 -->
                     <div class="form-group">
                         <label for="EditImageFile">上傳新圖片</label>
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="EditImageFile" name="imageFile" accept=".jpg,.jpeg,.png" onchange="previewImage(event, 'EditImagePreview')" />
+                            <input type="file" class="custom-file-input" id="EditImageFile" name="imageFile" accept=".jpg,.jpeg,.png" onchange="previewImage(event, 'EditCurrentImage')" />
                             <label class="custom-file-label" for="EditImageFile">選擇圖片（不選則保持原圖片）...</label>
                         </div>
                         <small class="form-text text-muted">只允許上傳 JPG 或 PNG 格式的圖片</small>
-                        <!-- 新圖片預覽 -->
-                        <div class="mt-3">
-                            <img id="EditImagePreview" src="" alt="新圖片預覽" style="display: none; max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
-                        </div>
                     </div>
+
 
                     <!-- 是否上架 -->
                     <div class="form-group">

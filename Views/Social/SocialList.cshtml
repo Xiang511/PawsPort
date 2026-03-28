@@ -79,17 +79,19 @@
                                 <span class="badge badge-info">@item.FollowerCount</span>
                             </td>
                             <td class="small">
-                                <span title="主動留言"><i class="far fa-comment-dots text-gray-400"></i> @item.MyCommentCount</span> /
+                                <span title="我的留言"><i class="far fa-comment-dots text-gray-400"></i> @item.MyCommentCount</span> /
                                 <span title="收到的留言" class="text-success"><i class="fas fa-comment-medical"></i> @item.ReceivedCommentCount</span>
                             </td>
                             <td class="small">
                                 <span title="我的收藏"><i class="far fa-bookmark text-gray-400"></i> @item.MyBookmarkCount</span> /
                                 <span title="被他人收藏" class="text-warning"><i class="fas fa-bookmark"></i> @item.ReceivedBookmarkCount</span>
                             </td>
+
                             <td class="text-center">
                                 <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-info btn-circle btn-sm shadow-sm">
                                     <i class="fas fa-info-circle"></i>
                                 </a>
+                                @* 點了會跳轉到Details *@
 
                                 <button class="btn btn-danger btn-circle btn-sm shadow-sm m-sm-1" onclick="confirmBan('@item.UserName')">
                                     <i class="fas fa-ban"></i>

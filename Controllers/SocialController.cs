@@ -117,5 +117,48 @@ namespace PawsPort.Controllers
 
         }
 
+
+        public IActionResult Details(int id) 
+        {
+            using (PetDbContext db = new PetDbContext())
+            {
+                var user = db.UserTables.FirstOrDefault(u => u.UserId == id); //先根據傳入id找使用者
+                if (user == null)
+                    return NotFound(); //如果找不到使用者，回傳404
+
+                var vm = new SocialDetailsViewModel //將使用者資料轉換成SocialDetailsViewModel
+                {
+                    UserId = user.UserId,
+                    UserName = user.Name,
+
+                    FollowerCount = db.Followings.Count(f => f.FollowingId == user.UserId), //追蹤者數量
+                    FollowingCount = db.Followings.Count(f => f.UserId == user.UserId), //追蹤的使用者數量
+
+                    PostCount = db.Articles.Count(a => a.UserId == user.UserId), //發文數量
+
+                    MyCommentCount = db.Comments.Count(c => c.UserId == user.UserId), //留言數量
+                    ReceivedCommentCount = db.Comments.Count
+                    (c => db.Articles.Any(a => a.ArticleId == c.ArticleId && a.UserId == user.UserId)),
+                    //收到的留言數量
+
+                    MyBookmarkCount = db.Bookmarks.Count(b => b.UserId == user.UserId), //書籤數量
+                    ReceivedBookmarkCount = db.Bookmarks.Count
+                    (b => db.Articles.Any(a => a.ArticleId == b.ArticleId && a.UserId == user.UserId)),
+                    //收到的書籤數量
+
+                    RecentArticles = db.Articles.Where(a => a.UserId == id)
+                    .OrderByDescending(a => a.CreateAt).Take(5)
+                    .Select(a => new ArticleSummary
+                    {
+                        ArticleId = a.ArticleId,
+                        Title = a.Title,
+                        CreateAt = a.CreateAt,
+                    }).ToList()
+                };
+                return View(vm);
+            }
+ 
+        }
+
     }
 }

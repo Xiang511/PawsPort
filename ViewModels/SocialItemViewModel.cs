@@ -19,7 +19,7 @@ namespace PawsPort.ViewModels
         [DisplayName("發文數")]
         public int PostCount { get; set; } //發文數量
 
-        [DisplayName("給出留言")]
+        [DisplayName("留言")]
         public int MyCommentCount { get; set; }//我去留言的數量
 
         [DisplayName("收到留言")]

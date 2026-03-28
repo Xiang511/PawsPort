@@ -6,11 +6,7 @@ namespace PawsPort.Controllers
 {
     public class CategoryController : Controller
     {
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
-
+ 
 
         public IActionResult CategoryList(KeywordViewModel vm)
         {
@@ -69,7 +65,8 @@ namespace PawsPort.Controllers
         public IActionResult EditCategory(Category uiCategory)
         {
             PetDbContext db = new PetDbContext(); //建立資料庫上下文
-            Category dbCategory = db.Categories.FirstOrDefault(p => p.CategoryId == uiCategory.CategoryId); //從資料庫中查找要編輯的文章
+            Category dbCategory = db.Categories.FirstOrDefault(p => p.CategoryId == uiCategory.CategoryId); 
+            //從資料庫中查找要編輯的類別
             if (dbCategory != null)
             {
                 dbCategory.CategoryName = uiCategory.CategoryName; //更新類別名稱

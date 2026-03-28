@@ -19,20 +19,21 @@ namespace PawsPort.Controllers
 
 
 
-        public IActionResult ArticleList(KeywordViewModel Vm) //貼文管理頁面
+        public IActionResult ArticleList(KeywordViewModel vm) //貼文管理頁面
         {
 
-            using (PetDbContext Db = new PetDbContext()) //查詢完畢後就關閉
+            using (PetDbContext db = new PetDbContext()) //查詢完畢後就關閉
             {
-                var Query = Db.Articles.Where(p => p.IsExist); //查詢所有存在的文章
+                var Query = db.Articles.Where(p => p.IsExist); //查詢所有存在的文章
 
-                if (!string.IsNullOrEmpty(Vm.TxtKeyword))
+                if (!string.IsNullOrEmpty(vm.TxtKeyword))
                 {
-                    Query = Query.Where(p => p.Title.Contains(Vm.TxtKeyword)
-                  || p.Content.Contains(Vm.TxtKeyword)); //根據搜尋條件查詢文章
+                    Query = Query.Where(p => p.Title.Contains(vm.TxtKeyword)
+                  || p.Content.Contains(vm.TxtKeyword)); //根據搜尋條件查詢文章
                 }
 
-                var Datas = Query.ToList().Select(p => new ArticleWrap { article = p }); //將查詢結果轉換為ArticleWrap物件的列表
+                var Datas = Query.Select(p => new ArticleWrap { article = p }).ToList(); 
+                //將查詢結果轉換為ArticleWrap物件的列表
 
                 return View(Datas);
             }
@@ -56,7 +57,7 @@ namespace PawsPort.Controllers
                 foreach (IFormFile File in p.ImageFiles)
                 {
                     if (!F.IsValidImage(File))
-                    
+
                         ErrorFile.Add(File.FileName);
                 }
                 if (ErrorFile.Count > 0)
@@ -68,12 +69,12 @@ namespace PawsPort.Controllers
                     return View(p);
                 }
             }
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
                 p.article.IsExist = true; //設定文章為存在狀態
                 p.article.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
-                Db.Articles.Add(p.article);
-                Db.SaveChanges(); //建立文章並存到資料庫
+                db.Articles.Add(p.article);
+                db.SaveChanges(); //建立文章並存到資料庫
 
                 if (p.ImageFiles != null && p.ImageFiles.Count > 0)
                 {
@@ -85,10 +86,10 @@ namespace PawsPort.Controllers
                             ArticleImage Img = new ArticleImage();
                             Img.ArticleId = p.article.ArticleId; //將圖片與文章關聯
                             Img.Image = "/Image/" + ImageName; //存入路徑
-                            Db.ArticleImages.Add(Img); //圖片資訊存入資料庫
+                            db.ArticleImages.Add(Img); //圖片資訊存入資料庫
                         }
                     }
-                    Db.SaveChanges(); //保存更改到資料庫
+                    db.SaveChanges(); //保存更改到資料庫
                 }
             }
             return RedirectToAction("ArticleList");
@@ -100,9 +101,9 @@ namespace PawsPort.Controllers
 
         public IActionResult EditArticle(int? id)
         {
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
-                Article x = Db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
                 if (x == null)
                 {
                     return RedirectToAction("ArticleList");
@@ -118,22 +119,22 @@ namespace PawsPort.Controllers
         [HttpPost]
         public IActionResult EditArticle(ArticleWrap UiArticle)
         {
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
 
-                Article DbArticle = Db.Articles.FirstOrDefault(p => p.ArticleId == UiArticle.ArticleId); //從資料庫中查找要編輯的文章
+                Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == UiArticle.ArticleId);
+                //從資料庫中查找要編輯的文章
 
 
-                if (DbArticle != null && DbArticle.IsExist == true)
+                if (dbArticle != null && dbArticle.IsExist == true)
                 {
+                    dbArticle.Title = UiArticle.Title; //更新文章標題
+                    dbArticle.Content = UiArticle.Content; //更新文章內容
+                    dbArticle.CategoryId = UiArticle.CategoryId;
+                    dbArticle.IsExist = UiArticle.IsExist;
 
-                    DbArticle.Title = UiArticle.Title; //更新文章標題
-                    DbArticle.Content = UiArticle.Content; //更新文章內容
-                    DbArticle.CategoryId = UiArticle.CategoryId;
-                    DbArticle.IsExist = UiArticle.IsExist;
-
-                    DbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
-                    Db.SaveChanges(); //保存更改到資料庫
+                    dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
+                    db.SaveChanges(); //保存更改到資料庫
 
                 }
                 return RedirectToAction("ArticleList");
@@ -147,37 +148,37 @@ namespace PawsPort.Controllers
             if (id == null)
                 return RedirectToAction("ArticleList");
 
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
-                Article x = Db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
                 if (x != null)
                 {
                     x.IsExist = false;
-                    var ImageList = Db.ArticleImages.Where(p => p.ArticleId == id).ToList();
+                    var ImageList =db.ArticleImages.Where(p => p.ArticleId == id).ToList();
                     foreach (var img in ImageList)
                     {
                         img.IsExist = false; //將與該文章相關的圖片標記為不存在
                     }
-                    Db.SaveChanges();
+                    db.SaveChanges();
                 }
             }
             return RedirectToAction("ArticleList");
         }
 
 
-        public IActionResult ArticleImageList(KeywordViewModel Vm)
+        public IActionResult ArticleImageList(KeywordViewModel vm)
         {
-            PetDbContext Db = new PetDbContext();
+            PetDbContext db = new PetDbContext();
 
             IEnumerable<ArticleImage> Datas = null; //宣告一個變數來存放查詢結果
-            if (string.IsNullOrEmpty(Vm.TxtArticleId.ToString()))
+            if (string.IsNullOrEmpty(vm.TxtArticleId.ToString()))
             {
-                Datas = Db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
+                Datas = db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
             }
             else
             {
-                Datas = Db.ArticleImages.Where(p => p.IsExist
-                && (p.ArticleId == Vm.TxtArticleId
+                Datas = db.ArticleImages.Where(p => p.IsExist
+                && (p.ArticleId == vm.TxtArticleId
                 )).ToList(); //根據搜尋條件查詢文章圖片
             }
             return View(Datas);

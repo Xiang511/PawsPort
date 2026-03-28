@@ -4,7 +4,26 @@
     ViewData["Title"] = "QA記錄";
 }
 
-<h2 class="font-weight-bold">．Q&A記錄</h2>
+
+<style>
+   
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">" !important;
+        color: #6c757d;
+    }
+</style>
+
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent px-0 mb-2">
+        <li class="breadcrumb-item"><a href="~/Home/Index" class="text-decoration-none text-muted"><i class="fas fa-home mr-1"></i>首頁</a></li>
+        
+        <li class="breadcrumb-item active font-weight-bold" aria-current="page" style="color: #8C5A3C; !important;">Ｑ＆Ａ記錄</li>
+    </ol>
+</nav>
+
+
+<h2 class="font-weight-bold">．Ｑ＆Ａ記錄</h2>
 
 
 <table class="table">

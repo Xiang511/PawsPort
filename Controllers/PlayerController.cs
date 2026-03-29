@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Azure;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
 
 namespace PawsPort.Controllers
 {
     public class PlayerController : Controller
     {
-        public IActionResult List()
+        public IActionResult List(int page = 1)
         {
             PetDbContext db = new PetDbContext();
+            int pageSize = 10; //每頁10筆
             var playerList = db.PlayerProfiles
                 .Select(p => new
                 {
@@ -15,10 +17,14 @@ namespace PawsPort.Controllers
                     p.Point,
                     SkinCount = db.Inventories
                         .Where(i => i.PlayerId == p.PlayerId && i.Enable)
+                        .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),  // ← 加入商店的資料表
+                              i => i.SkinId,
+                              s => s.SkinId,
+                              (i, s) => i)
                         .Select(i => i.SkinId)
                         .Distinct()
                         .Count(),
-                    IsDisabled = false, // 如果 PlayerProfile 中沒有 IsDisabled 欄位，先設為 false
+                    IsDisabled = false,
                     MaxGameId = db.GameHistories
                         .Where(h => h.PlayerId == p.PlayerId)
                         .OrderByDescending(h => h.GameId)
@@ -31,14 +37,45 @@ namespace PawsPort.Controllers
                         .FirstOrDefault(),
                     InventoryLogs = db.InventoryLogs
                         .Where(l => l.PlayerId == p.PlayerId)
+                        .Select(l => new
+                        {
+                            l.LogId,
+                            l.PlayerId,
+                            l.SkinId,
+                            l.Price,
+                            l.CreateTime,
+                            l.Point,
+                            SkinName = db.SkinShops.FirstOrDefault(s => s.SkinId == l.SkinId).SkinName ?? "未知造型"
+                        })
                         .OrderByDescending(l => l.CreateTime)
+                        .ToList(),
+                    PointRecords = db.PointRecords  
+                        .Where(pr => pr.PlayerId == p.PlayerId)
+                        .OrderByDescending(pr => pr.CreateTime)
                         .ToList()
-
                 })
                 .ToList();
+            // 計算總頁數
+            int totalCount = playerList.Count;
+            int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
 
-            return View(playerList);
+            // 確保頁碼有效
+            if (page < 1) page = 1;
+            if (page > totalPages && totalPages > 0) page = totalPages;
+
+            // 進行分頁
+            var pagedList = playerList
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
+            // 傳遞分頁信息到 View
+            ViewBag.CurrentPage = page;
+            ViewBag.TotalPages = totalPages;
+            ViewBag.TotalCount = totalCount;
+            return View(pagedList);
         }
+
         // 編輯玩家 - GET 方法（用於載入 Modal 中的詳細資訊）
         public IActionResult GetPlayerDetails(int playerId)
         {
@@ -50,11 +87,16 @@ namespace PawsPort.Controllers
 
             var skins = db.Inventories
                 .Where(i => i.PlayerId == playerId)
-                .Select(i => new
-                {
+                .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),
+                i => i.SkinId,
+              s => s.SkinId,
+              (i, s) => new
+              {
                     i.InventoryId,
                     i.SkinId,
-                    i.Enable
+                    i.Enable,
+                    s.SkinName,
+                    s.SkinImage
                 })
                 .ToList();
 
@@ -81,7 +123,7 @@ namespace PawsPort.Controllers
 
         // 編輯玩家 - POST 方法
         [HttpPost]
-        public IActionResult Edit(int PlayerId, int Point, int[] EnabledSkinIds)
+        public IActionResult Edit(int PlayerId, int Point, int[] EnabledSkinIds, int page = 1)
         {
             PetDbContext db = new PetDbContext();
 
@@ -102,7 +144,7 @@ namespace PawsPort.Controllers
             }
             db.SaveChanges();
 
-            return RedirectToAction("List");
+            return RedirectToAction("List", new { page = page });
         }
 
         // 刪除玩家 - POST 方法

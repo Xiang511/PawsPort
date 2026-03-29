@@ -2,14 +2,14 @@
 -- 遊戲系統
 -- 1. PlayerProfile 資料表
 CREATE TABLE PlayerProfile (
-    PlayerId INT PRIMARY KEY NOT NULL,
+    PlayerId INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
     --FOREIGN KEY (UserId) REFERENCES User(UserId),
     Point INT NULL
 );
 
 -- 2. GameContent 資料表
 CREATE TABLE GameContent (
-    GameId INT PRIMARY KEY NOT NULL,
+    GameId INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
     GameName NVARCHAR(10) NOT NULL,
     Questions NVARCHAR(50) NOT NULL,
     AnswersDetail NVARCHAR(300) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE GameContent (
 
 -- 3. SkinShop 資料表
 CREATE TABLE SkinShop (
-    SkinId INT PRIMARY KEY NOT NULL,
+    SkinId INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
     SkinName NVARCHAR(50) NOT NULL,
     Description NVARCHAR(50) NOT NULL,
     Price INT NOT NULL,
@@ -32,7 +32,7 @@ CREATE TABLE SkinShop (
 
 -- 4. Inventory 資料表
 CREATE TABLE Inventory (
-    InventoryId INT PRIMARY KEY,
+    InventoryId INT IDENTITY(1,1) PRIMARY KEY,
     PlayerId INT NOT NULL,
     SkinId INT NOT NULL,
     Enable BIT NOT NULL,
@@ -43,7 +43,7 @@ CREATE TABLE Inventory (
 
 -- 5. GameHistory 資料表
 CREATE TABLE GameHistory (
-    HistoryId INT PRIMARY KEY NOT NULL,
+    HistoryId INT IDENTITY(1,1) PRIMARY KEY NOT NULL,
     GameId INT NOT NULL,
     StageClear BIT NULL, -- 是否通關狀態，假設為 BIT
     LastPlayedDate DATETIME NULL, -- 最後遊玩日期
@@ -54,7 +54,7 @@ CREATE TABLE GameHistory (
 
 -- 6. PointRecord 資料表
 CREATE TABLE PointRecord (
-    PointDetailId INT PRIMARY KEY,
+    PointDetailId INT IDENTITY(1,1) PRIMARY KEY,
     Point INT NULL,
     Upstream NVARCHAR(50) NULL, -- 假設為 NVARCHAR(50)，若有具體 enum 值請調整為 CHECK 約束
     CreateTime DATETIME NULL,
@@ -66,7 +66,7 @@ CREATE TABLE PointRecord (
 
 -- 7. InventoryLog 資料表
 CREATE TABLE InventoryLog (
-    LogId INT PRIMARY KEY,
+    LogId INT IDENTITY(1,1) PRIMARY KEY,
     PlayerId INT NOT NULL,
     SkinId INT NULL, -- 根據 ER 圖，SkinID 似乎不是 NOT NULL
     CreateTime DATETIME NULL,

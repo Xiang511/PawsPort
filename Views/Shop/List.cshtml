@@ -6,7 +6,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
     <h1 class="m-0">商店管理</h1>
-    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
+    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn" style="margin-right:5px">
         <span class="icon text-white-50">
             <i class="fa-solid fa-plus"></i>
         </span>
@@ -16,7 +16,7 @@
 
 <!-- 新增 Modal -->
 <div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">新增造型</h5>
@@ -83,10 +83,10 @@
 
 <!-- 編輯 Modal -->
 <div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="editModalLabel">編輯造型 - </h5>
+                <h5 class="modal-title" id="editModalLabel">編輯造型</h5>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -114,28 +114,25 @@
                         <label for="EditPrice">價格 <span style="color: red;">*</span></label>
                         <input type="number" class="form-control" id="EditPrice" name="Price" placeholder="輸入價格" min="0" required />
                     </div>
-
-                    <!-- 目前圖片顯示 -->
+                    <!-- 圖片顯示區域（舊圖片和新預覽共用） -->
                     <div class="form-group">
-                        <label>目前圖片</label>
-                        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 4px;">
-                            <img id="EditCurrentImage" src="" alt="目前圖片" style="max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
+                        <label>圖片預覽</label>
+                        <div style="text-align: center; padding: 10px; background-color: #f8f9fa; border-radius: 4px; display: flex; justify-content: center; align-items: center; min-height: 320px;">
+                            <img id="EditCurrentImage" src="" alt="圖片預覽" style="max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
                         </div>
                     </div>
+
 
                     <!-- 圖片上傳 -->
                     <div class="form-group">
                         <label for="EditImageFile">上傳新圖片</label>
                         <div class="custom-file">
-                            <input type="file" class="custom-file-input" id="EditImageFile" name="imageFile" accept=".jpg,.jpeg,.png" onchange="previewImage(event, 'EditImagePreview')" />
+                            <input type="file" class="custom-file-input" id="EditImageFile" name="imageFile" accept=".jpg,.jpeg,.png" onchange="previewImage(event, 'EditCurrentImage')" />
                             <label class="custom-file-label" for="EditImageFile">選擇圖片（不選則保持原圖片）...</label>
                         </div>
                         <small class="form-text text-muted">只允許上傳 JPG 或 PNG 格式的圖片</small>
-                        <!-- 新圖片預覽 -->
-                        <div class="mt-3">
-                            <img id="EditImagePreview" src="" alt="新圖片預覽" style="display: none; max-width: 300px; max-height: 300px; border: 1px solid #ddd; border-radius: 4px;" />
-                        </div>
                     </div>
+
 
                     <!-- 是否上架 -->
                     <div class="form-group">
@@ -200,89 +197,97 @@
     </div>
 </div>
 
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th style="width: 5%;">
-                編號
-            </th>
-            <th style="width: 12%;">
-                造型名稱
-            </th>
-            <th style="width: 20%;">
-                描述
-            </th>
-            <th style="width: 8%;">
-                價格
-            </th>
-            <th style="width: 15%;">
-                圖片
-            </th>
-            <th style="width: 8%;">
-                是否上架
-            </th>
-            <th style="width: 12%;">
-                操作
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @{
-            int count = 0;
-            foreach (var item in Model)
-            {
-                count++;
-                <tr>
-                    <td>
-                        @count
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.SkinName)
-                    </td>
-                    <td>
-                        @{
-                            string displayDesc = item.Description.Length > 15 ? item.Description.Substring(0, 15) + "..." : item.Description;
-                        }
-                        <span title="@item.Description">@displayDesc</span>
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Price)
-                    </td>
-                    <td style="text-align: center;">
-                        @if (!string.IsNullOrEmpty(item.SkinImage))
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 5%;text-align:center">
+                            編號
+                        </th>
+                        <th style="width: 12%;text-align:center">
+                            造型名稱
+                        </th>
+                        <th style="width: 10%;text-align:center">
+                            圖片
+                        </th>
+                        <th style="width: 45%;text-align:center">
+                            描述
+                        </th>
+                        <th style="width: 8%;text-align:center">
+                            價格
+                        </th>
+                        <th style="width: 8%;text-align:center">
+                            是否上架
+                        </th>
+                        <th style="width: 12%;text-align:center">
+                            動作
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int count = 0;
+                        foreach (var item in Model)
                         {
-                            <img src="@item.SkinImage" alt="@item.SkinName" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;"
-                                 onclick="viewImage('@item.SkinImage', '@item.SkinName')" title="點擊查看大圖" />
+                            count++;
+                            <tr>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @count
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.SkinName)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @if (!string.IsNullOrEmpty(item.SkinImage))
+                                    {
+                                        <img src="@item.SkinImage" alt="@item.SkinName" style="max-width: 100px; max-height: 100px; border: 1px solid #ddd; border-radius: 4px; cursor: pointer;"
+                                             onclick="viewImage('@item.SkinImage', '@item.SkinName')" title="點擊查看大圖" />
+                                    }
+                                    else
+                                    {
+                                        <span style="color: #999;;vertical-align:middle">無圖片</span>
+                                    }
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @{
+                                        string displayDesc = item.Description.Length > 50 ? item.Description.Substring(0, 50) + "..." : item.Description;
+                                    }
+                                    <span title="@item.Description;vertical-align:middle">@displayDesc</span>
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.Price)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @(item.IsAvailable ? "是" : "否")
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                            data-id="@item.SkinId"
+                                            data-name="@item.SkinName"
+                                            data-description="@item.Description"
+                                            data-price="@item.Price"
+                                            data-image="@item.SkinImage"
+                                            data-available="@item.IsAvailable"
+                                            data-toggle="modal"
+                                            data-target="#EditBn">
+                                        <i class="fa-solid fa-pen-to-square"></i> 編輯
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteSkin(@item.SkinId, '@item.SkinName')">
+                                        <i class="fa-solid fa-trash"></i> 刪除
+                                    </button>
+                                </td>
+                            </tr>
                         }
-                        else
-                        {
-                            <span style="color: #999;">無圖片</span>
-                        }
-                    </td>
-                    <td>
-                        @(item.IsAvailable ? "是" : "否")
-                    </td>
-                    <td>
-                        <button type="button" class="btn btn-sm btn-warning edit-btn"
-                                data-id="@item.SkinId"
-                                data-name="@item.SkinName"
-                                data-description="@item.Description"
-                                data-price="@item.Price"
-                                data-image="@item.SkinImage"
-                                data-available="@item.IsAvailable"
-                                data-toggle="modal"
-                                data-target="#EditBn">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteSkin(@item.SkinId, '@item.SkinName')">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-                    </td>
-                </tr>
-            }
-        }
-    </tbody>
-</table>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+
 <script>
     function deleteSkin(skinId, skinName) {
         // 填充刪除確認 Modal
@@ -329,6 +334,7 @@
             const isAvailable = this.dataset.available;
 
             // 填充 Modal 欄位
+            document.getElementById('editModalLabel').textContent = `編輯造型 - ${skinName}`;
             document.getElementById('EditSkinId').value = skinId;
             document.getElementById('EditSkinName').value = skinName;
             document.getElementById('EditDescription').value = description;

@@ -5,8 +5,28 @@
 }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
-    <h1 class="m-0">題庫管理</h1>
-    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn">
+    <div class="d-flex align-items-center">
+        <h1 class="m-0 mr-4">題庫管理</h1>
+        <!-- 題目類型篩選 -->
+        <form method="get" asp-action="List" asp-controller="Questions" class="form-inline">
+            <label for="category" class="mr-2">按題目類型篩選：</label>
+            <select class="form-control mr-2" id="category" name="category" onchange="this.form.submit()">
+                <option value="">-- 全部 --</option>
+                @foreach (var cat in ViewBag.Categories)
+                {
+                    @if (ViewBag.SelectedCategory == cat)
+                    {
+                        <option value="@cat" selected>@cat</option>
+                    }
+                    else
+                    {
+                        <option value="@cat">@cat</option>
+                    }
+                }
+            </select>
+        </form>
+    </div>
+    <button class="btn btn-primary btn-icon-split" id="CreateBtn" data-toggle="modal" data-target="#CreateBn" style="margin-right:5px">
         <span class="icon text-white-50">
             <i class="fa-solid fa-plus"></i>
         </span>
@@ -14,9 +34,10 @@
     </button>
 </div>
 
+
 <!-- 新增 Modal -->
 <div class="modal fade" id="CreateBn" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="exampleModalLabel">新增題目</h5>
@@ -73,7 +94,7 @@
                     <div class="form-group">
                         <div class="custom-control custom-checkbox">
                             <input type="checkbox" class="custom-control-input" id="IsActive" name="IsActive" value="true" checked />
-                            <label class="custom-control-label" for="IsActive" >
+                            <label class="custom-control-label" for="IsActive">
                                 啟用此題目
                             </label>
                         </div>
@@ -90,7 +111,7 @@
 </div>
 <!-- 編輯 Modal -->
 <div class="modal fade" id="EditBn" tabindex="-1" aria-labelledby="editModalLabel" aria-hidden="true">
-    <div class="modal-dialog">
+    <div class="modal-dialog modal-lg">
         <div class="modal-content">
             <div class="modal-header">
                 <h5 class="modal-title" id="editModalLabel">編輯題目</h5>
@@ -101,9 +122,9 @@
             <!-- 編輯表單開始 -->
             <form method="post" asp-action="Edit" asp-controller="Questions">
                 <div class="modal-body">
-                    <!-- GameId（隱藏欄位） -->
+                    <!-- GameId、題目分類category（隱藏欄位） -->
                     <input type="hidden" id="EditGameId" name="GameId" />
-
+                    <input type="hidden" id="EditCategory" name="category" value="@ViewBag.SelectedCategory" />
                     <!-- 遊戲名稱 -->
                     <div class="form-group">
                         <label for="EditGameName">題目類型 <span style="color: red;">*</span></label>
@@ -147,7 +168,7 @@
                     <!-- 是否啟用 -->
                     <div class="form-group">
                         <div class="custom-control custom-checkbox">
-                            <input type="hidden" name="IsActive" value="false" />
+                            @* <input type="hidden" name="IsActive" value="false" /> *@
                             <input type="checkbox" class="custom-control-input" id="EditIsActive" name="IsActive" value="true" />
                             <label class="custom-control-label" for="EditIsActive">
                                 啟用此題目
@@ -182,6 +203,7 @@
             <div class="modal-footer">
                 <form method="post" asp-action="Delete" asp-controller="Questions" style="display: inline;">
                     <input type="hidden" id="DeleteGameId" name="id" />
+                    <input type="hidden" id="DeleteCategory" name="category" value="@ViewBag.SelectedCategory" />
                     <button type="submit" class="btn btn-danger">確認刪除</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                 </form>
@@ -201,90 +223,99 @@
     }
 </script>
 
-<table class="table table-sm">
-    <thead>
-        <tr>
-            <th style="width: 5%;">
-                編號
-            </th>
-            <th style="width: 10%;">
-                @Html.DisplayNameFor(model => model.GameName)
-            </th>
-            <th style="width: 25%;">
-                @Html.DisplayNameFor(model => model.Questions)
-            </th>
-            <th style="width: 25%;">
-                @Html.DisplayNameFor(model => model.AnswersDetail)
-            </th>
-            <th style="width: 5%;">
-                @Html.DisplayNameFor(model => model.Answers)
-            </th>
-            <th style="width: 5%;">
-                @Html.DisplayNameFor(model => model.IsActive)
-            </th>
-            <th style="width: 5%;">
-                @Html.DisplayNameFor(model => model.Rewards)
-            </th>
-            <th style="width: 5%;">
-                @Html.DisplayNameFor(model => model.Type)
-            </th>
-            <th style="width: 5%;">
-                操作
-            </th>
-        </tr>
-    </thead>
-    <tbody>
-        @{
-            int count = 0;
-            foreach (var item in Model) {
-                count++;
-        <tr>
-            <td>
-                @count
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.GameName)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Questions)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.AnswersDetail)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Answers)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.IsActive)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Rewards)
-            </td>
-            <td>
-                @Html.DisplayFor(modelItem => item.Type)
-            </td>
-            <td>
-                        <button type="button" class="btn btn-sm btn-warning edit-btn"
-                                data-id="@item.GameId"
-                                data-name="@item.GameName"
-                                data-questions="@item.Questions"
-                                data-answers="@item.Answers"
-                                data-detail="@item.AnswersDetail"
-                                data-rewards="@item.Rewards"
-                                data-type="@item.Type"
-                                data-active="@item.IsActive"
-                                data-toggle="modal"
-                                data-target="#EditBn">
-                            <i class="fa-solid fa-pen-to-square"></i>
-                        </button>
-                        <button type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(@item.GameId, '@item.GameName')">
-                            <i class="fa-solid fa-trash"></i>
-                        </button>
-            </td>
-        </tr>
-}}
-    </tbody>
-</table>
+<div class="card shadow mb-4">
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
+                <thead>
+                    <tr>
+                        <th style="width: 4%;text-align:center">
+                            編號
+                        </th>
+                        <th style="width: 7%;text-align:center">
+                            @Html.DisplayNameFor(model => model.GameName)
+                        </th>
+                        <th style="width: 28%;text-align:center">
+                            @Html.DisplayNameFor(model => model.Questions)
+                        </th>
+                        <th style="width: 28%;text-align:center">
+                            @Html.DisplayNameFor(model => model.AnswersDetail)
+                        </th>
+                        <th style="width: 5%;text-align:center">
+                            @Html.DisplayNameFor(model => model.Answers)
+                        </th>
+                        <th style="width: 5%;text-align:center">
+                            @Html.DisplayNameFor(model => model.IsActive)
+                        </th>
+                        <th style="width: 5%;text-align:center">
+                            @Html.DisplayNameFor(model => model.Rewards)
+                        </th>
+                        <th style="width: 5%;text-align:center">
+                            @Html.DisplayNameFor(model => model.Type)
+                        </th>
+                        <th style="width: 10%;text-align:center">
+                            動作
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @{
+                        int count = 0;
+                        foreach (var item in Model)
+                        {
+                            count++;
+                            <tr>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @count
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.GameName)
+                                </td>
+                                <td style="vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.Questions)
+                                </td>
+                                <td style="vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.AnswersDetail)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.Answers)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.IsActive)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.Rewards)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    @Html.DisplayFor(modelItem => item.Type)
+                                </td>
+                                <td style="text-align:center;vertical-align:middle">
+                                    <button type="button" class="btn btn-sm btn-warning edit-btn"
+                                            data-id="@item.GameId"
+                                            data-name="@item.GameName"
+                                            data-questions="@item.Questions"
+                                            data-answers="@item.Answers"
+                                            data-detail="@item.AnswersDetail"
+                                            data-rewards="@item.Rewards"
+                                            data-type="@item.Type"
+                                            data-active="@item.IsActive"
+                                            data-toggle="modal"
+                                            data-target="#EditBn">
+                                        <i class="fa-solid fa-pen-to-square"></i> 編輯
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-danger" onclick="deleteQuestion(@item.GameId, '@item.GameName')">
+                                        <i class="fa-solid fa-trash"></i> 刪除
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+        
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
 
 <script>
     // 編輯按鈕點擊事件

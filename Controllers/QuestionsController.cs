@@ -8,10 +8,22 @@ namespace PawsPort.Controllers
     public class QuestionsController : Controller
     {
         // 題庫列表
-        public IActionResult List()
+        public IActionResult List(string category = "")
         {
             PetDbContext db = new PetDbContext();
             var GameList = db.GameContents.ToList();
+            if (!string.IsNullOrEmpty(category))
+            {
+                GameList = GameList.Where(g => g.GameName == category).ToList();
+            }
+            var categories = db.GameContents
+               .Select(g => g.GameName)
+               .Distinct()
+               .OrderBy(g => g)
+               .ToList();
+
+            ViewBag.Categories = categories;
+            ViewBag.SelectedCategory = category;
             return View(GameList);
         }
         public IActionResult Create()
@@ -40,7 +52,7 @@ namespace PawsPort.Controllers
 
         // 編輯題目 - POST 方法
         [HttpPost]
-        public IActionResult Edit(GameContent G)
+        public IActionResult Edit(GameContent G, string category = "")
         {
             PetDbContext db = new PetDbContext();
             GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == G.GameId);
@@ -55,12 +67,16 @@ namespace PawsPort.Controllers
                 game.Type = G.Type;
                 db.SaveChanges();
             }
-            return RedirectToAction("List");
+            if (string.IsNullOrEmpty(category))
+            {
+                category = G.GameName;
+            }
+            return RedirectToAction("List", new { category = category });
         }
 
         // 刪除題目 - POST 方法
         [HttpPost]
-        public IActionResult Delete(int id)
+        public IActionResult Delete(int id, string category = "")
         {
             PetDbContext db = new PetDbContext();
             GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == id);
@@ -71,7 +87,7 @@ namespace PawsPort.Controllers
                 db.SaveChanges();
             }
 
-            return RedirectToAction("List");
+            return RedirectToAction("List", new { category = category });
         }
 
     }

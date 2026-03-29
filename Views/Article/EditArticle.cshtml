@@ -1,103 +1,90 @@
 ﻿@model PawsPort.Models.ArticleWrap
 
-@{
-    ViewData["Title"] = "EditArticle";
-}
-
-<h1>編輯貼文</h1>
-
-<h4>Article</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="EditArticle">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="ArticleId" class="control-label"></label>
-                <input asp-for="ArticleId" class="form-control" />
-                <span asp-validation-for="ArticleId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CreateAt" class="control-label"></label>
-                <input asp-for="CreateAt" class="form-control" />
-                <span asp-validation-for="CreateAt" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LastEditTime" class="control-label"></label>
-                <input asp-for="LastEditTime" class="form-control" />
-                <span asp-validation-for="LastEditTime" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Title" class="control-label"></label>
-                <input asp-for="Title" class="form-control" />
-                <span asp-validation-for="Title" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Content" class="control-label"></label>
-                <input asp-for="Content" class="form-control" />
-                <span asp-validation-for="Content" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Status" class="control-label"></label>
-                <input asp-for="Status" class="form-control" />
-                <span asp-validation-for="Status" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ViewCount" class="control-label"></label>
-                <input asp-for="ViewCount" class="form-control" />
-                <span asp-validation-for="ViewCount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="ReportedCount" class="control-label"></label>
-                <input asp-for="ReportedCount" class="form-control" />
-                <span asp-validation-for="ReportedCount" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="LastReported" class="control-label"></label>
-                <input asp-for="LastReported" class="form-control" />
-                <span asp-validation-for="LastReported" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EventStartDate" class="control-label"></label>
-                <input asp-for="EventStartDate" class="form-control" />
-                <span asp-validation-for="EventStartDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EventEndDate" class="control-label"></label>
-                <input asp-for="EventEndDate" class="form-control" />
-                <span asp-validation-for="EventEndDate" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="EventLocation" class="control-label"></label>
-                <input asp-for="EventLocation" class="form-control" />
-                <span asp-validation-for="EventLocation" class="text-danger"></span>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="IsExist" /> @Html.DisplayNameFor(model => model.IsExist)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="CategoryId" class="control-label"></label>
-                <input asp-for="CategoryId" class="form-control" />
-                <span asp-validation-for="CategoryId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <input type="submit" value="儲存變更" class="btn btn-primary" />
-            </div>
-        </form>
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800">編輯文章內容</h1>
+        <a asp-action="ArticleList" class="btn btn-sm btn-secondary shadow-sm">返回列表</a>
     </div>
-</div>
 
-<div>
-    <a asp-action="ArticleList">取消</a>
+    <form asp-action="EditArticle" method="post" enctype="multipart/form-data">
+        <input type="hidden" asp-for="article.ArticleId" />
+
+        <div class="row">
+            <div class="col-lg-8">
+                <div class="card shadow mb-4">
+                    <div class="card-body">
+                        <div class="form-group">
+                            <label class="font-weight-bold">文章標題</label>
+                            <input asp-for="article.Title" class="form-control" required />
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">所屬分類</label>
+                            <select asp-for="article.CategoryId" class="form-control">
+                                @foreach (var cat in (List<PawsPort.Models.Category>)ViewBag.CategoryList)
+                                {
+                                    <option value="@cat.CategoryId">
+                                        @if (cat.Level == 1)
+                                        {
+                                            <text>&nbsp;&nbsp;— </text>
+                                        }
+                                        @cat.CategoryName
+                                    </option>
+                                }
+                            </select>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="font-weight-bold">內文</label>
+                            <textarea asp-for="article.Content" class="form-control" rows="15"></textarea>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-lg-4">
+                <div class="card shadow mb-4">
+                    <div class="card-header py-3">
+                        <h6 class="m-0 font-weight-bold text-primary">封面圖片預覽</h6>
+                    </div>
+                    <div class="card-body text-center">
+                        <div class="mb-3">
+                            @* 這裡假設你有個存放路徑，若無則顯示預設圖 *@
+                            <img id="imgPreview" src="https://placecats.com/300/200"
+                                 class="img-fluid rounded border" style="max-height: 300px; width: 100%; object-fit: cover;"
+                                 onerror="this.src='/images/no-image.png';" />
+                        </div>
+                        <div class="custom-file">
+                            <input type="file" name="ImageFiles" class="custom-file-input" id="fileInput" accept="image/*">
+                            <label class="custom-file-label" for="fileInput">更換圖片...</label>
+                        </div>
+                        <small class="text-muted mt-2 d-block">建議尺寸：1200 x 630 px</small>
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block btn-lg shadow">
+                    <i class="fas fa-save mr-1"></i> 儲存所有變更
+                </button>
+            </div>
+        </div>
+    </form>
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // 圖片即時預覽邏輯
+        $('#fileInput').change(function() {
+            var file = this.files[0];
+            if (file) {
+                var reader = new FileReader();
+                reader.onload = function(e) {
+                    $('#imgPreview').attr('src', e.target.result); // 將讀取到的 Base64 塞入 src
+                }
+                reader.readAsDataURL(file);
+                
+                // 更新選取框的文字（SB Admin 2 特色）
+                $(this).next('.custom-file-label').html(file.name);
+            }
+        });
+    </script>
 }

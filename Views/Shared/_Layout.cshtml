@@ -74,7 +74,7 @@
                             <div id="collapseTwo" class="collapse" aria-labelledby="headingTwo" data-parent="#accordionSidebar">
                                 <div class="bg-white py-2 collapse-inner rounded">
                                     <a class="collapse-item" href="~/Member/List">基本資料</a>
-                        <a class="collapse-item" href="~/Permissions/BlockList">違規名單</a>
+                                    <a class="collapse-item" href="~/Permissions/BlockList">違規名單</a>
                                     <a class="collapse-item" href="~/Permissions/List">權限設定</a>
                                 </div>
                             </div>
@@ -82,13 +82,13 @@
 
                        
 
-            <!-- Divider -->
-            <hr class="sidebar-divider">
+                        <!-- Divider -->
+                        <hr class="sidebar-divider">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Pet
-            </div>
+                        <!-- Heading -->
+                        <div class="sidebar-heading">
+                            Pet
+                        </div>
 
                         <!-- Nav Item - Pages Collapse Menu -->
                         <li class="nav-item">
@@ -101,17 +101,17 @@
                                     <h6 class="collapse-header">寵物相關:</h6>
                                     <a class="collapse-item" href="../Pet/List">寵物資訊一覽</a>
                                     <a class="collapse-item" href="../Passport/List">寵物健康護照</a>
-                        <a class="collapse-item" href="../AdoptionRecord/List">領養紀錄一覽</a>
+                                    <a class="collapse-item" href="../AdoptionRecord/List">領養紀錄一覽</a>
                                     <a class="collapse-item" href="../MissingReports/List">寵物走失紀錄</a>
                                     <div class="collapse-divider"></div>
                                     <h6 class="collapse-header">Other Pages:</h6>
 
-                    </div>
-                </div>
-            </li>
+                                </div>
+                            </div>
+                        </li>
 
-            <!-- Nav Item - Charts -->
-            @* <li class="nav-item">
+                        <!-- Nav Item - Charts -->
+                        @* <li class="nav-item">
         <a class="nav-link" href="charts.html">
           <i class="fas fa-fw fa-chart-area"></i>
           <span>Charts</span>
@@ -126,13 +126,13 @@
                             </a>
                         </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
+                        <!-- Divider -->
+                        <hr class="sidebar-divider d-none d-md-block">
 
-            <!-- Heading -->
-            <div class="sidebar-heading">
-                Game
-            </div>
+                        <!-- Heading -->
+                        <div class="sidebar-heading">
+                            Game
+                        </div>
 
                         <!-- Nav Item - Tables -->
                         <li class="nav-item">
@@ -158,83 +158,86 @@
                             </a>
                         </li>
 
-            <!-- Divider -->
-            <hr class="sidebar-divider d-none d-md-block">
+                        <!-- Divider -->
+                        <hr class="sidebar-divider d-none d-md-block">
 
 
-            <!-- Heading 社群功能 -->
-            <div class="sidebar-heading">
-                community
-            </div>
+                        <!-- Heading 社群功能 -->
+                        <div class="sidebar-heading">
+                            community
+                        </div>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <!-- 內容管理 -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages_Article" aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fa-solid fa-box-archive"></i>
-                    <span>內容中心</span>
-                </a>
-                <div id="collapsePages_Article" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
+                
+                        <!-- Nav Item - Pages Collapse Menu -->
+                        <!-- 內容管理 -->
+                        <li class="nav-item">
+                            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages_Article" aria-expanded="true" aria-controls="collapsePages">
+                                <i class="fa-solid fa-box-archive"></i>
+                                <span>內容中心</span>
+                            </a>
+                            <div id="collapsePages_Article" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                                <div class="bg-white py-2 collapse-inner rounded">
 
-                        <h6 class="collapse-header">管理</h6>
-                        <a class="collapse-item" asp-controller="Category" asp-action="CategoryList">貼文分類管理</a>
-                        <a class="collapse-item" asp-controller="Article" asp-action="ArticleList">貼文管理</a>
-                        <a class="collapse-item" asp-controller="Article" asp-action="ArticleImageList">圖片管理</a>
-                        <a class="collapse-item" asp-controller="Article" asp-action="EventList">活動管理</a>
+                                    <h6 class="collapse-header">管理</h6>
+                                    <a class="collapse-item" asp-controller="Category" asp-action="CategoryList">貼文分類管理</a>
+                                    <a class="collapse-item" asp-controller="Article" asp-action="ArticleList">貼文管理</a>
+                                    <a class="collapse-item" asp-controller="Article" asp-action="ArticleList">留言管理</a>
+                                    @* <a class="collapse-item" asp-controller="Article" asp-action="ArticleImageList">圖片管理</a> *@
+                                    <a class="collapse-item" asp-controller="Article" asp-action="EventList">活動管理</a>
 
-                    </div>
-                </div>
-            </li>
+                                </div>
+                            </div>
+                        </li>
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <!-- 社交管理 -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages_Social" aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fa-solid fa-users"></i>
-                    <span>社交管理</span>
-                </a>
-                <div id="collapsePages_Social" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
+                        <!-- Nav Item - Pages Collapse Menu -->
+                        <!-- 社交管理 -->
+                        <li class="nav-item">
+                            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages_Social" aria-expanded="true" aria-controls="collapsePages">
+                                <i class="fa-solid fa-users"></i>
+                                <span>社交中心</span>
+                            </a>
+                            <div id="collapsePages_Social" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                                <div class="bg-white py-2 collapse-inner rounded">
 
-                        <h6 class="collapse-header">社交管理：</h6>
-                        <a class="collapse-item" href="login.html">社交狀態管理</a>
-                        <a class="collapse-item" href="login.html">互動功能管理</a>
+                                    <h6 class="collapse-header">社交管理：</h6>
+                                    <a class="collapse-item" asp-controller="Social" asp-action="SocialList">社交狀態管理</a>
 
-                        <div class="collapse-divider"></div>
+                                    <div class="collapse-divider"></div>
 
-                        <h6 class="collapse-header">訊息管理：</h6>
-                        <a class="collapse-item" href="404.html">留言管理</a>
-                        <a class="collapse-item" href="blank.html">聊天室管理</a>
+                                    <h6 class="collapse-header">訊息管理：</h6>
+                                    <a class="collapse-item" asp-controller="Chat" asp-action="ChatroomList">聊天室管理</a>
+                                   
+                                </div>
+                            </div>
+                        </li>
 
-                    </div>
-                </div>
-            </li>
+                        <!-- Nav Item - Pages Collapse Menu -->
+                        <!-- 系統中心 -->
+                        <li class="nav-item">
+                            <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages_Official" aria-expanded="true" aria-controls="collapsePages">
+                                <i class="fa-solid fa-bullhorn"></i>
+                                <span>系統公告</span>
+                            </a>
+                            <div id="collapsePages_Official" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
+                                <div class="bg-white py-2 collapse-inner rounded">
 
-            <!-- Nav Item - Pages Collapse Menu -->
-            <!-- 系統中心 -->
-            <li class="nav-item">
-                <a class="nav-link collapsed" href="#" data-toggle="collapse" data-target="#collapsePages_Official" aria-expanded="true" aria-controls="collapsePages">
-                    <i class="fa-solid fa-bullhorn"></i>
-                    <span>系統管理</span>
-                </a>
-                <div id="collapsePages_Official" class="collapse" aria-labelledby="headingPages" data-parent="#accordionSidebar">
-                    <div class="bg-white py-2 collapse-inner rounded">
+                                    <h6 class="collapse-header">系統訊息管理：</h6>
+                                    <a class="collapse-item" href="404.html">系統公告推送</a>
+                                    <a class="collapse-item" href="blank.html">官方貼文管理</a>
+                                </div>
+                            </li>
+                        </li>
 
-                        <h6 class="collapse-header">系統訊息管理：</h6>
-                        <a class="collapse-item" href="404.html">系統公告推送</a>
-                        <a class="collapse-item" href="blank.html">官方貼文管理</a>
+                        @* <!-- Nav Item - Charts -->
+                        <li class="nav-item">
+                            <a asp-action="CreateArticle" asp-controller="Article" class="nav-link" href="charts.html">
+                                <i class="fas fa-edit"></i>
+                                <span>新增貼文</span>
+                            </a>
+                        </li> *@
 
-                        <div class="collapse-divider"></div>
 
-                        <h6 class="collapse-header">數據管理：</h6>
-                        <a class="collapse-item" href="404.html">數據與圖表分析</a>
-                        <a class="collapse-item" href="blank.html">數據還原</a>
-                    </div>
-                </div>
-            </li>
-
-            @*
+                        @*
       <!-- Nav Item - Charts -->
       <li class="nav-item">
         <a class="nav-link" href="charts.html">

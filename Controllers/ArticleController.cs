@@ -19,25 +19,67 @@ namespace PawsPort.Controllers
 
 
 
-        public IActionResult ArticleList(KeywordViewModel Vm) //貼文管理頁面
+        public IActionResult ArticleList(ArticleListViewModel vm) //貼文管理頁面
         {
 
-            using (PetDbContext Db = new PetDbContext()) //查詢完畢後就關閉
+            using (PetDbContext db = new PetDbContext())
             {
-                var Query = Db.Articles.Where(p => p.IsExist); //查詢所有存在的文章
+                // 1. 基本查詢：只抓存在的文章，並包含 User 與 Category 資料
+                var query = db.Articles.Where(p => p.IsExist);
 
-                if (!string.IsNullOrEmpty(Vm.TxtKeyword))
+                // 2. 關鍵字篩選 (標題、內容、作者)
+                if (!string.IsNullOrEmpty(vm.TxtKeyword))
                 {
-                    Query = Query.Where(p => p.Title.Contains(Vm.TxtKeyword)
-                  || p.Content.Contains(Vm.TxtKeyword)); //根據搜尋條件查詢文章
+                    var MatchUserIDs = db.UserTables.Where(u => u.Name.Contains(vm.TxtKeyword))
+                        .Select(u => u.UserId).ToList();
+
+                    query = query.Where(p => p.Title.Contains(vm.TxtKeyword)
+                                          || p.Content.Contains(vm.TxtKeyword)
+                                          || MatchUserIDs.Contains(p.UserId));
                 }
 
-                var Datas = Query.ToList().Select(p => new ArticleWrap { article = p }); //將查詢結果轉換為ArticleWrap物件的列表
+                // 3. 計算總筆數
+                vm.TotalCount = query.Count();
 
-                return View(Datas);
+                // 4. 在 Select 時「現場去別張表抓資料」
+                vm.ArticleItem = query
+                    .OrderByDescending(p => p.CreateAt)
+                    .Skip((vm.CurrentPage - 1) * vm.PageSize)
+                    .Take(vm.PageSize)
+                    .Select(p => new ArticleItemViewModel
+                    {
+                        ArticleId = p.ArticleId,
+                        UserId = p.UserId,
+                        Title = p.Title,
+                        CreateAt = p.CreateAt,
+                        ViewCount = p.ViewCount,
+                        IsExist = p.IsExist,
+
+                        // 【抓作者名稱】去 UserTable 找 ID 一樣的那個人，取其 Name
+                        AuthorName = db.UserTables
+                            .Where(u => u.UserId == p.UserId)
+                            .Select(u => u.Name)
+                            .FirstOrDefault() ?? "未知作者",
+
+                        // 【抓分類名稱】去 Categories 找 ID 一樣的那組，取其 Name
+                        CategoryName = db.Categories
+                            .Where(c => c.CategoryId == p.CategoryId)
+                            .Select(c => c.CategoryName)
+                            .FirstOrDefault() ?? "未分類",
+
+                        // 【算留言數】去 Comments 找這篇文章的留言數量
+                        CommentCount = db.Comments.Count(c => c.ArticleId == p.ArticleId && c.IsExist),
+
+                        // 【算書籤數】去 Bookmarks 找這篇文章的收藏數量
+                        BookmarkCount = db.Bookmarks.Count(b => b.ArticleId == p.ArticleId)
+                    })
+                    .ToList();
+
+                return View(vm);
             }
-
         }
+
+       
 
 
         public IActionResult CreateArticle()
@@ -56,7 +98,7 @@ namespace PawsPort.Controllers
                 foreach (IFormFile File in p.ImageFiles)
                 {
                     if (!F.IsValidImage(File))
-                    
+
                         ErrorFile.Add(File.FileName);
                 }
                 if (ErrorFile.Count > 0)
@@ -68,12 +110,12 @@ namespace PawsPort.Controllers
                     return View(p);
                 }
             }
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
                 p.article.IsExist = true; //設定文章為存在狀態
                 p.article.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
-                Db.Articles.Add(p.article);
-                Db.SaveChanges(); //建立文章並存到資料庫
+                db.Articles.Add(p.article);
+                db.SaveChanges(); //建立文章並存到資料庫
 
                 if (p.ImageFiles != null && p.ImageFiles.Count > 0)
                 {
@@ -85,28 +127,30 @@ namespace PawsPort.Controllers
                             ArticleImage Img = new ArticleImage();
                             Img.ArticleId = p.article.ArticleId; //將圖片與文章關聯
                             Img.Image = "/Image/" + ImageName; //存入路徑
-                            Db.ArticleImages.Add(Img); //圖片資訊存入資料庫
+                            db.ArticleImages.Add(Img); //圖片資訊存入資料庫
                         }
                     }
-                    Db.SaveChanges(); //保存更改到資料庫
+                    db.SaveChanges(); //保存更改到資料庫
                 }
             }
             return RedirectToAction("ArticleList");
         }
 
 
-
-
-
         public IActionResult EditArticle(int? id)
         {
-            using (PetDbContext Db = new PetDbContext())
+            if (id == null) return RedirectToAction("ArticleList");
+            using (PetDbContext db = new PetDbContext())
             {
-                Article x = Db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
                 if (x == null)
-                {
                     return RedirectToAction("ArticleList");
-                }
+                
+                // 準備分類下拉選單 (供編輯時切換)
+                ViewBag.CategoryList = db.Categories
+                    .Where(c => c.IsExist)
+                    .OrderBy(c => c.Level).ThenBy(c => c.SortOrder)
+                    .ToList();
 
                 ArticleWrap p = new ArticleWrap(); //創建一個ArticleWrap物件
                 p.article = x;  //將從資料庫中查找到的文章賦值給ArticleWrap物件的article屬性
@@ -118,22 +162,22 @@ namespace PawsPort.Controllers
         [HttpPost]
         public IActionResult EditArticle(ArticleWrap UiArticle)
         {
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
+                var id = UiArticle.article.ArticleId;
+                Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                //從資料庫中查找要編輯的文章
 
-                Article DbArticle = Db.Articles.FirstOrDefault(p => p.ArticleId == UiArticle.ArticleId); //從資料庫中查找要編輯的文章
 
-
-                if (DbArticle != null && DbArticle.IsExist == true)
+                if (dbArticle != null && dbArticle.IsExist == true)
                 {
+                    dbArticle.Title = UiArticle.Title; //更新文章標題
+                    dbArticle.Content = UiArticle.Content; //更新文章內容
+                    dbArticle.CategoryId = UiArticle.CategoryId;
+                    dbArticle.IsExist = UiArticle.IsExist;
 
-                    DbArticle.Title = UiArticle.Title; //更新文章標題
-                    DbArticle.Content = UiArticle.Content; //更新文章內容
-                    DbArticle.CategoryId = UiArticle.CategoryId;
-                    DbArticle.IsExist = UiArticle.IsExist;
-
-                    DbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
-                    Db.SaveChanges(); //保存更改到資料庫
+                    dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
+                    db.SaveChanges(); //保存更改到資料庫
 
                 }
                 return RedirectToAction("ArticleList");
@@ -141,50 +185,47 @@ namespace PawsPort.Controllers
 
         }
 
-        [HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
+        //[HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
         public IActionResult DeleteArticle(int? id)
         {
             if (id == null)
                 return RedirectToAction("ArticleList");
 
-            using (PetDbContext Db = new PetDbContext())
+            using (PetDbContext db = new PetDbContext())
             {
-                Article x = Db.Articles.FirstOrDefault(p => p.ArticleId == id);
+                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
                 if (x != null)
                 {
                     x.IsExist = false;
-                    var ImageList = Db.ArticleImages.Where(p => p.ArticleId == id).ToList();
+                    var ImageList =db.ArticleImages.Where(p => p.ArticleId == id).ToList();
                     foreach (var img in ImageList)
                     {
                         img.IsExist = false; //將與該文章相關的圖片標記為不存在
                     }
-                    Db.SaveChanges();
+                    db.SaveChanges();
                 }
             }
             return RedirectToAction("ArticleList");
         }
 
 
-        public IActionResult ArticleImageList(KeywordViewModel Vm)
+        public IActionResult ArticleImageList(KeywordViewModel vm)
         {
-            PetDbContext Db = new PetDbContext();
+            PetDbContext db = new PetDbContext();
 
             IEnumerable<ArticleImage> Datas = null; //宣告一個變數來存放查詢結果
-            if (string.IsNullOrEmpty(Vm.TxtArticleId.ToString()))
+            if (string.IsNullOrEmpty(vm.TxtArticleId.ToString()))
             {
-                Datas = Db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
+                Datas = db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
             }
             else
             {
-                Datas = Db.ArticleImages.Where(p => p.IsExist
-                && (p.ArticleId == Vm.TxtArticleId
+                Datas = db.ArticleImages.Where(p => p.IsExist
+                && (p.ArticleId == vm.TxtArticleId
                 )).ToList(); //根據搜尋條件查詢文章圖片
             }
             return View(Datas);
         }
-
-
-
 
 
         public IActionResult EventList(KeywordViewModel vm) //活動管理頁面

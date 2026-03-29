@@ -1,0 +1,244 @@
+﻿@model PawsPort.ViewModels.ChatroomListViewModel
+
+@{
+    ViewData["Title"] = "聊天室管理";
+}
+
+<div class="container-fluid">
+
+    <h1 class="h3 mb-4 text-gray-800">聊天室監控中心</h1>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">24h 全站訊息量</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.TotalMsg24h</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">活躍中聊天室 (24h)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ActiveRoomsCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-door-open fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-warning shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">疑似異常帳號</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.SuspiciousUserCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-robot fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">聊天室列表</h6>
+        </div>
+        <div class="card-body">
+            <form id="searchForm" method="get" action="@Url.Action("ChatroomList")">
+                <input type="hidden" name="SortBy" value="@Model.SortBy" />
+                <input type="hidden" name="SortOrder" value="@Model.SortOrder" />
+                <input type="hidden" name="CurrentPage" id="currentPageInput" value="@Model.CurrentPage" />
+
+                <div class="row mb-3">
+                    <div class="col-md-12 d-flex align-items-center">
+                        <input type="text" name="TxtKeyword" class="form-control bg-light border-0 small"
+                               placeholder="搜尋使用者名稱..." value="@Model.TxtKeyword"
+                               style="width: 250px;">
+
+                        <button class="btn btn-primary ml-2 shadow-sm" type="submit">
+                            <i class="fas fa-search fa-sm"></i> 搜尋
+                        </button>
+
+                        <a href="@Url.Action("ChatroomList")" class="btn btn-secondary ml-2 shadow-sm" title="清除搜尋並重置">
+                            <i class="fas fa-undo fa-sm"></i> 重置
+                        </a>
+
+                        @if (!string.IsNullOrEmpty(Model.TxtKeyword))
+                        {
+                            <div class="ml-3">
+                                <span class="badge badge-light text-gray-600 p-2">
+                                    <i class="fas fa-filter mr-1"></i> 正在篩選：@Model.TxtKeyword
+                                </span>
+                            </div>
+                        }
+
+                        <div class="ml-auto d-flex align-items-center">
+                            @if (Context.Request.Query["showDeleted"] == "true")
+                            {
+                                <a asp-action="ChatroomList" asp-route-ShowDeleted="false" class="btn btn-info mr-2">
+                                    <i class="fas fa-eye"></i> 查看正常對話
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="ChatroomList" asp-route-ShowDeleted="true" class="btn btn-outline-danger mr-2">
+                                    <i class="fas fa-trash-restore"></i> 查看已刪除
+                                </a>
+                            }
+
+                            <button type="button" class="btn btn-success shadow-sm" onclick="alert('新增功能開發中！')">
+                                <i class="fas fa-plus"></i> 新增聊天室
+                            </button>
+                        </div>
+                    </div>
+                   
+                </div>
+
+                <div class="table-responsive">
+                    <table class="table table-bordered" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>
+                                    <a href="javascript:void(0)" onclick="changeSort('UserName')">
+                                        使用者成員
+                                        @if (Model.SortBy != "UserName")
+                                        {
+                                            <i class="fas fa-sort text-gray-300"></i>
+                                        }
+                                        else
+                                        {
+                                            <i class="fas @(Model.SortOrder == "asc" ? "fa-sort-up" : "fa-sort-down") text-primary"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>最後訊息內容</th>
+                                <th>
+                                    <a href="javascript:void(0)" onclick="changeSort('LastMsg')">
+                                        最後傳訊時間
+                                        @if (Model.SortBy != "LastMsg")
+                                        {
+                                            <i class="fas fa-sort text-gray-300"></i>
+                                        }
+                                        else
+                                        {
+
+                                            <i class="fas @(Model.SortOrder == "asc" ? "fa-sort-up" : "fa-sort-down") text-primary"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>
+                                    <a href="javascript:void(0)" onclick="changeSort('MsgCount')">
+                                        24h 訊息量
+                                        @if (Model.SortBy != "MsgCount")
+                                        {
+                                            <i class="fas fa-sort text-gray-300"></i>
+                                        }
+                                        else
+                                        {
+
+                                            <i class="fas @(Model.SortOrder == "asc" ? "fa-sort-up" : "fa-sort-down") text-primary"></i>
+                                        }
+                                    </a>
+                                </th>
+                                <th>操作</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var item in Model.ChatroomItems)
+                            {
+                                <tr>
+                                    <td>@item.ChatroomId</td>
+                                    <td>
+                                        <span class="badge badge-info">@item.UserId_1_Name</span>
+                                        <i class="fa-solid fa-right-left mx-1 small text-gray-400"
+                                           style="font-family: 'Font Awesome 6 Free' !important; font-weight: 900;"></i>
+                                        <span class="badge badge-info">@item.UserId_2_Name</span>
+                                    </td>
+                                    <td class="small text-truncate" style="max-width: 200px;">@item.LastMsg</td>
+                                    <td>@(item.LastMsgTime?.ToString("yyyy-MM-dd HH:mm") ?? "無訊息")</td>
+                                    <td>
+                                        <span class="text-primary font-weight-bold">@item.MsgCount24h</span>
+                                    </td>
+                                    <td>
+                                        <a asp-action="ChatDetail" asp-controller="Chat" asp-route-id="@item.ChatroomId"
+                                        class="btn btn-primary btn-sm" title="查看對話紀錄">
+                                            <i class="fas fa-eye"></i> 查看
+                                        </a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="row">
+                    <div class="col-sm-12 col-md-5">
+                        <div class="dataTables_info small">
+                            共 @Model.TotalCount 筆
+                        </div>
+                    </div>
+                    <div class="col-sm-12 col-md-7">
+                        <nav aria-label="Page navigation">
+                            <ul class="pagination pagination-sm justify-content-end">
+                                <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                                    <a class="page-link" href="javascript:void(0)" onclick="changePage(@Model.CurrentPage - 1)">上一頁</a>
+                                </li>
+                                @for (int i = 1; i <= Model.TotalPages; i++)
+                                {
+                                    <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                        <a class="page-link" href="javascript:void(0)" onclick="changePage(@i)">@i</a>
+                                    </li>
+                                }
+                                <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                                    <a class="page-link" href="javascript:void(0)" onclick="changePage(@Model.CurrentPage + 1)">下一頁</a>
+                                </li>
+                            </ul>
+                        </nav>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function changePage(page) {
+            document.getElementById('currentPageInput').value = page;
+            document.getElementById('searchForm').submit();
+        }
+
+        function changeSort(column) {
+            let currentSortBy = $("input[name='SortBy']").val();
+            let currentOrder = $("input[name='SortOrder']").val();
+            if (currentSortBy === column) {
+                $("input[name='SortOrder']").val(currentOrder === "asc" ? "desc" : "asc");
+            } else {
+                $("input[name='SortBy']").val(column);
+                $("input[name='SortOrder']").val("desc");
+            }
+            document.getElementById('currentPageInput').value = 1;
+            document.getElementById('searchForm').submit();
+        }
+    </script>
+}

@@ -1,0 +1,145 @@
+﻿@model PawsPort.ViewModels.SocialListViewModel
+
+@{
+    ViewData["Title"] = "SocialList";
+}
+
+<h1 class="h3 mb-2 text-gray-800">社交狀態管理</h1>
+<p class="mb-4">您可以透過此介面監控使用者的發文、追蹤、以及社群互動數據。</p>
+
+<div class="card shadow mb-4">
+    <div class="card-header py-3 d-flex flex-row align-items-center justify-content-between">
+        <h6 class="m-0 font-weight-bold text-primary">使用者社交清單</h6>
+    </div>
+    
+    <div class="card-body">
+        <form asp-action="SocialList" method="get" class="mb-4">
+            <div class="row">
+                <div class="col-md-4 mb-2">
+                    <div class="input-group">
+                        <input type="text" name="TxtKeyword" value="@Model.TxtKeyword"
+                               class="form-control bg-light border-1 small" placeholder="搜尋使用者名稱...">
+                        <div class="input-group-append">
+                            <button class="btn btn-primary" type="submit">
+                                <i class="fas fa-search fa-sm"></i>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3 mb-2">
+                    <select name="SortBy" class="form-control form-control-sm custom-select shadow-sm">
+                        <option value="Default" selected="@(Model.SortBy == "Default")">排序：預設名稱</option>
+                        <option value="PostCount" selected="@(Model.SortBy == "PostCount")">排序：發文數量</option>
+                        <option value="FollowerCount" selected="@(Model.SortBy == "FollowerCount")">排序：粉絲數量</option>
+                        <option value="Popularity" selected="@(Model.SortBy == "Popularity")">排序：人氣程度</option>
+                    </select>
+                </div>
+                <div class="col-md-2 mb-2">
+                    <select name="SortOrder" class="form-control form-control-sm custom-select shadow-sm">
+                        <option value="asc" selected="@(Model.SortOrder == "asc")">由小到大</option>
+                        <option value="desc" selected="@(Model.SortOrder == "desc")">由大到小</option>
+                    </select>
+                </div>
+                <div class="col-md-3 mb-2 text-right">
+                    <button type="submit" class="btn btn-primary btn-sm px-3 shadow-sm">查詢</button>
+                    <a asp-action="SocialList" class="btn btn-light btn-sm ml-1 shadow-sm border">重置</a>
+                </div>
+            </div>
+        </form>
+
+        <hr />
+
+        <div class="table-responsive">
+            <table class="table table-bordered table-hover" width="100%" cellspacing="0">
+                <thead class="thead-light">
+                    <tr>
+                        <th>@Html.DisplayNameFor(model => model.SocialItems[0].UserName)</th>
+                        <th>@Html.DisplayNameFor(model => model.SocialItems[0].PostCount)</th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.SocialItems[0].FollowingCount)
+                            /@Html.DisplayNameFor(model => model.SocialItems[0].FollowerCount)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.SocialItems[0].MyCommentCount)
+                            /@Html.DisplayNameFor(model => model.SocialItems[0].ReceivedCommentCount)
+                        </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.SocialItems[0].MyBookmarkCount)
+                            /@Html.DisplayNameFor(model => model.SocialItems[0].ReceivedBookmarkCount)
+                        </th>
+                        <th class="text-center">操作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.SocialItems)
+                    {
+                        <tr>
+                            <td class="font-weight-bold text-dark">@item.UserName</td>
+                            <td>@item.PostCount</td>
+                            <td>
+                                <span class="badge badge-light">@item.FollowingCount</span> /
+                                <span class="badge badge-info">@item.FollowerCount</span>
+                            </td>
+                            <td class="small">
+                                <span title="我的留言"><i class="far fa-comment-dots text-gray-400"></i> @item.MyCommentCount</span> /
+                                <span title="收到的留言" class="text-success"><i class="fas fa-comment-medical"></i> @item.ReceivedCommentCount</span>
+                            </td>
+                            <td class="small">
+                                <span title="我的收藏"><i class="far fa-bookmark text-gray-400"></i> @item.MyBookmarkCount</span> /
+                                <span title="被他人收藏" class="text-warning"><i class="fas fa-bookmark"></i> @item.ReceivedBookmarkCount</span>
+                            </td>
+
+                            <td class="text-center">
+                                <a asp-action="Details" asp-route-id="@item.UserId" class="btn btn-info btn-sm shadow-sm">
+                                    <i class="fas fa-info-circle"></i> 查看詳情
+                                </a>
+                                @* 點了會跳轉到Details *@
+
+                                <button class="btn btn-danger btn-circle btn-sm shadow-sm m-sm-1" onclick="confirmBan('@item.UserName')">
+                                    <i class="fas fa-ban"></i>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-sm-12 col-md-5">
+                <div class="text-gray-600 small py-2">
+                    顯示第 @( (Model.CurrentPage - 1) * Model.PageSize + 1 ) 到 @( Math.Min(Model.CurrentPage * Model.PageSize, Model.TotalCount) ) 筆 (共 @Model.TotalCount 筆)
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-7">
+                <div class="d-flex justify-content-end">
+                    <ul class="pagination pagination-sm mb-0">
+                        <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" asp-route-CurrentPage="@(Model.CurrentPage - 1)"
+                               asp-route-TxtKeyword="@Model.TxtKeyword"
+                               asp-route-SortBy="@Model.SortBy"
+                               asp-route-SortOrder="@Model.SortOrder">上一頁</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link" asp-route-CurrentPage="@i"
+                                   asp-route-TxtKeyword="@Model.TxtKeyword"
+                                   asp-route-SortBy="@Model.SortBy"
+                                   asp-route-SortOrder="@Model.SortOrder">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link" asp-route-CurrentPage="@(Model.CurrentPage + 1)"
+                               asp-route-TxtKeyword="@Model.TxtKeyword"
+                               asp-route-SortBy="@Model.SortBy"
+                               asp-route-SortOrder="@Model.SortOrder">下一頁</a>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

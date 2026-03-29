@@ -1,101 +1,169 @@
-﻿@model IEnumerable<PawsPort.Models.Category>
+﻿@model PawsPort.ViewModels.CategoryListViewModel
 
 @{
-    ViewData["Title"] = "CategoryList";
+    ViewData["Title"] = "分類管理";
 }
 
-<h1>CategoryList</h1>
+<div class="container-fluid">
+    <div class="d-sm-flex align-items-center justify-content-between mb-4">
+        <h1 class="h3 mb-0 text-gray-800"><i class="fas fa-sitemap mr-2"></i>分類架構管理</h1>
+    </div>
 
-@using (Html.BeginForm())
-//beginform的參數是(動作,控制器,方法)
-//如果不寫參數，預設就是當前的動作和控制器，方法預設是post
-{
-    @:關鍵字 @Html.TextBox("txtKeyword")
-    //三個參數分別是(欄位名稱,預設值,html屬性)
-    //txtKeyword是欄位名稱，預設值是空字串，html屬性是class="form-control"
-    <input type="submit" value="查詢" />
-}
+    <div class="card shadow mb-4">
+        <div class="card-body">
+            <form method="get" action="@Url.Action("CategoryList")" id="searchForm">
+                <div class="row align-items-center">
+                    <div class="col-md-9 d-flex align-items-center">
+                        <div class="input-group" style="width: 250px;">
+                            <input type="text" name="TxtKeyword" value="@Model.TxtKeyword"
+                                   class="form-control bg-light border-0 small" placeholder="搜尋分類名稱...">
+                            <div class="input-group-append">
+                                <button class="btn btn-primary" type="submit">
+                                    <i class="fas fa-search fa-sm"></i>
+                                </button>
+                            </div>
+                        </div>
 
-<p>
-    <a asp-action="CreateCategory">新增分類</a>
-</p>
-<table class="table">
-    <thead>
-        <tr>
-            <th>
-                序
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CategoryName)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.CategoryDescription)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.ParentId)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.Level)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.SortOrder)
-            </th>
-            @* <th>
-                @Html.DisplayNameFor(model => model.IsExist)
-            </th> *@
-            <th>
-                @Html.DisplayNameFor(model => model.CreateAt)
-            </th>
-            <th>
-                @Html.DisplayNameFor(model => model.LastEditTime)
-            </th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
+                        <div class="ml-3 d-flex align-items-center">
+                            <span class="text-xs mr-2">每頁</span>
+                            <select name="PageSize" class="form-control form-control-sm" onchange="this.form.submit()" style="width: 80px;">
+                                <option value="5" selected="@(Model.PageSize == 5)">5 筆</option>
+                                <option value="10" selected="@(Model.PageSize == 10)">10 筆</option>
+                                <option value="20" selected="@(Model.PageSize == 20)">20 筆</option>
+                            </select>
+                        </div>
 
-        @{
-            int count = 0;
-            foreach (var item in Model)
+                        @if (!string.IsNullOrEmpty(Model.TxtKeyword))
+                        {
+                            <a href="@Url.Action("CategoryList")" class="ml-3 btn btn-link btn-sm text-secondary">清除篩選</a>
+                        }
+                    </div>
+
+                    <div class="col-md-3 text-right">
+                        <a asp-action="CreateCategory" class="btn btn-success shadow-sm">
+                            <i class="fas fa-plus fa-sm text-white-50"></i> 新增分類
+                        </a>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div id="categoryAccordion">
+        @if (Model.ParentCategories != null && Model.ParentCategories.Any())
+        {
+            foreach (var parent in Model.ParentCategories)
             {
-                count++;
-                <tr>
-                    <td>
-                        @count
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CategoryName)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CategoryDescription)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.ParentId)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.Level)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.SortOrder)
-                    </td>
+                <div class="card mb-3 border-left-@parent.ColorClass shadow">
+                    <div class="card-header bg-@parent.ColorClass text-white d-flex justify-content-between align-items-center"
+                         style="cursor:pointer" data-toggle="collapse" data-target="#collapse-@parent.CategoryId">
+                        <div>
+                            <i class="fas fa-folder-open mr-2"></i>
+                            <strong>@parent.CategoryName</strong>
+                            <span class="badge badge-light ml-2 text-@parent.ColorClass">@parent.ArticleCount 篇文章</span>
+                        </div>
+                        <div class="d-flex align-items-center">
+                            <a asp-action="EditCategory" asp-route-id="@parent.CategoryId" class="btn btn-sm btn-light text-@parent.ColorClass mr-3 py-0" onclick="event.stopPropagation();">
+                                <i class="fas fa-edit"></i> 編輯父類
+                            </a>
+                            @* 新增：父分類刪除按鈕 *@
+                            <a asp-action="DeleteCategory" asp-route-id="@parent.CategoryId"
+                                   class="btn btn-sm btn-danger py-0 mr-3"
+                                   onclick="event.stopPropagation(); return confirm('警告：刪除主分類將會連同子分類一併隱藏，確定要刪除嗎？');">
+                                <i class="fas fa-trash"></i> 刪除
+                            </a>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                    </div>
 
-                    @*<td>
-                @Html.DisplayFor(modelItem => item.IsExist)
-            </td>*@
-                    <td>
-                        @Html.DisplayFor(modelItem => item.CreateAt)
-                    </td>
-                    <td>
-                        @Html.DisplayFor(modelItem => item.LastEditTime)
-                    </td>
-
-                    <td>
-                        @Html.ActionLink("編輯", "EditCategory", "Category", new { id = item.CategoryId }, null) |
-                        @Html.ActionLink("刪除", "DeleteCategory", "Category", new { id = item.CategoryId }, new { onclick = "return confirm('確定要刪除嗎？');" })
-                    </td>
-                </tr>
+                    <div id="collapse-@parent.CategoryId" class="collapse show" data-parent="#categoryAccordion">
+                        <div class="card-body bg-light">
+                            <div class="table-responsive">
+                                <table class="table table-hover mb-0">
+                                    <thead class="text-xs text-uppercase text-muted">
+                                        <tr>
+                                            <th>子分類名稱</th>
+                                            <th>描述</th>
+                                            <th>內容數量</th>
+                                            <th class="text-center">操作</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach (var child in parent.ChildCategories)
+                                        {
+                                            <tr>
+                                                <td class="align-middle">
+                                                    <i class="fas fa-level-up-alt fa-rotate-90 text-gray-400 mr-2"></i>
+                                                    <span class="font-weight-bold text-dark">@child.CategoryName</span>
+                                                </td>
+                                                <td class="align-middle small text-muted">@child.CategoryDescription</td>
+                                                <td class="align-middle">@child.ArticleCount</td>
+                                                <td class="text-center align-middle">
+                                                    <a asp-action="EditCategory" asp-route-id="@child.CategoryId"
+                                                           class="btn btn-sm btn-outline-@parent.ColorClass btn-circle" title="編輯">
+                                                        <i class="fas fa-edit"></i>
+                                                    </a>
+                                                    @* 新增：子分類刪除按鈕 *@
+                                                    <a asp-action="DeleteCategory" asp-route-id="@child.CategoryId"
+                                                           class="btn btn-sm btn-outline-danger btn-circle" title="刪除"
+                                                           onclick="return confirm('確定要刪除此子分類嗎？');">
+                                                        <i class="fas fa-trash"></i>
+                                                    </a>
+                                                </td>
+                                            </tr>
+                                        }
+                                        @if (!parent.ChildCategories.Any())
+                                        {
+                                            <tr><td colspan="4" class="text-center text-muted small py-3">此分類下暫無子項目</td></tr>
+                                        }
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             }
-
         }
-    </tbody>
-</table>
+        else
+        {
+            <div class="card shadow mb-4">
+                <div class="card-body text-center py-5">
+                    <i class="fas fa-search fa-3x text-gray-200 mb-3"></i>
+                    <p class="text-gray-500">查無相關分類資料</p>
+                    <a href="@Url.Action("CategoryList")" class="btn btn-primary btn-sm">返回完整列表</a>
+                </div>
+            </div>
+        }
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="row mt-4 mb-5">
+            <div class="col-sm-12 col-md-5">
+                <div class="text-xs text-gray-600">
+                    共 @Model.TotalCount 筆主分類，顯示第 @Model.CurrentPage / @Model.TotalPages 頁
+                </div>
+            </div>
+            <div class="col-sm-12 col-md-7">
+                <nav>
+                    <ul class="pagination pagination-sm justify-content-end mb-0">
+                        <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                            <a class="page-link" href="@Url.Action("CategoryList", new { CurrentPage = Model.CurrentPage - 1, TxtKeyword = Model.TxtKeyword, PageSize = Model.PageSize }) shadow-sm">上一頁</a>
+                        </li>
+
+                        @for (int i = 1; i <= Model.TotalPages; i++)
+                        {
+                            <li class="page-item @(i == Model.CurrentPage ? "active" : "")">
+                                <a class="page-link shadow-sm" href="@Url.Action("CategoryList", new { CurrentPage = i, TxtKeyword = Model.TxtKeyword, PageSize = Model.PageSize })">@i</a>
+                            </li>
+                        }
+
+                        <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                            <a class="page-link shadow-sm" href="@Url.Action("CategoryList", new { CurrentPage = Model.CurrentPage + 1, TxtKeyword = Model.TxtKeyword, PageSize = Model.PageSize })">下一頁</a>
+                        </li>
+                    </ul>
+                </nav>
+            </div>
+        </div>
+    }
+</div>

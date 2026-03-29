@@ -1,0 +1,72 @@
+﻿@model PawsPort.ViewModels.SocialDetailsViewModel
+
+<div class="container-fluid">
+    <h1 class="h3 mb-4 text-gray-800">使用者社交履歷：@Model.UserName</h1>
+
+    <div class="row">
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-primary shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-primary text-uppercase mb-1">總粉絲數</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.FollowerCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-users fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-xl-3 col-md-6 mb-4">
+            <div class="card border-left-success shadow h-100 py-2">
+                <div class="card-body">
+                    <div class="row no-gutters align-items-center">
+                        <div class="col mr-2">
+                            <div class="text-xs font-weight-bold text-success text-uppercase mb-1">受歡迎程度 (被留言)</div>
+                            <div class="h5 mb-0 font-weight-bold text-gray-800">@Model.ReceivedCommentCount</div>
+                        </div>
+                        <div class="col-auto">
+                            <i class="fas fa-comments fa-2x text-gray-300"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+
+    <div class="card shadow mb-4">
+        <div class="card-header py-3">
+            <h6 class="m-0 font-weight-bold text-primary">最近發文紀錄</h6>
+        </div>
+        <div class="card-body">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>標題</th>
+                        <th>發布時間</th>
+                        <th>動作</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var art in Model.RecentArticles)
+                    {
+                        <tr>
+                            <td>@art.Title</td>
+                            <td>@art.CreateAt.ToString("yyyy-MM-dd")</td>
+                            <td><a href="#" class="btn btn-sm btn-primary">查看文章內容</a></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <a asp-action="SocialList" class="btn btn-secondary btn-icon-split">
+        <span class="icon text-white-50"><i class="fas fa-arrow-left"></i></span>
+        <span class="text">回到清單</span>
+    </a>
+</div>

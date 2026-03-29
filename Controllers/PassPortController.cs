@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
 using PawsPort.ViewModels;
 
@@ -44,17 +45,100 @@ namespace PawsPort.Controllers
             return View(query.ToList());
         }
 
+        //public IActionResult Create()
+        //{
+        //    return View();
+        //}
+        //[HttpPost]
+        //public IActionResult Create(HealthPassport p)
+        //{
+        //    PetDbContext db = new PetDbContext();
+        //    p.PassportId = 0;
+        //    db.HealthPassports.Add(p);
+        //    db.SaveChanges();
+        //    return RedirectToAction("List");
+        //}
+
         public IActionResult Create()
         {
             return View();
         }
         [HttpPost]
-        public IActionResult Create(HealthPassport p)
+        [HttpPost]
+        public IActionResult Create(HealthPassportCreateViewModel vm)
         {
             PetDbContext db = new PetDbContext();
-            p.PassportId = 0;
-            db.HealthPassports.Add(p);
+
+            // ==========================================
+            // 步驟 1：拆解包裹，先新增「主表」(健康護照)
+            // ==========================================
+            // 創建一個真實對應資料庫的 Model 實體
+            HealthPassport passport = new HealthPassport
+            {
+                PetId = vm.PetId,
+                Weight = vm.Weight,
+                Note = vm.Note,
+                RecordType = vm.RecordType,
+                RecordDate = vm.RecordDate,
+                CreatedAt = DateTime.Now // 實務上，建立時間通常在程式裡給定當下時間
+            };
+
+            // 把護照加入資料庫並「馬上存檔」！
+            db.HealthPassports.Add(passport);
             db.SaveChanges();
+            // 💡 魔法發生了：SaveChanges() 執行完後，資料庫會自動生成一個新的流水號。
+            // 這時候 passport.PassportId 就已經不是 0 了，而是資料庫給的最新 ID！
+
+
+            // ==========================================
+            // 步驟 2：判斷並新增「病歷」資料 (MedicalHistory)
+            // ==========================================
+            // 怎麼知道使用者有沒有填病歷？我們檢查必填欄位 (例如 Disease) 是不是有值
+            if (!string.IsNullOrEmpty(vm.Disease))
+            {
+                MedicalHistory medical = new MedicalHistory
+                {
+                    // 🔑 關鍵！把剛剛產生的新護照 ID 綁定給病歷
+                    PassportId = passport.PassportId,
+
+                    Location = vm.TreatmentLocation,
+                    Disease = vm.Disease,
+                    DiseaseTreatment = vm.DiseaseTreatment,
+                    Time = vm.TreatmentTime,
+                    CreatedAt = DateTime.Now
+                };
+                db.MedicalHistories.Add(medical);
+            }
+
+
+            // ==========================================
+            // 步驟 3：判斷並新增「疫苗」資料 (Vaccination)
+            // ==========================================
+            // 一樣，檢查疫苗的必填欄位 (例如 Type) 是不是有值
+            if (!string.IsNullOrEmpty(vm.Type))
+            {
+                VaccinationStatus vaccine = new VaccinationStatus
+                {
+                    // 🔑 關鍵！把剛剛產生的新護照 ID 綁定給疫苗
+                    PassportId = passport.PassportId,
+
+                    Type = vm.Type,
+                    Location = vm.VaccinationLocation,
+                    Time = vm.VaccinationTime,
+                    Forecast = vm.Forecast,
+                    CreatedAt = DateTime.Now
+                };
+                db.VaccinationStatuses.Add(vaccine);
+            }
+
+            // ==========================================
+            // 步驟 4：把剛才加入的病歷和疫苗，正式存進資料庫
+            // ==========================================
+            // 如果上面沒有填寫病歷或疫苗，這行依然可以安全執行，不會報錯
+            db.SaveChanges();
+
+            // 成功後，帶點好消息回到列表頁！
+            TempData["SuccessMessage"] = "新增資料成功！";
             return RedirectToAction("List");
         }
 

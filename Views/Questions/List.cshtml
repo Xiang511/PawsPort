@@ -122,9 +122,9 @@
             <!-- 編輯表單開始 -->
             <form method="post" asp-action="Edit" asp-controller="Questions">
                 <div class="modal-body">
-                    <!-- GameId（隱藏欄位） -->
+                    <!-- GameId、題目分類category（隱藏欄位） -->
                     <input type="hidden" id="EditGameId" name="GameId" />
-
+                    <input type="hidden" id="EditCategory" name="category" value="@ViewBag.SelectedCategory" />
                     <!-- 遊戲名稱 -->
                     <div class="form-group">
                         <label for="EditGameName">題目類型 <span style="color: red;">*</span></label>
@@ -203,6 +203,7 @@
             <div class="modal-footer">
                 <form method="post" asp-action="Delete" asp-controller="Questions" style="display: inline;">
                     <input type="hidden" id="DeleteGameId" name="id" />
+                    <input type="hidden" id="DeleteCategory" name="category" value="@ViewBag.SelectedCategory" />
                     <button type="submit" class="btn btn-danger">確認刪除</button>
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">取消</button>
                 </form>

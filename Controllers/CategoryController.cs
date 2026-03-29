@@ -107,33 +107,55 @@ namespace PawsPort.Controllers
 
         public IActionResult EditCategory(int? id)
         {
-            PetDbContext db = new PetDbContext();
-            Category x = db.Categories.FirstOrDefault(p => p.CategoryId == id);
-            if (x == null)
+            if (id == null) return RedirectToAction("CategoryList");
+
+            using (PetDbContext db = new PetDbContext())
             {
-                return RedirectToAction("CategoryList");
+                Category x = db.Categories.FirstOrDefault(p => p.CategoryId == id && p.IsExist);
+                if (x == null) return RedirectToAction("CategoryList");
+
+                // 修正後的 LINQ：只要是 Level 0 的都抓出來，排除自己（避免自己變自己的父類）
+                ViewBag.ParentList = db.Categories
+                    .Where(c => c.IsExist && c.Level == 0 && c.CategoryId != id)
+                    .OrderBy(c => c.SortOrder)
+                    .ToList();
+
+                return View(x);
             }
-            return View(x);
         }
 
         [HttpPost]
         public IActionResult EditCategory(Category uiCategory)
         {
-            PetDbContext db = new PetDbContext(); //建立資料庫上下文
-            Category dbCategory = db.Categories.FirstOrDefault(p => p.CategoryId == uiCategory.CategoryId);
-            //從資料庫中查找要編輯的類別
-            if (dbCategory != null)
+            // 注意：這裡如果 ModelState 因為某些暫時不用的欄位失效，可以直接移除 if 檢查或針對性處理
+            using (PetDbContext db = new PetDbContext())
             {
-                dbCategory.CategoryName = uiCategory.CategoryName; //更新類別名稱
-                dbCategory.CategoryDescription = uiCategory.CategoryDescription; //更新類別描述
-                dbCategory.ParentId = uiCategory.ParentId; //更新父類別ID
-                dbCategory.Level = uiCategory.Level; //更新類別層級
-                dbCategory.SortOrder = uiCategory.SortOrder; //更新類別排序
-                dbCategory.LastEditTime = DateTime.Now; //更新最後編輯時間
-                db.SaveChanges(); //保存更改到資料庫
+                Category dbCategory = db.Categories.FirstOrDefault(p => p.CategoryId == uiCategory.CategoryId);
 
+                if (dbCategory != null)
+                {
+                    dbCategory.CategoryName = uiCategory.CategoryName;
+                    dbCategory.CategoryDescription = uiCategory.CategoryDescription;
+                    dbCategory.SortOrder = uiCategory.SortOrder;
+                    dbCategory.LastEditTime = DateTime.Now;
+
+                    // 核心修正：明確處理 ParentId 與 Level
+                    if (uiCategory.ParentId.HasValue && uiCategory.ParentId > 0)
+                    {
+                        dbCategory.ParentId = uiCategory.ParentId;
+                        dbCategory.Level = 1; // 有選父類，強設為子分類
+                    }
+                    else
+                    {
+                        dbCategory.ParentId = null;
+                        dbCategory.Level = 0; // 沒選父類，強設為主分類
+                    }
+
+                    db.SaveChanges();
+                    return RedirectToAction("CategoryList");
+                }
             }
-            return RedirectToAction("CategoryList");
+            return RedirectToAction("CategoryList"); ;
         }
 
         public IActionResult DeleteCategory(int? id)

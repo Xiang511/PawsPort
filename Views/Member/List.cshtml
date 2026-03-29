@@ -137,11 +137,12 @@
                             @Html.DisplayNameFor(model => model.Note)
                         </th>
                         <th>
-                            @Html.DisplayNameFor(model => model.HasPriorExp)
-                        </th>
-                        <th>
                             @Html.DisplayNameFor(model => model.Status)
                         </th>
+                        <th>
+                            @Html.DisplayNameFor(model => model.HasPriorExp)
+                        </th>
+                       
                         <th>
                             @Html.DisplayNameFor(model => model.IsSubscribe)
                         </th>
@@ -182,14 +183,7 @@
                             <td>
                                 @Html.DisplayFor(modelItem => item.Note)
                             </td>
-                            @if (item.HasPriorExp == true)
-                            {
-                                <td>是</td>
-                            }
-                            else
-                            {
-                                <td>否</td>
-                            }
+                        
                            
                             @if (item.Status == true)
                             {
@@ -199,7 +193,14 @@
                             {
                                 <td><span class="badge badge-pill badge-danger">Ban</span></td>
                             }
-             
+                            @if (item.HasPriorExp == true)
+                            {
+                                <td>是</td>
+                            }
+                            else
+                            {
+                                <td>否</td>
+                            }
                          
                                 
                             @if (item.IsSubscribe == true)

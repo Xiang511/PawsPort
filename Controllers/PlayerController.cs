@@ -169,5 +169,40 @@ namespace PawsPort.Controllers
             return RedirectToAction("List");
         }
 
+        public IActionResult GetUserProfile(int userId)
+        {
+            PetDbContext db = new PetDbContext();
+
+            // 直接用 userId 查詢 UserTable
+            var user = db.UserTables.FirstOrDefault(u => u.UserId == userId);
+
+            if (user == null)
+                return Json(new { success = false, message = "找不到會員資料" });
+
+            return Json(new
+            {
+                success = true,
+                data = new
+                {
+                    user.UserId,
+                    user.Name,
+                    user.Photo,
+                    user.Job,
+                    user.Phone,
+                    user.Birthday,
+                    user.City,
+                    user.Point,
+                    user.Note,
+                    user.HasPriorExp,
+                    user.Status,
+                    user.IsSubscribe,
+                    user.IsVerify,
+                    user.CreatedAt,
+                    user.UpdatedAt,
+                    user.DeleteDay
+                }
+            });
+        }
+
     }
 }

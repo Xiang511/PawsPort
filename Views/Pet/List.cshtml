@@ -3,8 +3,16 @@
 @{
     ViewData["Title"] = "List";
 }
+<link href="~/css/XiangList.css" rel="stylesheet" />
+<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
 
 <h1>寵物資料一覽表</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">寵物資料一覽</a></li>
+        
+    </ol>
+</nav>
 @using (Html.BeginForm())
 {
     @:關鍵字 @Html.TextBox("txtKeyword")
@@ -14,7 +22,10 @@
 <p>
     <a asp-action="Create" class="btn btn-primary ">建立新資料</a>
 </p>
-<table class="table">
+<div class="card shadow mb-4">
+ <div class="card-body">
+<div class="table-responsive">
+    <table class="table table-bordered">
     <thead>
         <tr>
             <th>
@@ -122,3 +133,10 @@
 }
     </tbody>
 </table>
+</div>
+</div>
+</div>
+
+
+<script src="~/lib/jquery/dist/jquery.min.js"></script>
+<script src="~/js/demo/MemberListDataTable.js"></script>

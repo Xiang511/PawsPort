@@ -5,6 +5,12 @@
 }
 
 <h1>寵物健康護照</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="#">寵物健康護照</a></li>
+
+    </ol>
+</nav>
 @using (Html.BeginForm())
 {
     @:關鍵字 @Html.TextBox("txtKeyword")
@@ -48,7 +54,7 @@
                 <td>@Html.DisplayFor(modelItem => item.CreatedAt)</td>
                 <td>
                     @Html.ActionLink("編輯", "Edit", "PassPort", new { id = item.PassportId }, new { @class = "btn btn-success" }) |
-                    @Html.ActionLink("Details", "Details", "PassPort", new { id = item.PassportId }, new { @class = "btn btn-primary" }) |
+                    @Html.ActionLink("寵物詳細病歷", "Details", "PassPort", new { id = item.PassportId }, new { @class = "btn btn-primary" }) |
                     
                     @Html.ActionLink("刪除", "Delete", "PassPort", new { id = item.PassportId }, new { onclick = "return confirm('確定要刪除嗎?')", Class = "btn btn-danger" }) 
                 </td>

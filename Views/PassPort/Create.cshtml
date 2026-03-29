@@ -4,7 +4,13 @@
     ViewData["Title"] = "Create";
 }
 
-<h1>Create</h1>
+<h1>新增健康護照</h1>
+<nav aria-label="breadcrumb">
+    <ol class="breadcrumb">
+        <li class="breadcrumb-item"><a href="../Passport/List">寵物健康護照</a></li>
+        <li class="breadcrumb-item active" aria-current="page">新增健康護照</li>
+    </ol>
+</nav>
 
 <h4>HealthPassportCreateViewModel</h4>
 <hr />
@@ -12,11 +18,7 @@
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            <div class="form-group">
-                <label asp-for="PassportId" class="control-label"></label>
-                <input asp-for="PassportId" class="form-control" />
-                <span asp-validation-for="PassportId" class="text-danger"></span>
-            </div>
+            
             <div class="form-group">
                 <label asp-for="PetId" class="control-label"></label>
                 <input asp-for="PetId" class="form-control" />

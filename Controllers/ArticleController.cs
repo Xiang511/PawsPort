@@ -139,13 +139,18 @@ namespace PawsPort.Controllers
 
         public IActionResult EditArticle(int? id)
         {
+            if (id == null) return RedirectToAction("ArticleList");
             using (PetDbContext db = new PetDbContext())
             {
                 Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
                 if (x == null)
-                {
                     return RedirectToAction("ArticleList");
-                }
+                
+                // 準備分類下拉選單 (供編輯時切換)
+                ViewBag.CategoryList = db.Categories
+                    .Where(c => c.IsExist)
+                    .OrderBy(c => c.Level).ThenBy(c => c.SortOrder)
+                    .ToList();
 
                 ArticleWrap p = new ArticleWrap(); //創建一個ArticleWrap物件
                 p.article = x;  //將從資料庫中查找到的文章賦值給ArticleWrap物件的article屬性
@@ -159,8 +164,8 @@ namespace PawsPort.Controllers
         {
             using (PetDbContext db = new PetDbContext())
             {
-
-                Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == UiArticle.ArticleId);
+                var id = UiArticle.article.ArticleId;
+                Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == id);
                 //從資料庫中查找要編輯的文章
 
 
@@ -180,7 +185,7 @@ namespace PawsPort.Controllers
 
         }
 
-        [HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
+        //[HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
         public IActionResult DeleteArticle(int? id)
         {
             if (id == null)

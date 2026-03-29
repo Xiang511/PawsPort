@@ -14,7 +14,7 @@ namespace PawsPort.Controllers
             {
                 //抓出所有存在的分類
                 var RawDatas = db.Categories.Where(c => c.IsExist == true);
-              
+
                 //把分類底下所有的文章包裝起來，統計貼文數
                 var AllItems = RawDatas.Select(c => new CategoryItemViewModel
                 {
@@ -38,7 +38,7 @@ namespace PawsPort.Controllers
                 //定義一組色系
                 string[] colorSchemes = { "primary", "success", "info", "warning", "danger", "secondary" };
 
-                for(int i=0; i < Parents.Count(); i++)
+                for (int i = 0; i < Parents.Count(); i++)
                 {
                     Parents[i].ColorClass = colorSchemes[i % colorSchemes.Length];
                     // 抓出屬於這個父分類的子分類
@@ -138,15 +138,34 @@ namespace PawsPort.Controllers
 
         public IActionResult DeleteCategory(int? id)
         {
-            PetDbContext db = new PetDbContext();
-            Category x = db.Categories.FirstOrDefault(p => p.CategoryId == id);
-            if (x != null)
+            using (PetDbContext db = new PetDbContext())
             {
-                x.IsExist = false;
-                db.SaveChanges();
+                // 1. 找出要刪除的分類
+                Category x = db.Categories.FirstOrDefault(p => p.CategoryId == id);
+
+                if (x != null)
+                {
+                    // 軟刪除目標分類
+                    x.IsExist = false;
+                    x.LastEditTime = DateTime.Now; // 紀錄最後修改時間
+
+                    // 2. 【進階處理】如果這是父分類 (Level 0)，把底下的子分類也一起軟刪除
+                    if (x.Level == 0)
+                    {
+                        var children = db.Categories.Where(c => c.ParentId == x.CategoryId && c.IsExist);
+                        foreach (var child in children)
+                        {
+                            child.IsExist = false;
+                            child.LastEditTime = DateTime.Now;
+                        }
+                    }
+
+                    db.SaveChanges();
+                }
             }
             return RedirectToAction("CategoryList");
         }
 
     }
+
 }

@@ -1,5 +1,4 @@
-﻿
-@model IEnumerable<PawsPort.Models.Message>
+﻿@model IEnumerable<PawsPort.Models.Message>
 @{
     ViewData["Title"] = "對話詳情";
     var room = ViewBag.RoomInfo as PawsPort.Models.Chatroom;
@@ -10,9 +9,9 @@
         <h1 class="h3 mb-0 text-gray-800">
             <i class="fas fa-comments"></i>
 
-            @ViewBag.U1Name 
+            @ViewBag.U1Name
             <i class="fa-solid fa-right-left mx-2 small text-gray-400"
-            style="font-family: 'Font Awesome 6 Free' !important; font-weight: 900;"></i>
+               style="font-family: 'Font Awesome 6 Free' !important; font-weight: 900;"></i>
             @ViewBag.U2Name
         </h1>
         <a asp-action="ChatroomList" class="d-none d-sm-inline-block btn btn-sm btn-secondary shadow-sm">
@@ -28,49 +27,59 @@
                 </div>
                 @* //這裡產生對話氣泡 *@
                 <div class="card-body chat-container" style="height: 500px; overflow-y: auto; background-color: #f8f9fc;">
-    
-                    @foreach (var item in Model)
+                    @if (!Model.Any())
                     {
-                        bool isUser1 = (item.SenderId == room.UserId1);
-
-                        <div class="d-flex @(isUser1 ? "justify-content-start" : "justify-content-end") mb-4 align-items-center">
-            
-                            @* --- 如果是右邊氣泡(User2)，垃圾桶顯示在左邊 --- *@
-                            @if (!isUser1)
-                            {
-                                <form asp-action="DeleteSingleMsg" method="post" class="mr-2">
-                                    <input type="hidden" name="MsgID" value="@item.MessageId" />
-                                    <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
-                                    <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('確定要刪除此訊息嗎？')">
-                                        <i class="fas fa-trash-alt small"></i>
-                                    </button>
-                                </form>
-                            }
-
-                            @* --- 訊息氣泡主體 --- *@
-                            <div class="msg-card @(isUser1 ? "bg-white text-dark" : "bg-primary text-white") shadow-sm p-3"
-                                 style="max-width: 70%; border-radius: 15px; position: relative;">
-                                <div class="small @(isUser1 ? "text-muted" : "text-white-50")">
-                                    @(isUser1? ViewBag.U1Name: ViewBag.U2Name)
-                                </div>
-                                <div class="mt-1">@item.Content</div>
-                                <div class="text-right x-small @(isUser1 ? "text-muted" : "text-white-50") mt-2" style="font-size: 0.7rem;">
-                                    @item.CreateAt.ToString("MM/dd HH:mm")
-                                </div>
-                            </div>
-
-                            @* --- 如果是左邊氣泡(User1)，垃圾桶顯示在右邊 --- *@
-                            @if (isUser1)
-                            {
-                                <form asp-action="DeleteSingleMsg" method="post" class="ml-2">
-                                    <input type="hidden" name="MsgID" value="@item.MessageId" />
-                                    <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
-                                    <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('確定要刪除此訊息嗎？')">
-                                        <i class="fas fa-trash-alt small"></i>
-                                    </button>
-                                </form>
-                            }
+                        <div class="text-center text-muted mt-5">
+                            <i class="fas fa-ghost fa-3x mb-3"></i>
+                            <p>目前沒有任何對話紀錄</p>
                         </div>
+                    }
+                    else
+                    {
+                        @foreach (var item in Model)
+                        {
+                            bool isUser1 = (item.SenderId == room.UserId1);
+
+                            <div class="d-flex @(isUser1 ? "justify-content-start" : "justify-content-end") mb-4 align-items-center">
+            
+                                @* --- 如果是右邊氣泡(User2)，垃圾桶顯示在左邊 --- *@
+                                @if (!isUser1)
+                                {
+                                    <form asp-action="DeleteSingleMsg" method="post" class="mr-2">
+                                        <input type="hidden" name="MsgID" value="@item.MessageId" />
+                                        <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
+                                        <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('確定要刪除此訊息嗎？')">
+                                            <i class="fas fa-trash-alt small"></i>
+                                        </button>
+                                    </form>
+                                }
+
+                                @* --- 訊息氣泡主體 --- *@
+                                <div class="msg-card @(isUser1 ? "bg-white text-dark" : "bg-primary text-white") shadow-sm p-3"
+                                     style="max-width: 70%; border-radius: 15px; position: relative;">
+                                    <div class="small @(isUser1 ? "text-muted" : "text-white-50")">
+                                        @(isUser1? ViewBag.U1Name: ViewBag.U2Name)
+                                    </div>
+                                    <div class="mt-1">@item.Content</div>
+                                    <div class="text-right x-small @(isUser1 ? "text-muted" : "text-white-50") mt-2" style="font-size: 0.7rem;">
+                                        @item.CreateAt.ToString("MM/dd HH:mm")
+                                    </div>
+                                </div>
+
+                                @* --- 如果是左邊氣泡(User1)，垃圾桶顯示在右邊 --- *@
+                                @if (isUser1)
+                                {
+                                    <form asp-action="DeleteSingleMsg" method="post" class="ml-2">
+                                        <input type="hidden" name="MsgID" value="@item.MessageId" />
+                                        <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
+                                        <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('確定要刪除此訊息嗎？')">
+                                            <i class="fas fa-trash-alt small"></i>
+                                        </button>
+                                    </form>
+                                }
+                                
+                            </div>
+                        }
                     }
 
                 </div>
@@ -95,9 +104,14 @@
 
                     <hr />
 
-                    <button class="btn btn-outline-danger btn-block">
-                        <i class="fas fa-trash"></i> 軟刪除此聊天室全部對話
-                    </button>
+                    <form asp-action="SoftDeleteEntireChat" method="post">
+                        <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
+                        <button type="submit" class="btn btn-outline-danger btn-block"
+                                onclick="return confirm('警告：確定要隱藏此聊天室內「所有」對話紀錄嗎？此動作不可逆。')">
+                            <i class="fas fa-trash"></i> 軟刪除此聊天室
+                        </button>
+                    </form>
+
                 </div>
             </div>
         </div>

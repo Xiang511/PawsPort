@@ -70,7 +70,6 @@
 
                 <div class="row mb-3">
                     <div class="col-md-12 d-flex align-items-center">
-        
                         <input type="text" name="TxtKeyword" class="form-control bg-light border-0 small"
                                placeholder="搜尋使用者名稱..." value="@Model.TxtKeyword"
                                style="width: 250px;">
@@ -91,7 +90,27 @@
                                 </span>
                             </div>
                         }
+
+                        <div class="ml-auto d-flex align-items-center">
+                            @if (Context.Request.Query["showDeleted"] == "true")
+                            {
+                                <a asp-action="ChatroomList" asp-route-ShowDeleted="false" class="btn btn-info mr-2">
+                                    <i class="fas fa-eye"></i> 查看正常對話
+                                </a>
+                            }
+                            else
+                            {
+                                <a asp-action="ChatroomList" asp-route-ShowDeleted="true" class="btn btn-outline-danger mr-2">
+                                    <i class="fas fa-trash-restore"></i> 查看已刪除
+                                </a>
+                            }
+
+                            <button type="button" class="btn btn-success shadow-sm" onclick="alert('新增功能開發中！')">
+                                <i class="fas fa-plus"></i> 新增聊天室
+                            </button>
+                        </div>
                     </div>
+                   
                 </div>
 
                 <div class="table-responsive">

@@ -1,4 +1,4 @@
-﻿@model PawsPort.Models.HealthPassport
+﻿@model PawsPort.ViewModels.HealthPassportCreateViewModel
 
 @{
     ViewData["Title"] = "Create";
@@ -6,17 +6,26 @@
 
 <h1>Create</h1>
 
-<h4>HealthPassport</h4>
+<h4>HealthPassportCreateViewModel</h4>
 <hr />
 <div class="row">
     <div class="col-md-4">
         <form asp-action="Create">
             <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            
+            <div class="form-group">
+                <label asp-for="PassportId" class="control-label"></label>
+                <input asp-for="PassportId" class="form-control" />
+                <span asp-validation-for="PassportId" class="text-danger"></span>
+            </div>
             <div class="form-group">
                 <label asp-for="PetId" class="control-label"></label>
                 <input asp-for="PetId" class="form-control" />
                 <span asp-validation-for="PetId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Name" class="control-label"></label>
+                <input asp-for="Name" class="form-control" />
+                <span asp-validation-for="Name" class="text-danger"></span>
             </div>
             <div class="form-group">
                 <label asp-for="Weight" class="control-label"></label>
@@ -39,19 +48,69 @@
                 <span asp-validation-for="CreatedAt" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <label asp-for="UpdatedAt" class="control-label"></label>
-                <input asp-for="UpdatedAt" class="form-control" />
-                <span asp-validation-for="UpdatedAt" class="text-danger"></span>
+                <label asp-for="MedicalDetailId" class="control-label"></label>
+                <input asp-for="MedicalDetailId" class="form-control" />
+                <span asp-validation-for="MedicalDetailId" class="text-danger"></span>
             </div>
             <div class="form-group">
-                <input type="submit" value="建立新資料" class="btn btn-primary" />
+                <label asp-for="TreatmentLocation" class="control-label"></label>
+                <input asp-for="TreatmentLocation" class="form-control" />
+                <span asp-validation-for="TreatmentLocation" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Disease" class="control-label"></label>
+                <input asp-for="Disease" class="form-control" />
+                <span asp-validation-for="Disease" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="DiseaseTreatment" class="control-label"></label>
+                <input asp-for="DiseaseTreatment" class="form-control" />
+                <span asp-validation-for="DiseaseTreatment" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TreatmentTime" class="control-label"></label>
+                <input asp-for="TreatmentTime" class="form-control" />
+                <span asp-validation-for="TreatmentTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="TreatmentCreatedAt" class="control-label"></label>
+                <input asp-for="TreatmentCreatedAt" class="form-control" />
+                <span asp-validation-for="TreatmentCreatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="HistoryId" class="control-label"></label>
+                <input asp-for="HistoryId" class="form-control" />
+                <span asp-validation-for="HistoryId" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="Type" class="control-label"></label>
+                <input asp-for="Type" class="form-control" />
+                <span asp-validation-for="Type" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VaccinationLocation" class="control-label"></label>
+                <input asp-for="VaccinationLocation" class="form-control" />
+                <span asp-validation-for="VaccinationLocation" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VaccinationTime" class="control-label"></label>
+                <input asp-for="VaccinationTime" class="form-control" />
+                <span asp-validation-for="VaccinationTime" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <label asp-for="VaccinationCreatedAt" class="control-label"></label>
+                <input asp-for="VaccinationCreatedAt" class="form-control" />
+                <span asp-validation-for="VaccinationCreatedAt" class="text-danger"></span>
+            </div>
+            <div class="form-group">
+                <input type="submit" value="Create" class="btn btn-primary" />
             </div>
         </form>
     </div>
 </div>
 
 <div>
-    <a asp-action="List">取消</a>
+    <a asp-action="Index">Back to List</a>
 </div>
 
 @section Scripts {

@@ -5,11 +5,8 @@
 }
 
 <h1>編輯權限</h1>
-
+<span class="d-block my-3">會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">權限設定</span> <i class="fa-solid fa-angle-right"></i> <span class="text-primary">編輯</span></span>
 <div class="card shadow mb-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">
-    <div class="card-header py-3">
-        <h6 class="m-0 font-weight-bold text-primary">編輯使用者系統角色</h6>
-    </div>
     <div class="card-body">
         <form asp-action="Edit" method="post">
             <input type="hidden" asp-for="MappingId" />

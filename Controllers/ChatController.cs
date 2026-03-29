@@ -1,6 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
 using PawsPort.ViewModels;
+using System.Data.Entity;
+using System.Xml.Linq;
 
 namespace PawsPort.Controllers
 {
@@ -98,18 +100,50 @@ namespace PawsPort.Controllers
                 return View(vm);
             }
 
-
-
             //要有一個頁面可以搜尋一個會員底下所有的聊天室 =ChatroomList
             //觀察有沒有會員檢舉某些聊天室的訊息，並且查看該訊息是什麼
             //要有顯示區顯示該會員的近期(一周)聊天訊息數量，用來篩選是不是有機器人
             //要有一個顯示區顯示全站近期(一周)的聊天室和聊天訊息數量，用來篩選是不是有機器人
 
-
             //要有一個功能可以將該會員的聊天功能暫時停權，並暫時封存所有他底下的聊天室 =ChatroomDelete
 
-        
         }
 
+
+        public IActionResult ChatDetail(int id) 
+        {
+            Chatroom? RoomInfo = null;
+            List<Message> MsgList = new List<Message>();
+            string U1Name = "";
+            string U2Name = "";
+
+            using (PetDbContext db = new PetDbContext())
+            {
+                RoomInfo=db.Chatrooms.Include(r=>r.UserId1).Include(r=>r.UserId2)
+                    .FirstOrDefault(r=>r.ChatroomId ==id); //先找出該id的聊天室資料
+
+                if(RoomInfo == null) //判斷是否存在
+                {
+                    return NotFound();
+                }
+
+                //找出該聊天室的成員名稱
+                //之後要改成使用FK
+                U1Name = db.UserTables.FirstOrDefault(u => u.UserId == RoomInfo.UserId1)?.Name ?? "未知用戶";
+                U2Name = db.UserTables.FirstOrDefault(u => u.UserId == RoomInfo.UserId2)?.Name ?? "未知用戶";
+
+                MsgList = db.Messages.Where(m => m.ChatroomId == id && m.IsExist == true)
+                    .OrderByDescending(m => m.CreateAt).Take(100).ToList();
+                //找出該聊天室的最新100條訊息
+
+                MsgList.Reverse(); //反轉，上到下由舊到新排列
+            }
+
+            ViewBag.RoomInfo = RoomInfo;
+            ViewBag.U1Name = U1Name;
+            ViewBag.U2Name = U2Name;
+
+            return View(MsgList);
+        }
     }
 }

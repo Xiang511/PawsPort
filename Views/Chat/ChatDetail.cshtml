@@ -26,23 +26,50 @@
                 <div class="card-header py-3">
                     <h6 class="m-0 font-weight-bold text-primary">對話紀錄 (最近 100 條)</h6>
                 </div>
+                @* //這裡產生對話氣泡 *@
                 <div class="card-body chat-container" style="height: 500px; overflow-y: auto; background-color: #f8f9fc;">
-                    
+    
                     @foreach (var item in Model)
                     {
                         bool isUser1 = (item.SenderId == room.UserId1);
 
-                        <div class="d-flex @(isUser1 ? "justify-content-start" : "justify-content-end") mb-4">
+                        <div class="d-flex @(isUser1 ? "justify-content-start" : "justify-content-end") mb-4 align-items-center">
+            
+                            @* --- 如果是右邊氣泡(User2)，垃圾桶顯示在左邊 --- *@
+                            @if (!isUser1)
+                            {
+                                <form asp-action="DeleteSingleMsg" method="post" class="mr-2">
+                                    <input type="hidden" name="MsgID" value="@item.MessageId" />
+                                    <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
+                                    <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('確定要刪除此訊息嗎？')">
+                                        <i class="fas fa-trash-alt small"></i>
+                                    </button>
+                                </form>
+                            }
+
+                            @* --- 訊息氣泡主體 --- *@
                             <div class="msg-card @(isUser1 ? "bg-white text-dark" : "bg-primary text-white") shadow-sm p-3"
-                                 style="max-width: 70%; border-radius: 15px;">
+                                 style="max-width: 70%; border-radius: 15px; position: relative;">
                                 <div class="small @(isUser1 ? "text-muted" : "text-white-50")">
-                                    @(isUser1? @ViewBag.U1Name: @ViewBag.U2Name)
+                                    @(isUser1? ViewBag.U1Name: ViewBag.U2Name)
                                 </div>
                                 <div class="mt-1">@item.Content</div>
                                 <div class="text-right x-small @(isUser1 ? "text-muted" : "text-white-50") mt-2" style="font-size: 0.7rem;">
                                     @item.CreateAt.ToString("MM/dd HH:mm")
                                 </div>
                             </div>
+
+                            @* --- 如果是左邊氣泡(User1)，垃圾桶顯示在右邊 --- *@
+                            @if (isUser1)
+                            {
+                                <form asp-action="DeleteSingleMsg" method="post" class="ml-2">
+                                    <input type="hidden" name="MsgID" value="@item.MessageId" />
+                                    <input type="hidden" name="ChatroomID" value="@room.ChatroomId" />
+                                    <button type="submit" class="btn btn-link text-danger p-0" onclick="return confirm('確定要刪除此訊息嗎？')">
+                                        <i class="fas fa-trash-alt small"></i>
+                                    </button>
+                                </form>
+                            }
                         </div>
                     }
 

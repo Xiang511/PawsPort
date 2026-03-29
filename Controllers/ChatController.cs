@@ -145,5 +145,23 @@ namespace PawsPort.Controllers
 
             return View(MsgList);
         }
+
+        [HttpPost]
+        public IActionResult DeleteSingleMsg(int MsgID,int ChatroomID)
+        {
+            using (PetDbContext db = new PetDbContext())
+            {
+                var msg = db.Messages.FirstOrDefault(m => m.MessageId == MsgID);
+                if (msg != null)
+                {
+                    msg.IsExist = false; // 軟刪除
+                    db.SaveChanges();
+                }
+            }
+
+            return RedirectToAction("ChatDetail", new {id=ChatroomID});
+        }
+
+
     }
 }

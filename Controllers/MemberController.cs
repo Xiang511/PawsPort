@@ -1,6 +1,8 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Humanizer;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Models;
 using PawsPort.ViewModels;
+using System.Diagnostics;
 
 namespace PawsPort.Controllers
 {
@@ -9,7 +11,27 @@ namespace PawsPort.Controllers
         public IActionResult List()
         {
             PetDbContext db = new PetDbContext();
-            var p = db.UserTables.ToList();
+
+            var MemberCount = db.UserTables.Where(x=>x.DeleteDay == null).Count();
+            ViewBag.MemberCount = MemberCount;
+
+            DateTime today = DateTime.Now;     
+            DateTime startOfMonth = new DateTime(today.Year, today.Month, 1);   // 2. 取得這個月的第一天 (時分秒自動為 00:00:00)      
+            DateTime startOfNextMonth = startOfMonth.AddMonths(1);  // 3. 取得下個月的第一天   
+            var MemberMonthSignUp = db.UserTables      // 4. 進行範圍查詢 (效能最佳！)
+                .Count(u => u.CreatedAt >= startOfMonth && u.CreatedAt < startOfNextMonth);
+            ViewBag.MemberMonthSignUp = MemberMonthSignUp;
+
+            var MemberVerify = db.UserTables.Where(x => x.IsVerify == true && x.DeleteDay == null).Count();
+            float Verify = ((float)MemberVerify / MemberCount)*100;
+            string displayVerify = Verify.ToString("F1");
+            Debug.WriteLine(displayVerify);
+            ViewBag.Verify = displayVerify;
+
+            var MemberRss = db.UserTables.Where(x => x.IsSubscribe == true && x.DeleteDay == null).Count();
+            ViewBag.MemberRss = MemberRss;
+
+            var p = db.UserTables.Where(x=>x.DeleteDay == null).ToList();
             return View(p);
         }
 
@@ -22,6 +44,8 @@ namespace PawsPort.Controllers
         public IActionResult Create(UserTable user)
         {   
             PetDbContext db = new PetDbContext();
+            user.CreatedAt = DateTime.Now;
+            user.UpdatedAt = DateTime.Now;
             db.UserTables.Add(user);
             db.SaveChanges();
             return RedirectToAction("List");
@@ -81,7 +105,8 @@ namespace PawsPort.Controllers
 
             if (x != null)
             {
-                db.UserTables.Remove(x);
+                x.DeleteDay = DateTime.Now;
+                x.UpdatedAt = DateTime.Now;
                 db.SaveChanges();
             }
 

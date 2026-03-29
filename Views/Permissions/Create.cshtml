@@ -1,50 +1,89 @@
-﻿@model PawsPort.Models.UserSystemRole
+﻿@model PawsPort.ViewModels.PermissionCreateViewModel
 
 @{
-    ViewData["Title"] = "Create";
-    DateTime CreateAt = DateTime.Now;
+    ViewData["Title"] = "新增權限";
 }
 
-<h1>Create</h1>
+<h1>新增權限</h1>
+<span class="d-block my-3">會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">權限設定</span> <i class="fa-solid fa-angle-right"></i> <span class="text-primary">新增權限</span></span>
+<div class="card shadow mb-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">
 
-<h4>UserSystemRole</h4>
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
 
             <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
+                <label for="UserId" class="control-label">
+                    <i class="fas fa-user"></i> 使用者
+                </label>
+                <select id="UserId" name="UserId" class="form-control" required>
+                    <option value="" disabled selected>-- 請選擇使用者 --</option>
+                    @foreach (var user in Model.Users)
+                    {
+                        <option value="@user.UserId">@user.Name (ID: @user.UserId)</option>
+                    }
+                </select>
+                <small class="form-text text-muted">選擇要設定權限的使用者</small>
             </div>
-            <div class="form-group">
-                <label asp-for="SystemId" class="control-label"></label>
-                <input asp-for="SystemId" class="form-control" />
-                <span asp-validation-for="SystemId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="RoleId" class="control-label"></label>
-                <input asp-for="RoleId" class="form-control" />
-                <span asp-validation-for="RoleId" class="text-danger"></span>
-            </div>
-            <div class="form-group">
 
-                <input asp-for="UpdatedAt" class="form-control d-none" value="@CreateAt" />
-
-            </div>
             <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+                <label for="SystemId" class="control-label">
+                    <i class="fas fa-cogs"></i> 系統
+                </label>
+                <select id="SystemId" name="SystemId" class="form-control" required>
+                    <option value="" disabled selected>-- 請選擇系統 --</option>
+                    @foreach (var system in Model.Systems)
+                    {
+                        <option value="@system.SystemId">@system.SystemName</option>
+                    }
+                </select>
+                <small class="form-text text-muted">選擇要授權的系統</small>
+            </div>
+
+            <div class="form-group">
+                <label for="RoleId" class="control-label">
+                    <i class="fas fa-user-tag"></i> 角色
+                </label>
+                <select id="RoleId" name="RoleId" class="form-control" required>
+                    <option value="" disabled selected>-- 請選擇角色 --</option>
+                    @foreach (var role in Model.Roles)
+                    {
+                        <option value="@role.RoleId">@role.RoleName</option>
+                    }
+                </select>
+                <small class="form-text text-muted">選擇使用者在該系統中的角色</small>
+            </div>
+
+            <input type="hidden" name="UpdatedAt" value="@DateTime.Now" />
+
+            <hr />
+
+            <div class="form-group mb-0">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-save"></i> 儲存
+                </button>
+                <a asp-action="List" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 返回列表
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="List">Back to List</a>
-</div>
-
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // 表單驗證提示
+        $('form').on('submit', function(e) {
+            var userId = $('#UserId').val();
+            var systemId = $('#SystemId').val();
+            var roleId = $('#RoleId').val();
+
+            if (!userId || !systemId || !roleId) {
+                e.preventDefault();
+                alert('請填寫所有必填欄位！');
+                return false;
+            }
+        });
+    </script>
 }

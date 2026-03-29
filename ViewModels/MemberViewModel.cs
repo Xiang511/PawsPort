@@ -17,7 +17,7 @@
 
         public string CreateAt { get; set; }
 
-        public string UpdateAt { get; set; }
+        public string UpdatedAt { get; set; }
 
         public string DeleteDay { get; set; }
 

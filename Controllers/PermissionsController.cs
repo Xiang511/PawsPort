@@ -5,7 +5,7 @@ using PawsPort.ViewModels;
 namespace PawsPort.Controllers
 {
     public class PermissionsController : Controller
-    {   
+    {
         public IActionResult List()
         {
             PetDbContext db = new PetDbContext();
@@ -13,23 +13,32 @@ namespace PawsPort.Controllers
                                   join usr in db.UserSystemRoles on u.UserId equals usr.UserId
                                   join s in db.SystemTables on usr.SystemId equals s.SystemId
                                   join r in db.RoleTables on usr.RoleId equals r.RoleId
-                                  // 可加入過濾條件，例如查詢特定使用者 ID
-                                  // where u.UserId == 1 
-                                  select new UserPermissionViewModel // <--- 必須指定類別名稱
+                                  where u.DeleteDay == null 
+                                  select new UserPermissionViewModel
                                   {
                                       UserId = u.UserId,
                                       UserName = u.Name,
                                       SystemName = s.SystemName,
+                                      RoleId = r.RoleId,
                                       RoleName = r.RoleName,
                                       UpdatedAt = usr.UpdatedAt,
-                                      MappingId= usr.MappingId
+                                      MappingId = usr.MappingId
                                   };
             return View(userPermissions);
         }
 
         public IActionResult Create()
-        {   
-            return View();
+        {
+            PetDbContext db = new PetDbContext();
+
+            var viewModel = new PermissionCreateViewModel
+            {
+                Users = db.UserTables.Where(u => u.Status == true).ToList(),
+                Systems = db.SystemTables.ToList(),
+                Roles = db.RoleTables.ToList()
+            };
+
+            return View(viewModel);
         }
 
         [HttpPost]
@@ -48,26 +57,42 @@ namespace PawsPort.Controllers
                 return RedirectToAction("List");
 
             PetDbContext db = new PetDbContext();
-            UserSystemRole x = db.UserSystemRoles.Where(m => m.UserId == id).FirstOrDefault();
+            var userSystemRole = db.UserSystemRoles.Where(m => m.MappingId == id).FirstOrDefault();
 
-            if (x == null)
+            if (userSystemRole == null)
                 return RedirectToAction("List");
 
-            return View(x);
+            // 取得使用者名稱
+            var user = db.UserTables.Where(u => u.UserId == userSystemRole.UserId).FirstOrDefault();
+
+            // 建立 ViewModel
+            var viewModel = new PermissionEditViewModel
+            {
+                MappingId = userSystemRole.MappingId,
+                UserId = userSystemRole.UserId,
+                UserName = user?.Name ?? "未知使用者",
+                SystemId = userSystemRole.SystemId,
+                RoleId = userSystemRole.RoleId,
+                UpdatedAt = userSystemRole.UpdatedAt,
+                Systems = db.SystemTables.ToList(),
+                Roles = db.RoleTables.ToList()
+            };
+
+            return View(viewModel);
         }
 
         [HttpPost]
-        public IActionResult Edit(UserSystemRole uiUserSystemRole)
+        public IActionResult Edit(PermissionEditViewModel viewModel)
         {
             PetDbContext db = new PetDbContext();
-            UserSystemRole dbUserSystemRole = db.UserSystemRoles.Where(m => m.UserId == uiUserSystemRole.UserId).FirstOrDefault();
+            UserSystemRole dbUserSystemRole = db.UserSystemRoles.Where(m => m.MappingId == viewModel.MappingId).FirstOrDefault();
 
             if (dbUserSystemRole != null)
             {
-                dbUserSystemRole.SystemId = uiUserSystemRole.SystemId;
-                dbUserSystemRole.RoleId = uiUserSystemRole.RoleId;
-                dbUserSystemRole.UpdatedAt = uiUserSystemRole.UpdatedAt;
-                dbUserSystemRole.UserId = uiUserSystemRole.UserId;
+                dbUserSystemRole.UserId = viewModel.UserId;
+                dbUserSystemRole.SystemId = viewModel.SystemId;
+                dbUserSystemRole.RoleId = viewModel.RoleId;
+                dbUserSystemRole.UpdatedAt = DateTime.Now;
 
                 db.SaveChanges();
             }
@@ -97,39 +122,50 @@ namespace PawsPort.Controllers
         public IActionResult BlockList()
         {
             PetDbContext db = new PetDbContext();
-            var userPermissions = from u in db.UserTables
-                                  join usr in db.UserSystemRoles on u.UserId equals usr.UserId
-                                  join s in db.SystemTables on usr.SystemId equals s.SystemId
-                                  join r in db.RoleTables on usr.RoleId equals r.RoleId
-                                  where r.RoleId == 3
-                                  // 可加入過濾條件，例如查詢特定使用者 ID
-                                  // where u.UserId == 1 
-                                  select new UserPermissionViewModel // <--- 必須指定類別名稱
-                                  {
-                                      UserId = u.UserId,
-                                      UserName = u.Name,
-                                      SystemName = s.SystemName,
-                                      RoleName = r.RoleName,
-                                      UpdatedAt = usr.UpdatedAt,
-                                      MappingId = usr.MappingId
-                                  };
-            return View(userPermissions);
+            var bannedUsers = db.UserTables
+                                .Where(u => u.Status == false && u.DeleteDay == null)
+                                .ToList();
+            return View(bannedUsers);
         }
 
 
         public IActionResult BlockListCreate()
-        {
-            return View();
+        {   
+            PetDbContext db = new PetDbContext();
+            List<BlockListViewModel> userList = db.UserTables.Where(m=>m.Status == true).Select(u => new BlockListViewModel()
+            {
+                UserId = u.UserId,
+                Name = u.Name,
+                Status = u.Status,
+                Note = u.Note,
+                UpdatedAt = u.UpdatedAt
+            }).ToList();
+
+
+            return View(userList);
         }
 
         [HttpPost]
-        public IActionResult BlockListCreate(UserSystemRole US)
+        public IActionResult BlockListCreate(BlockListViewModel vm)
         {
             PetDbContext db = new PetDbContext();
-            db.UserSystemRoles.Add(US);
-            db.SaveChanges();
+            UserTable x = db.UserTables.Where(m => m.UserId == vm.UserId).FirstOrDefault();
+            if(vm.Status == false && vm.Note!=null)
+            {
+                if (x != null )
+                {
+                    x.Status = vm.Status;
+                    x.UpdatedAt = DateTime.Now;
+                    x.Note = vm.Note;
+                    db.SaveChanges();
+                }
+                db.SaveChanges();
+                
+            }
             return RedirectToAction("BlockList");
         }
+
+
 
         public IActionResult BlockListEdit(int? id)
         {
@@ -137,27 +173,33 @@ namespace PawsPort.Controllers
                 return RedirectToAction("BlockList");
 
             PetDbContext db = new PetDbContext();
-            UserSystemRole x = db.UserSystemRoles.Where(m => m.UserId == id).FirstOrDefault();
+            var user = db.UserTables.Where(m => m.UserId == id).Select(u => new BlockListViewModel()
+            {
+                UserId = u.UserId,
+                Name = u.Name,
+                Status = u.Status,
+                Note = u.Note,
+                UpdatedAt = u.UpdatedAt
+            }).FirstOrDefault();
 
-            if (x == null)
+            if (user == null)
                 return RedirectToAction("BlockList");
 
-            return View(x);
+            return View(user);
         }
 
         [HttpPost]
-        public IActionResult BlockListEdit(UserSystemRole uiUserSystemRole)
+        public IActionResult BlockListEdit(BlockListViewModel vm)
         {
             PetDbContext db = new PetDbContext();
-            UserSystemRole dbUserSystemRole = db.UserSystemRoles.Where(m => m.UserId == uiUserSystemRole.UserId).FirstOrDefault();
+            UserTable dbUserTable = db.UserTables.Where(m => m.UserId == vm.UserId).FirstOrDefault();
 
-            if (dbUserSystemRole != null)
+            if (dbUserTable != null)
             {
-                dbUserSystemRole.SystemId = uiUserSystemRole.SystemId;
-                dbUserSystemRole.RoleId = uiUserSystemRole.RoleId;
-                dbUserSystemRole.UpdatedAt = uiUserSystemRole.UpdatedAt;
-                dbUserSystemRole.UserId = uiUserSystemRole.UserId;
-
+                dbUserTable.Name = vm.Name;
+                dbUserTable.Status = vm.Status;
+                dbUserTable.UpdatedAt = DateTime.Now;
+                dbUserTable.Note = vm.Note;
                 db.SaveChanges();
             }
 
@@ -170,14 +212,14 @@ namespace PawsPort.Controllers
                 return RedirectToAction("BlockList");
 
             PetDbContext db = new PetDbContext();
-            UserSystemRole x = db.UserSystemRoles.Where(m => m.MappingId == id).FirstOrDefault();
-
-            if (x != null)
+            UserTable dbUserTable = db.UserTables.Where(m => m.UserId == id).FirstOrDefault();
+            if (dbUserTable != null)
             {
-                db.UserSystemRoles.Remove(x);
+                dbUserTable.Status = true;
+                dbUserTable.UpdatedAt = DateTime.Now;
                 db.SaveChanges();
             }
-
+           
             return RedirectToAction("BlockList");
         }
     }

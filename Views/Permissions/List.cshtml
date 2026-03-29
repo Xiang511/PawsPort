@@ -58,12 +58,29 @@
                                     <td>@Html.DisplayFor(modelItem => item.UserName)</td>
                                     <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
                                     <td>
-                                        <span class="badge badge-pill bg-info text-dark">@item.RoleName</span>
+                                        @switch (@item.RoleId)
+                                        {
+                                            case 1:
+                                                <span class="badge badge-pill bg-danger text-white">@item.RoleName</span>
+                                                break;
+                                            case 2:
+                                                <span class="badge badge-pill bg-primary text-white">@item.RoleName</span>
+                                                break;
+                                            case 3:
+                                                <span class="badge badge-pill bg-info text-white">@item.RoleName</span>
+                                                break;
+                                            case 4:
+                                                <span class="badge badge-pill bg-secondary text-white">@item.RoleName</span>
+                                                break;
+                                            default:
+                                                <span class="badge badge-pill bg-secondary text-white">@item.RoleName</span>
+                                                break;
+                                        }
                                     </td>
                                     <td>@item.UpdatedAt?.ToString("yyyy-MM-dd")</td>
                                     <td>
-                                        <span>@Html.ActionLink("Edit", "Edit", new { id=item.MappingId })</span>
-                                        <span>@Html.ActionLink("Delete", "Delete", new { id = item.MappingId })</span>
+                                        <span>@Html.ActionLink("編輯權限", "Edit", new { id=item.MappingId })</span> |
+                                        <span>@Html.ActionLink("刪除權限", "Delete", new { id = item.MappingId },new { onclick = "return confirm('您確定要刪除此權限嗎？');", @class = "" })</span>
                                     </td>
                                 </tr>
                             }

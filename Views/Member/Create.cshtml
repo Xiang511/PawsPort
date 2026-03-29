@@ -1,83 +1,188 @@
 ﻿@model PawsPort.Models.UserTable
 
 @{
-    ViewData["Title"] = "Create";
-    
-    DateTime CreateAt = DateTime.Now;
+    ViewData["Title"] = "新增會員";
 }
+<link href="~/css/XiangBtn.css" rel="stylesheet" />
 
-<h1>新增使用者</h1>
+<h1>新增會員</h1>
+<span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">基本資料維護</span> <i class="fa-solid fa-angle-right"></i> <span class="text-primary">新增</span></span>
 
-<hr />
-<div class="row">
-    <div class="col-md-4">
-        <form asp-action="Create">
-            <div asp-validation-summary="ModelOnly" class="text-danger"></div>
-            @* <div class="form-group">
-                <label asp-for="UserId" class="control-label"></label>
-                <input asp-for="UserId" class="form-control" />
-                <span asp-validation-for="UserId" class="text-danger"></span>
-            </div> *@
-            <div class="form-group">
-                <label asp-for="Name" class="control-label"></label>
-                <input asp-for="Name" class="form-control" />
-                <span asp-validation-for="Name" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Photo" class="control-label"></label>
-                <input asp-for="Photo" class="form-control" />
-                <span asp-validation-for="Photo" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Job" class="control-label"></label>
-                <input asp-for="Job" class="form-control" />
-                <span asp-validation-for="Job" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Phone" class="control-label"></label>
-                <input asp-for="Phone" class="form-control" />
-                <span asp-validation-for="Phone" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="City" class="control-label"></label>
-                <input asp-for="City" class="form-control" />
-                <span asp-validation-for="City" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Note" class="control-label"></label>
-                <input asp-for="Note" class="form-control" />
-                <span asp-validation-for="Note" class="text-danger"></span>
-            </div>
-            <div class="form-group d-none">                    
-                <input asp-for="CreatedAt" class="form-control" value="@CreateAt"/>
-            </div>
-            <div class="form-group form-check">
-                <label class="form-check-label">
-                    <input class="form-check-input" asp-for="Status" /> @Html.DisplayNameFor(model => model.Status)
-                </label>
-            </div>
-            <div class="form-group">
-                <label asp-for="HasPriorExp" class="control-label"></label>
-                <input asp-for="HasPriorExp" class="form-control" />
-                <span asp-validation-for="HasPriorExp" class="text-danger"></span>
-            </div>
-            <div class="form-group">
-                <label asp-for="Point" class="control-label"></label>
-                <input asp-for="Point" class="form-control" />
-                <span asp-validation-for="Point" class="text-danger"></span>
+<div class="card shadow mb-4 mt-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">
+    <div class="card-header py-3">
+        <h6 class="m-0 font-weight-bold text-primary">
+            <i class="fas fa-user-plus"></i> 新增會員資料
+        </h6>
+    </div>
+    <div class="card-body">
+        <form asp-action="Create" method="post">
+            <div asp-validation-summary="ModelOnly" class="text-danger mb-3"></div>
+
+            <!-- Status 預設為 true (啟用) -->
+            <input type="hidden" name="Status" value="true" />
+
+            <!-- 基本資訊區塊 -->
+            <div class="mb-4">
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-user-circle"></i> 基本資訊
+                </h5>
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Name" class="control-label">
+                                <i class="fas fa-signature"></i> 姓名 <span class="text-danger">*</span>
+                            </label>
+                            <input asp-for="Name" class="form-control" required />
+                            <span asp-validation-for="Name" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Job" class="control-label">
+                                <i class="fas fa-briefcase"></i> 職業
+                            </label>
+                            <input asp-for="Job" class="form-control" />
+                            <span asp-validation-for="Job" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Phone" class="control-label">
+                                <i class="fas fa-phone"></i> 電話
+                            </label>
+                            <input asp-for="Phone" class="form-control" type="tel" />
+                            <span asp-validation-for="Phone" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Birthday" class="control-label">
+                                <i class="fas fa-birthday-cake"></i> 生日
+                            </label>
+                            <input asp-for="Birthday" class="form-control" type="date" />
+                            <span asp-validation-for="Birthday" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="City" class="control-label">
+                                <i class="fas fa-map-marker-alt"></i> 城市
+                            </label>
+                            <input asp-for="City" class="form-control" />
+                            <span asp-validation-for="City" class="text-danger"></span>
+                        </div>
+                    </div>
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label asp-for="Photo" class="control-label">
+                                <i class="fas fa-image"></i> 照片 URL
+                            </label>
+                            <input asp-for="Photo" class="form-control" type="url" />
+                            <small class="form-text text-muted">請輸入照片網址</small>
+                        </div>
+                    </div>
+                </div>
             </div>
 
-            <div class="form-group">
-                <input type="submit" value="Create" class="btn btn-primary" />
+            <!-- 狀態設定區塊 -->
+            <div class="mb-4">
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-cog"></i> 狀態設定
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="form-group form-check">
+                            <input class="form-check-input" type="checkbox" id="IsVerify" name="IsVerify" value="true" />
+                            <label class="form-check-label" for="IsVerify">
+                                <i class="fas fa-envelope-circle-check"></i> 郵件認證
+                            </label>
+                            <small class="form-text text-muted">使用者是否完成郵件認證</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group form-check">
+                            <input class="form-check-input" type="checkbox" id="IsSubscribe" name="IsSubscribe" value="true" />
+                            <label class="form-check-label" for="IsSubscribe">
+                                <i class="fas fa-rss"></i> 訂閱狀態
+                            </label>
+                            <small class="form-text text-muted">是否訂閱電子報</small>
+                        </div>
+                    </div>
+                    <div class="col-md-4">
+                        <div class="form-group form-check">
+                            <input class="form-check-input" type="checkbox" id="HasPriorExp" name="HasPriorExp" value="true" />
+                            <label class="form-check-label" for="HasPriorExp">
+                                <i class="fas fa-paw"></i> 飼養經驗
+                            </label>
+                            <small class="form-text text-muted">是否有寵物飼養經驗</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 其他資訊區塊 -->
+            <div class="mb-4">
+                <h5 class="text-primary border-bottom pb-2 mb-3">
+                    <i class="fas fa-info-circle"></i> 其他資訊
+                </h5>
+
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="form-group">
+                            <label asp-for="Note" class="control-label">
+                                <i class="fas fa-sticky-note"></i> 備註
+                            </label>
+                            <textarea asp-for="Note" class="form-control" rows="3"></textarea>
+                            <span asp-validation-for="Note" class="text-danger"></span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="form-group">
+                            <label class="control-label">
+                                <i class="fas fa-star"></i> 點數
+                            </label>
+                            <input name="Point" value="0" class="form-control" type="number" min="0" />
+                            <small class="form-text text-muted">新會員預設 0 點</small>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <hr />
+
+            <div class="form-group mb-0">
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-user-plus"></i> 新增會員
+                </button>
+                <a asp-action="List" class="btn btn-secondary">
+                    <i class="fas fa-arrow-left"></i> 返回列表
+                </a>
             </div>
         </form>
     </div>
 </div>
 
-<div>
-    <a asp-action="List">Back to List</a>
-</div>
-
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    <script>
+        // 表單驗證
+        $('form').on('submit', function(e) {
+            var name = $('#Name').val();
+            if (!name || name.trim() === '') {
+                e.preventDefault();
+                alert('請輸入會員姓名！');
+                return false;
+            }
+        });
+    </script>
 }

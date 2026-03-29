@@ -19,33 +19,67 @@ namespace PawsPort.Controllers
 
 
 
-        public IActionResult ArticleList(KeywordViewModel vm) //貼文管理頁面
+        public IActionResult ArticleList(ArticleListViewModel vm) //貼文管理頁面
         {
 
-            using (PetDbContext db = new PetDbContext()) //查詢完畢後就關閉
+            using (PetDbContext db = new PetDbContext())
             {
-                var Query = db.Articles.Where(p => p.IsExist); //查詢所有存在的文章
+                // 1. 基本查詢：只抓存在的文章，並包含 User 與 Category 資料
+                var query = db.Articles.Where(p => p.IsExist);
 
+                // 2. 關鍵字篩選 (標題、內容、作者)
                 if (!string.IsNullOrEmpty(vm.TxtKeyword))
                 {
-                    Query = Query.Where(p => p.Title.Contains(vm.TxtKeyword)
-                  || p.Content.Contains(vm.TxtKeyword)); //根據搜尋條件(標題/內容關鍵字)查詢文章
+                    var MatchUserIDs = db.UserTables.Where(u => u.Name.Contains(vm.TxtKeyword))
+                        .Select(u => u.UserId).ToList();
 
-                    //依照作者查詢
-                    //依照檢舉數查詢
-                    //依照分類查詢
-                    //依照是否已刪除查詢(查詢被軟刪除文章)
-
+                    query = query.Where(p => p.Title.Contains(vm.TxtKeyword)
+                                          || p.Content.Contains(vm.TxtKeyword)
+                                          || MatchUserIDs.Contains(p.UserId));
                 }
-                //按照留言數/書籤數/閱覽數排序
 
-                var Datas = Query.Select(p => new ArticleWrap { article = p }).ToList(); 
-                //將查詢結果轉換為ArticleWrap物件的列表
+                // 3. 計算總筆數
+                vm.TotalCount = query.Count();
 
-                return View(Datas);
+                // 4. 在 Select 時「現場去別張表抓資料」
+                vm.ArticleItem = query
+                    .OrderByDescending(p => p.CreateAt)
+                    .Skip((vm.CurrentPage - 1) * vm.PageSize)
+                    .Take(vm.PageSize)
+                    .Select(p => new ArticleItemViewModel
+                    {
+                        ArticleId = p.ArticleId,
+                        UserId = p.UserId,
+                        Title = p.Title,
+                        CreateAt = p.CreateAt,
+                        ViewCount = p.ViewCount,
+                        IsExist = p.IsExist,
+
+                        // 【抓作者名稱】去 UserTable 找 ID 一樣的那個人，取其 Name
+                        AuthorName = db.UserTables
+                            .Where(u => u.UserId == p.UserId)
+                            .Select(u => u.Name)
+                            .FirstOrDefault() ?? "未知作者",
+
+                        // 【抓分類名稱】去 Categories 找 ID 一樣的那組，取其 Name
+                        CategoryName = db.Categories
+                            .Where(c => c.CategoryId == p.CategoryId)
+                            .Select(c => c.CategoryName)
+                            .FirstOrDefault() ?? "未分類",
+
+                        // 【算留言數】去 Comments 找這篇文章的留言數量
+                        CommentCount = db.Comments.Count(c => c.ArticleId == p.ArticleId && c.IsExist),
+
+                        // 【算書籤數】去 Bookmarks 找這篇文章的收藏數量
+                        BookmarkCount = db.Bookmarks.Count(b => b.ArticleId == p.ArticleId)
+                    })
+                    .ToList();
+
+                return View(vm);
             }
-
         }
+
+       
 
 
         public IActionResult CreateArticle()

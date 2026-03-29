@@ -13,9 +13,8 @@ namespace PawsPort.Controllers
                                   join usr in db.UserSystemRoles on u.UserId equals usr.UserId
                                   join s in db.SystemTables on usr.SystemId equals s.SystemId
                                   join r in db.RoleTables on usr.RoleId equals r.RoleId
-                                  // 可加入過濾條件，例如查詢特定使用者 ID
-                                  // where u.UserId == 1 
-                                  select new UserPermissionViewModel // <--- 必須指定類別名稱
+                                  where u.DeleteDay == null 
+                                  select new UserPermissionViewModel
                                   {
                                       UserId = u.UserId,
                                       UserName = u.Name,
@@ -124,7 +123,7 @@ namespace PawsPort.Controllers
         {
             PetDbContext db = new PetDbContext();
             var bannedUsers = db.UserTables
-                                .Where(u => u.Status == false)
+                                .Where(u => u.Status == false && u.DeleteDay == null)
                                 .ToList();
             return View(bannedUsers);
         }

@@ -28,7 +28,7 @@
                     {
                         <tr>
                             <td style="text-align:center">
-                                <button type="button" class="btn btn-sm btn-outline-primary">
+                                <button type="button" class="btn btn-sm btn-outline-primary" onclick="viewUserProfile(@item.PlayerId)">
                                         <i class="fa-solid fa-user"></i> 查看會員檔案
                                 </button>
                             </td>
@@ -319,6 +319,123 @@
     </div>
 }
 
+<!-- 會員檔案 Modal -->
+<div class="modal fade" id="UserProfileModal" tabindex="-1" aria-labelledby="userProfileLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="userProfileLabel">會員檔案</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <div class="row">
+                    <!-- 左側：會員照片 -->
+                    <div class="col-md-4 text-center">
+                        <div style="
+                            width: 100%;
+                            aspect-ratio: 1;
+                            background-color: #f8f9fa;
+                            border: 2px solid #dee2e6;
+                            border-radius: 8px;
+                            display: flex;
+                            align-items: center;
+                            justify-content: center;
+                            overflow: hidden;
+                            margin-bottom: 15px;
+                            ">
+                            <img id="ProfilePhoto" src="" alt="會員照片" style="
+                            width: 100%;
+                            height: 100%;
+                            object-fit: cover;
+                            display: none;
+                            " />
+                            <div id="PhotoPlaceholder" style="
+                                text-align: center;
+                                color: #999;
+                                ">
+                                <i class="fas fa-image" style="font-size: 48px; margin-bottom: 10px;"></i>
+                                <p>無照片</p>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <!-- 右側：會員資訊 -->
+                    <div class="col-md-8">
+                        <table class="table table-sm">
+                            <tbody>
+                                <tr>
+                                    <th style="width: 40%;">會員ID</th>
+                                    <td id="ProfileUserId"></td>
+                                </tr>
+                                <tr>
+                                    <th>姓名</th>
+                                    <td id="ProfileName"></td>
+                                </tr>
+                                <tr>
+                                    <th>職業</th>
+                                    <td id="ProfileJob"></td>
+                                </tr>
+                                <tr>
+                                    <th>電話</th>
+                                    <td id="ProfilePhone"></td>
+                                </tr>
+                                <tr>
+                                    <th>生日</th>
+                                    <td id="ProfileBirthday"></td>
+                                </tr>
+                                <tr>
+                                    <th>城市</th>
+                                    <td id="ProfileCity"></td>
+                                </tr>
+                                @* <tr>
+                                    <th>點數</th>
+                                    <td id="ProfilePoint"></td>
+                                </tr> *@
+                                <tr>
+                                    <th>備註</th>
+                                    <td id="ProfileNote"></td>
+                                </tr>
+                                <tr>
+                                    <th>有先前經驗</th>
+                                    <td id="ProfileHasPriorExp"></td>
+                                </tr>
+                                <tr>
+                                    <th>狀態</th>
+                                    <td id="ProfileStatus"></td>
+                                </tr>
+                                <tr>
+                                    <th>訂閱</th>
+                                    <td id="ProfileIsSubscribe"></td>
+                                </tr>
+                                <tr>
+                                    <th>已驗證</th>
+                                    <td id="ProfileIsVerify"></td>
+                                </tr>
+                                <tr>
+                                    <th>建立時間</th>
+                                    <td id="ProfileCreatedAt"></td>
+                                </tr>
+                                <tr>
+                                    <th>更新時間</th>
+                                    <td id="ProfileUpdatedAt"></td>
+                                </tr>
+                                @* <tr>
+                                    <th>刪除日期</th>
+                                    <td id="ProfileDeleteDay"></td>
+                                </tr> *@
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">關閉</button>
+            </div>
+        </div>
+    </div>
+</div>
 
 
 
@@ -377,4 +494,56 @@
         document.getElementById('DeletePlayerIdInput').value = playerId;
         $('#DeleteBn').modal('show');
     }
+
+        function viewUserProfile(playerId) {
+        $.ajax({
+            url: '/Player/GetUserProfile',
+            type: 'GET',
+            data: { userId: playerId },  // 直接用 playerId 當作 userId
+            success: function(response) {
+                if (response.success) {
+                    const user = response.data;
+                
+                    // 填充會員資訊
+                    document.getElementById('ProfileUserId').textContent = user.userId;
+                    document.getElementById('ProfileName').textContent = user.name || '未設定';
+                    document.getElementById('ProfileJob').textContent = user.job || '未設定';
+                    document.getElementById('ProfilePhone').textContent = user.phone || '未設定';
+                    document.getElementById('ProfileBirthday').textContent = user.birthday ? new Date(user.birthday).toLocaleDateString('zh-TW') : '未設定';
+                    document.getElementById('ProfileCity').textContent = user.city || '未設定';
+                    // document.getElementById('ProfilePoint').textContent = user.point || 0;
+                    document.getElementById('ProfileNote').textContent = user.note || '無';
+                    document.getElementById('ProfileHasPriorExp').textContent = user.hasPriorExp ? '是' : '否';
+                    document.getElementById('ProfileStatus').textContent = user.status || '未設定';
+                    document.getElementById('ProfileIsSubscribe').textContent = user.isSubscribe ? '是' : '否';
+                    document.getElementById('ProfileIsVerify').textContent = user.isVerify ? '是' : '否';
+                    document.getElementById('ProfileCreatedAt').textContent = user.createdAt ? new Date(user.createdAt).toLocaleString('zh-TW') : '未設定';
+                    document.getElementById('ProfileUpdatedAt').textContent = user.updatedAt ? new Date(user.updatedAt).toLocaleString('zh-TW') : '未設定';
+                    // document.getElementById('ProfileDeleteDay').textContent = user.deleteDay ? new Date(user.deleteDay).toLocaleDateString('zh-TW') : '未設定';
+                
+                    // 設置照片
+                const photoImg = document.getElementById('ProfilePhoto');
+                const photoPlaceholder = document.getElementById('PhotoPlaceholder');
+                
+                if (user.photo) {
+                    photoImg.src = user.photo;
+                    photoImg.style.display = 'block';
+                    photoPlaceholder.style.display = 'none';
+                } else {
+                    photoImg.style.display = 'none';
+                    photoPlaceholder.style.display = 'block';
+                }
+                
+                    // 打開 Modal
+                    $('#UserProfileModal' ).modal('show');
+                } else {
+                    alert(response.message);
+                }
+            },
+            error: function() {
+                alert('無法載入會員資料');
+            }
+        });
+    }
+
 </script>

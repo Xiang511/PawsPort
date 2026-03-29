@@ -1,0 +1,88 @@
+﻿@model IEnumerable<PawsPort.Models.LineBot>
+
+@{
+    ViewData["Title"] = "Line 客服訊息";
+
+    string lineGreen = "#06C755";
+}
+
+
+<style>
+   
+    .breadcrumb-item + .breadcrumb-item::before {
+        content: ">" !important;
+        color: #6c757d;
+    }
+</style>
+
+
+<nav style="--bs-breadcrumb-divider: '>';" aria-label="breadcrumb">
+    <ol class="breadcrumb bg-transparent px-0 mb-2">
+        <li class="breadcrumb-item"><a href="~/Home/Index" class="text-decoration-none text-muted"><i class="fas fa-home mr-1"></i>首頁</a></li>
+        
+        <li class="breadcrumb-item active font-weight-bold" aria-current="page" style="color: @lineGreen !important;">LINE Bot 收件匣</li>
+    </ol>
+</nav>
+
+
+
+<h2 class="font-weight-bold mb-4" style="color: @lineGreen;">
+    <i class="fab fa-line mr-2"></i>LINE Bot 收件匣
+</h2>
+
+
+
+@* 暫寫假回覆,待串api *@
+
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show shadow-sm" role="alert" style="border-radius: 10px;">
+        <strong>@TempData["SuccessMessage"]</strong>
+        <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+        </button>
+    </div>
+}
+
+
+
+@foreach (var group in Model.GroupBy(x => x.QuestionType))
+{
+    <div class="d-flex align-items-center mt-4 mb-3">
+        <h4 class="font-weight-bold m-0 text-dark" style="border-left: 5px solid @lineGreen; padding-left: 10px;">
+            @group.Key
+        </h4>
+        <span class="badge badge-pill ml-2 text-white" style="background-color: #6c757d;">
+            共 @group.Count() 筆
+        </span>
+    </div>
+
+    <div class="row">
+        @foreach (var item in group)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card shadow-sm border-0 h-100" style="border-radius: 15px; transition: transform 0.2s;">
+                    <div class="card-body d-flex flex-column">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <small class="text-muted"><i class="far fa-clock mr-1"></i>@item.ChatDate.ToString("MM/dd HH:mm")</small>
+                        </div>
+                        
+                        <h5 class="font-weight-bold text-dark">@item.ChiefComplaint</h5>
+                        
+                        <p class="text-muted text-truncate mb-4" style="max-height: 3em;">
+                            @item.ChatContent
+                        </p>
+                        
+                        <div class="mt-auto">
+                            <a href="~/LineBot/Reply?id=@item.Id" class="btn btn-outline-success font-weight-bold w-100" style="border-radius: 20px;">
+                                <i class="far fa-comment-dots mr-1"></i>查看與回覆
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+    
+    <hr class="mb-4" style="border-top: 1px dashed #ccc;" />
+}

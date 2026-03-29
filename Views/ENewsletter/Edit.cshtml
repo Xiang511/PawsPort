@@ -1,7 +1,16 @@
 ﻿@model PawsPort.Models.ENewsletter
 
 @{
-    ViewData["Title"] = "新增電子報";
+    ViewData["Title"] = "修改電子報";
+
+    
+    string datepick = "";
+        
+    if (Model.PublishDate.HasValue == true)
+    {
+        // 3. 如果有值，就把日期拿出來，格式化之後存進變數裡
+        datepick = Model.PublishDate.Value.ToString("yyyy-MM-dd HH:mm");
+    }
 }
 
 
@@ -19,9 +28,10 @@
 
         <li class="breadcrumb-item"><a href="~/enewsletter/List" class="text-decoration-none text-muted">電子報管理專區</a></li>
                 
-        <li class="breadcrumb-item active font-weight-bold" aria-current="page" style="color: #8C5A3C; !important;">發布新電子報</li>
+        <li class="breadcrumb-item active font-weight-bold" aria-current="page" style="color: #8C5A3C; !important;">修改電子報</li>
     </ol>
 </nav>
+
 
 
 
@@ -29,11 +39,15 @@
 <link rel="stylesheet" type="text/css" href="https://npmcdn.com/flatpickr/dist/themes/material_blue.css">
 
 
-<h2 class="font-weight-bold">．發布新電子報</h2>
-<h6 class="text-muted mb-4">※請填寫以下資訊以建立新的電子報</h6>
+<h2 class="font-weight-bold">．修改電子報</h2>
+<h6 class="text-muted mb-4">※請編輯以下資訊以修改電子報內容</h6>
 
+    
+<form action="~/ENewsletter/Edit" method="post">
+    <input type="hidden" name="NewsLetterId" value="@Model.NewsLetterId" />
+    
+    <input type="hidden" name="UserId" value="@Model.UserId" />
 
-<form action="~/ENewsletter/Create" method="post">
     <div class="row">
         <div class="col-md-8">
             <div class="card shadow-sm border-0 mb-4" style="border-radius: 12px;">
@@ -46,17 +60,17 @@
                 <div class="card-body">
                     <div class="form-group">
                         <label class="font-weight-bold">．電子報標題<span class="text-danger ml-2">*</span></label>
-                        <input type="text" name="Title" class="form-control" placeholder="請輸入吸引人的標題..." required />
+                        <input type="text" name="Title" class="form-control" value="@Model.Title" required />
                     </div>
 
                     <div class="form-group mt-3">
                         <label class="font-weight-bold">．前導摘要<span class="text-danger ml-2">*</span></label>
-                        <textarea name="Summary" class="form-control" rows="2" placeholder="列表上顯示的簡短說明（建議50字以內）" required></textarea>
+                        <textarea name="Summary" class="form-control" rows="2" required>@Model.Summary</textarea>
                     </div>
 
                     <div class="form-group mt-3">
                         <label class="font-weight-bold">．完整內文<span class="text-danger ml-2">*</span></label>
-                        <textarea name="Content" class="form-control" rows="12" placeholder="請在這裡輸入電子報的完整內容..." required></textarea>
+                        <textarea name="Content" class="form-control" rows="12" required>@Model.Content</textarea>
                     </div>
                 </div>
             </div>
@@ -72,31 +86,32 @@
                     <div class="form-group">
                         <label class="font-weight-bold">．文章分類<span class="text-danger ml-2">*</span></label>
                         <select name="Category" class="form-control">
-                            <option value="活動公告">活動公告</option>
-                            <option value="認養資訊">認養資訊</option>
-                            <option value="飼養知識">飼養知識</option>
-                            <option value="遊戲挑戰">遊戲挑戰</option>
-                            <option value="其它類別">其它類別</option>
+                            <option value="活動公告" selected=@(Model.Category == "活動公告" ? "selected" : "")>活動公告</option>
+                            <option value="認養資訊" selected=@(Model.Category == "認養資訊" ? "selected" : "")>認養資訊</option>
+                            <option value="飼養知識" selected=@(Model.Category == "飼養知識" ? "selected" : "")>飼養知識</option>
+                            <option value="遊戲挑戰" selected=@(Model.Category == "遊戲挑戰" ? "selected" : "")>遊戲挑戰</option>
+                            <option value="其它類別" selected=@(Model.Category == "其它類別" ? "selected" : "")>其它類別</option>
                         </select>
                     </div>
 
                     <div class="form-group mt-3">
                         <label class="font-weight-bold">．發佈狀態<span class="text-danger ml-2">*</span></label>
                         <select name="Status" class="form-control">
-                            <option value="草稿">草稿（暫不公開）</option>
-                            <option value="已發送">立即發送</option>
-                            <option value="預約發送">預約發送</option>
+                            <option value="草稿" selected=@(Model.Status == "草稿" ? "selected" : "")>草稿（暫不公開）</option>
+                            <option value="已發送" selected=@(Model.Status == "已發送" ? "selected" : "")>立即發送</option>
+                            <option value="預約發送" selected=@(Model.Status == "預約發送" ? "selected" : "")>預約發送</option>
+                            <option value="已下架" selected=@(Model.Status == "已下架" ? "selected" : "")>已下架</option>
                         </select>
                     </div>
 
                     <div class="form-group mt-3">
-                        <label class="font-weight-bold">．預約/發佈日期<span class="text-danger ml-2">*</span></label>
-                        <input type="text" id="publishdatepicker" name="PublishDate" class="form-control bg-white" placeholder="請點擊選擇日期時間..." />
+                        <label class="font-weight-bold">．預約/發佈日期</label>
+                        <input type="text" id="publishdatepicker" name="PublishDate" class="form-control bg-white" value="@datepick" />
                     </div>
 
                     <div class="form-group mt-3">
-                        <label class="font-weight-bold">．內部備註<span class="text-danger ml-2">*</span></label>
-                        <textarea name="Note" class="form-control" rows="3" placeholder="僅供內部管理員查看..."></textarea>
+                        <label class="font-weight-bold">．內部備註</label>
+                        <textarea name="Note" class="form-control" rows="3">@Model.Note</textarea>
                     </div>
 
                 </div>
@@ -104,10 +119,10 @@
 
             <div class="d-flex justify-content-between mt-4">
                 <a href="~/ENewsletter/List" class="btn btn-outline-secondary font-weight-bold px-4">
-                    <i class="fas fa-arrow-left mr-2"></i>取消建立並返回
+                    <i class="fas fa-arrow-left mr-2"></i>取消並返回
                 </a>
-                <button type="submit" class="btn btn-warning text-dark font-weight-bold px-4 shadow-sm">
-                    <i class="bi bi-floppy2 mr-2"></i>確認建立
+                <button type="submit" class="btn btn-info font-weight-bold px-4 shadow-sm">
+                    <i class="bi bi-floppy2 mr-2"></i>儲存修改
                 </button>
             </div>
         </div>
@@ -120,18 +135,13 @@
     }
 
     <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
-
     <script>
-      
         document.addEventListener("DOMContentLoaded", function() {
-            
         flatpickr("#publishdatepicker", {
         enableTime: true,
         dateFormat: "Y-m-d H:i",
-        time_24hr: true,
-        minDate: "today"
+        time_24hr: true
         });
-            
         });
     </script>
 }

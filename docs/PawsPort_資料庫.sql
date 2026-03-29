@@ -456,3 +456,98 @@ CREATE TABLE [Comment] (
     --CONSTRAINT [FK_Comment_Article] FOREIGN KEY ([ArticleID]) REFERENCES [Article]([ArticleID])
 );
 GO
+
+
+USE [PetDB]
+GO
+/****** Object:  Table [dbo].[E-Newsletter]    Script Date: 2026/3/28 下午 08:02:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[E-Newsletter](
+	[NewsLetterId] [int] IDENTITY(1,1) NOT NULL,
+	[Title] [nvarchar](50) NOT NULL,
+	[Summary] [nvarchar](50) NOT NULL,
+	[Content] [nvarchar](500) NOT NULL,
+	[PublishDate] [datetime] NULL,
+	[Category] [nvarchar](20) NULL,
+	[Status] [nvarchar](100) NULL,
+	[Note] [nvarchar](100) NULL,
+	[UserId] [int] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[NewsLetterId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[FAQ]    Script Date: 2026/3/28 下午 08:02:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[FAQ](
+	[FAQId] [int] IDENTITY(1,1) NOT NULL,
+	[QuestionType] [nvarchar](20) NOT NULL,
+	[Question] [nvarchar](50) NOT NULL,
+	[Answer] [nvarchar](500) NOT NULL,
+	[Note] [nvarchar](100) NULL,
+	[CreateAt] [datetime] NOT NULL,
+	[StoppedDate] [datetime] NULL,
+	[Status] [nvarchar](20) NOT NULL,
+	[IsExist] [bit] NOT NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[FAQId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[LINE Bot]    Script Date: 2026/3/28 下午 08:02:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[LINE Bot](
+	[Id] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [int] NOT NULL,
+	[ChatDate] [datetime] NOT NULL,
+	[QuestionType] [nvarchar](20) NOT NULL,
+	[ChiefComplaint] [nvarchar](50) NOT NULL,
+	[ChatContent] [nvarchar](1000) NOT NULL,
+ CONSTRAINT [PK__LINE Bot__3214EC0789C6A1C6] PRIMARY KEY CLUSTERED 
+(
+	[Id] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+/****** Object:  Table [dbo].[Q&A Record]    Script Date: 2026/3/28 下午 08:02:44 ******/
+SET ANSI_NULLS ON
+GO
+SET QUOTED_IDENTIFIER ON
+GO
+CREATE TABLE [dbo].[Q&A Record](
+	[QAId] [int] IDENTITY(1,1) NOT NULL,
+	[UserId] [int] NOT NULL,
+	[QuestionDate] [datetime] NOT NULL,
+	[QuestionType] [nvarchar](20) NOT NULL,
+	[ChiefComplaint] [nvarchar](50) NOT NULL,
+	[ChatContent] [nvarchar](2000) NOT NULL,
+	[CSName] [nvarchar](20) NOT NULL,
+	[ReplyContent] [nvarchar](100) NOT NULL,
+	[Note] [nvarchar](100) NULL,
+	[ReplyDate] [datetime] NOT NULL,
+	[Score] [int] NULL,
+PRIMARY KEY CLUSTERED 
+(
+	[QAId] ASC
+)WITH (PAD_INDEX = OFF, STATISTICS_NORECOMPUTE = OFF, IGNORE_DUP_KEY = OFF, ALLOW_ROW_LOCKS = ON, ALLOW_PAGE_LOCKS = ON, OPTIMIZE_FOR_SEQUENTIAL_KEY = OFF) ON [PRIMARY]
+) ON [PRIMARY]
+GO
+ALTER TABLE [dbo].[FAQ] ADD  DEFAULT (getdate()) FOR [CreateAt]
+GO
+ALTER TABLE [dbo].[FAQ] ADD  DEFAULT ((1)) FOR [IsExist]
+GO
+ALTER TABLE [dbo].[LINE Bot] ADD  CONSTRAINT [DF__LINE Bot__ChatDa__5070F446]  DEFAULT (getdate()) FOR [ChatDate]
+GO
+ALTER TABLE [dbo].[Q&A Record] ADD  DEFAULT (getdate()) FOR [QuestionDate]
+GO

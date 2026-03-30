@@ -2,6 +2,7 @@
 {
     public class AdoptionRecordViewModel
     {
+        
         public string? Name { get; set; }
         public int AdoptionId { get; set; }
 

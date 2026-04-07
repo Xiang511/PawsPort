@@ -3,13 +3,17 @@
 @{
     ViewData["Title"] = "使用者系統權限清單";
 }
-<link href="~/css/XiangList.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
-<style>
-    .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link >button{
-        background:#FFF!important;
-    }
-</style>
+@section Styles {
+    <link href="~/css/XiangList.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+    <style>
+        .nav-tabs .nav-link.active, .nav-tabs .nav-item.show .nav-link > button {
+            background: #FFF !important;
+        }
+    </style>
+}
+
+
 
 
 <h1>Member</h1>
@@ -37,7 +41,7 @@
                     </a>
                 </div>
                 <div class="table-responsive">
-                    <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0" >
+                    <table class="table table-bordered" id="ListDatatable" width="100%" cellspacing="0">
                         <thead>
                             <tr>
                                 <th class="d-none">@Html.DisplayNameFor(model => model.MappingId)</th>
@@ -53,7 +57,7 @@
                             @foreach (var item in Model)
                             {
                                 <tr>
-                                    <td class="d-none">@Html.DisplayFor(modelItem => item.MappingId)</td> 
+                                    <td class="d-none">@Html.DisplayFor(modelItem => item.MappingId)</td>
                                     <td>@Html.DisplayFor(modelItem => item.UserId)</td>
                                     <td>@Html.DisplayFor(modelItem => item.UserName)</td>
                                     <td>@Html.DisplayFor(modelItem => item.SystemName)</td>
@@ -79,8 +83,8 @@
                                     </td>
                                     <td>@item.UpdatedAt?.ToString("yyyy-MM-dd")</td>
                                     <td>
-                                        <span>@Html.ActionLink("編輯權限", "Edit", new { id=item.MappingId })</span> |
-                                        <span>@Html.ActionLink("刪除權限", "Delete", new { id = item.MappingId },new { onclick = "return confirm('您確定要刪除此權限嗎？');", @class = "" })</span>
+                                        <span>@Html.ActionLink("編輯權限", "Edit", new { id = item.MappingId })</span> |
+                                        <span>@Html.ActionLink("刪除權限", "Delete", new { id = item.MappingId }, new { onclick = "return confirm('您確定要刪除此權限嗎？');", @class = "" })</span>
                                     </td>
                                 </tr>
                             }

@@ -3,7 +3,7 @@
 @{
     ViewData["Title"] = "新增會員";
 }
-<link href="~/css/XiangBtn.css" rel="stylesheet" />
+
 
 <h1>新增會員</h1>
 <span>會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">基本資料維護</span> <i class="fa-solid fa-angle-right"></i> <span class="text-primary">新增</span></span>
@@ -173,7 +173,9 @@
 </div>
 
 @section Scripts {
-    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+    @{
+        await Html.RenderPartialAsync("_ValidationScriptsPartial");
+    }
     <script>
         // 表單驗證
         $('form').on('submit', function(e) {

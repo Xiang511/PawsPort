@@ -3,8 +3,11 @@
 @{
     ViewData["Title"] = "BlockList";
 }
-<link href="~/css/XiangList.css" rel="stylesheet" />
-<link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+@section Styles {
+    <link href="~/css/XiangList.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
+}
+
 <h1>Member</h1>
 <span class="mb-4 d-block">會員管理 <i class="fa-solid fa-angle-right"></i> <span class="text-primary">違規名單</span></span>
 <div class="card shadow mb-4" style="box-shadow: 0 .15rem 0 0 rgba(58, 59, 69, .15) !important;">

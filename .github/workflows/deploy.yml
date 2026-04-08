@@ -25,7 +25,7 @@ jobs:
       # ⚠️ 修改重點：請將 "YourProjectName.csproj" 替換成你實際的專案檔名
       # 如果你的專案檔就在根目錄，可以用 ./Name.csproj
       run: |
-        dotnet publish ./YourProjectName.csproj \
+        dotnet publish ./PawsPort.csproj \
           -c Release \
           -r linux-arm64 \
           --self-contained false \

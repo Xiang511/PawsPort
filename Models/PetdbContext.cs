@@ -82,7 +82,17 @@ public partial class PetDbContext : DbContext
     public virtual DbSet<VaccinationStatus> VaccinationStatuses { get; set; }
 
     protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        => optionsBuilder.UseSqlServer("Data Source=.;Initial Catalog=PetDB;Integrated Security=True;Encrypt=False");
+    {
+        if (!optionsBuilder.IsConfigured)
+        {
+            IConfiguration config = new ConfigurationBuilder()
+                .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
+                .AddJsonFile("appsettings.json")
+                .Build();
+            optionsBuilder.UseSqlServer(config.GetConnectionString("DefaultConnection"));
+        }
+    }
+       
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

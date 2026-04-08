@@ -25,7 +25,12 @@ jobs:
       # ⚠️ 修改重點：請將 "YourProjectName.csproj" 替換成你實際的專案檔名
       # 如果你的專案檔就在根目錄，可以用 ./Name.csproj
       run: |
-        dotnet publish ./YourProjectName.csproj -c Release -r linux-arm64 --self-contained false -o ./publish
+        dotnet publish ./YourProjectName.csproj \
+          -c Release \
+          -r linux-arm64 \
+          --self-contained false \
+          -o ./publish \
+          /p:WarningLevel=0 /p:NoWarn=CS8618
 
     - name: Copy files to Server via SSH
       uses: appleboy/scp-action@v0.1.7

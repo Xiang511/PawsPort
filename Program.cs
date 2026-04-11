@@ -16,6 +16,7 @@ Log.Logger = new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
     .WriteTo.Debug()
+    .WriteTo.Seq("http://localhost:5341")
 
     // 1. 一般日誌：每天分檔 + 大小限制 (10MB)
     .WriteTo.File(

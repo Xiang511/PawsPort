@@ -12,20 +12,21 @@ builder.Services.AddDbContext<PetDbContext>(options =>
 builder.Services.AddControllersWithViews();
 
 
-// è¨»å?è³‡æ?åº«é€??
-// ?ªå??†å?: User Secrets > ?°å?è®Šæ•¸ > appsettings.json
+
 string connectionString = builder.Configuration["PetDB"]
-    ?? throw new InvalidOperationException("?¾ä??°è??™åº«??Ž¥å­—ä¸²?‚è?è¨­å? User Secrets ?–ç’°å¢ƒè??¸ã€?);
+    ?? throw new InvalidOperationException("DB connection string not found.");
 
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 
-Log.Logger = new LoggerConfiguration()
+Log.Logger = (Serilog.ILogger)new LoggerConfiguration()
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
     .WriteTo.Debug()
     .WriteTo.File("logs/all-log-.txt", rollingInterval: RollingInterval.Day) 
+    .WriteTo.Seq("http://localhost:5341")
+
 
     // 1. ¤@¯ë¤é»x¡G¨C¤Ñ¤ÀÀÉ + ¤j¤p­­¨î (10MB)
     .WriteTo.File(
@@ -49,7 +50,7 @@ Log.Logger = new LoggerConfiguration()
         )
     )
     .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
-    .WriteTo.File("logs/only-errors-.txt", rollingInterval: RollingInterval.Day))
+    .WriteTo.File("logs/only-errors-.txt", rollingInterval: RollingInterval.Day)
     //.WriteTo.Seq("http://localhost:5341") 
     .CreateLogger();
 

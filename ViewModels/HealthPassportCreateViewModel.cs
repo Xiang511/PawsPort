@@ -5,7 +5,7 @@
         public int PassportId { get; set; }
         public int? PetId { get; set; }
 
-        // 👇 這是我們特別從 Pet 資料表借過來的新欄位！
+        // 從 Pet 資料表借過來的新欄位！
         public string? Name { get; set; }
 
         public decimal? Weight { get; set; } // 

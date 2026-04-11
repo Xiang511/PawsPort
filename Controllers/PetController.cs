@@ -16,14 +16,14 @@ namespace PawsPort.Controllers
             {
                 // 關鍵字為空時：抓出所有資料，但要「過濾掉」已經有刪除時間的
                 datas = from p in db.Pets
-                        where p.DeletedAt == null   // 👈 新增這個條件
+                        where p.DeletedAt == null   // 新增這個條件
                         select p;
             }
             else
             {
                 // 有關鍵字時：一樣要加上 DeletedAt == null 的條件
                 datas = db.Pets.Where(p =>
-                    p.DeletedAt == null &&          // 👈 新增這個條件
+                    p.DeletedAt == null &&          // 新增這個條件
                     (p.Name.Contains(vm.txtKeyword) || p.CoatColor.Contains(vm.txtKeyword))
                 );
             }
@@ -55,9 +55,9 @@ namespace PawsPort.Controllers
 
             if (x != null)
             {
-                // ❌ 原本的硬刪除寫法： db.Pets.Remove(x);
+                // 原本的硬刪除寫法： db.Pets.Remove(x);
 
-                // ✅ 改成軟刪除：給它一個刪除時間
+                // 改成軟刪除：給它一個刪除時間
                 x.DeletedAt = DateTime.Now;
 
                 // 儲存變更
@@ -99,7 +99,7 @@ namespace PawsPort.Controllers
                 dbPet.Note = uiPet.Note;
                 dbPet.IsDesex = uiPet.IsDesex;
 
-                // ✨ 小細節：如果你的資料表有 UpdatedAt 欄位，這時候剛好可以寫入修改時間
+                
                 dbPet.UpdatedAt = DateTime.Now;
 
                 // 4. 告訴資料庫把變更存起來

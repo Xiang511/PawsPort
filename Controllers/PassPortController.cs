@@ -86,7 +86,7 @@ namespace PawsPort.Controllers
             // 把護照加入資料庫並「馬上存檔」！
             db.HealthPassports.Add(passport);
             db.SaveChanges();
-            // 💡 魔法發生了：SaveChanges() 執行完後，資料庫會自動生成一個新的流水號。
+            // 魔法發生了：SaveChanges() 執行完後，資料庫會自動生成一個新的流水號。
             // 這時候 passport.PassportId 就已經不是 0 了，而是資料庫給的最新 ID！
 
 
@@ -98,7 +98,7 @@ namespace PawsPort.Controllers
             {
                 MedicalHistory medical = new MedicalHistory
                 {
-                    // 🔑 關鍵！把剛剛產生的新護照 ID 綁定給病歷
+                    // 關鍵！把剛剛產生的新護照 ID 綁定給病歷
                     PassportId = passport.PassportId,
 
                     Location = vm.TreatmentLocation,
@@ -119,7 +119,7 @@ namespace PawsPort.Controllers
             {
                 VaccinationStatus vaccine = new VaccinationStatus
                 {
-                    // 🔑 關鍵！把剛剛產生的新護照 ID 綁定給疫苗
+                    // 關鍵！把剛剛產生的新護照 ID 綁定給疫苗
                     PassportId = passport.PassportId,
 
                     Type = vm.Type,
@@ -186,7 +186,7 @@ namespace PawsPort.Controllers
                 dbPassport.RecordType = uiPassport.RecordType;
 
 
-                // ✨ 小細節：如果你的資料表有 UpdatedAt 欄位，這時候剛好可以寫入修改時間
+                // 小細節：如果你的資料表有 UpdatedAt 欄位，這時候剛好可以寫入修改時間
                 dbPassport.UpdatedAt = DateTime.Now;
 
                 // 4. 告訴資料庫把變更存起來

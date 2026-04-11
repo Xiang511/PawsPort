@@ -103,7 +103,7 @@ namespace PawsPort.Controllers
                 dbReport.LostLocation = uiReport.LostLocation;
 
 
-                // ✨ 小細節：如果你的資料表有 UpdatedAt 欄位，這時候剛好可以寫入修改時間
+                
                 dbReport.UpdatedAt = DateTime.Now;
 
                 // 4. 告訴資料庫把變更存起來

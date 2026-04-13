@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PawsPort.Models;
+using Scalar.AspNetCore;
 using Serilog;
 using Serilog.Events;
 
@@ -11,6 +12,21 @@ builder.Services.AddDbContext<PetDbContext>(options =>
 
 builder.Services.AddControllersWithViews();
 
+// 加入 OpenAPI 支援（Scalar 需要）
+
+builder.Services.AddOpenApi(options =>
+{
+    options.AddDocumentTransformer((document, context, cancellationToken) =>
+    {
+        document.Info = new()
+        {
+            Title = "PawsPort API",
+            Version = "v1",
+            Description = "PawsPort 寵物管理平台 API 文件"
+        };
+        return Task.CompletedTask;
+    });
+});
 
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
@@ -18,46 +34,44 @@ Log.Logger = new LoggerConfiguration()
     .Enrich.FromLogContext()
     .WriteTo.Debug()
     .WriteTo.Seq("http://localhost:5341")
-
-    // 1. 一般日誌：每天分檔 + 大小限制 (10MB)
     .WriteTo.File(
         path: "logs/all-log-.txt",
         rollingInterval: RollingInterval.Day,
-        rollOnFileSizeLimit: true,          // 開啟大小限制分檔
-        fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
-        retainedFileCountLimit: 31,         // 保留最近 31 個檔案
-        shared: true                        // 若有多個程序讀取建議加上
+        rollOnFileSizeLimit: true,
+        fileSizeLimitBytes: 10 * 1024 * 1024,
+        retainedFileCountLimit: 31,
+        shared: true
     )
-
-    // 2. 錯誤日誌：篩選 Error 以上 + 大小限制 (5MB)
     .WriteTo.Logger(lc => lc
         .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
         .WriteTo.File(
             path: "logs/only-errors-.txt",
             rollingInterval: RollingInterval.Day,
             rollOnFileSizeLimit: true,
-            fileSizeLimitBytes: 5 * 1024 * 1024, // 錯誤日誌通常較小，設 5MB
-            retainedFileCountLimit: null         // 不限制數量，確保錯誤記錄不丟失
+            fileSizeLimitBytes: 5 * 1024 * 1024,
+            retainedFileCountLimit: null
         )
     )
     .CreateLogger();
 
-builder.Host.UseSerilog(); 
-
+builder.Host.UseSerilog();
 
 var app = builder.Build();
+
+// 啟用 OpenAPI 端點
+app.MapOpenApi();
+
+// 啟用 Scalar UI（現代化 API 文件介面）
+app.MapScalarApiReference();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-// 建議順序：
-app.UseStaticFiles(); // 靜態檔案放在前面
 
-// 加入這行，Serilog 會接管 Request 日誌，並自動精簡化
+app.UseStaticFiles();
 app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
@@ -71,6 +85,5 @@ app.MapControllerRoute(
     name: "default",
     pattern: "{controller=Member}/{action=List}/{id?}")
     .WithStaticAssets();
-
 
 app.Run();

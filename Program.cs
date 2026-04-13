@@ -13,6 +13,7 @@ builder.Services.AddControllersWithViews();
 
 
 Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
     .WriteTo.Debug()
@@ -53,6 +54,11 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+// 建議順序：
+app.UseStaticFiles(); // 靜態檔案放在前面
+
+// 加入這行，Serilog 會接管 Request 日誌，並自動精簡化
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.UseRouting();

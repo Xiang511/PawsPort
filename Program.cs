@@ -12,7 +12,6 @@ builder.Services.AddDbContext<PetDbContext>(options =>
 builder.Services.AddControllersWithViews();
 
 
-
 string connectionString = builder.Configuration["PetDB"]
     ?? throw new InvalidOperationException("DB connection string not found.");
 
@@ -20,7 +19,9 @@ builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 
-Log.Logger = (Serilog.ILogger)new LoggerConfiguration()
+Log.Logger = (Serilog.ILogger)new LoggerConfiguration();
+Log.Logger = new LoggerConfiguration()
+    .ReadFrom.Configuration(builder.Configuration)
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
     .WriteTo.Debug()
@@ -67,6 +68,11 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
+
+app.UseStaticFiles(); 
+
+
+app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.UseRouting();

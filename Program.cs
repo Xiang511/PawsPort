@@ -6,30 +6,40 @@ using Serilog.Events;
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-builder.Services.AddDbContext<PetDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
-
 builder.Services.AddControllersWithViews();
 
+// 註冊資料庫連線
+// 優先順序: User Secrets > 環境變數 > appsettings.json
+string? isLocal = builder.Configuration["IS_LOCAL"];
+string connectionString;
 
-string connectionString = builder.Configuration["PetDB"]
-    ?? throw new InvalidOperationException("DB connection string not found.");
+if (isLocal == "true")
+{
+    // 本地開發環境使用 Windows 驗證
+    connectionString = "Data Source=.;Initial Catalog=PetDB;Integrated Security=True;Encrypt=False";
+}
+else
+{
+    // 生產環境或遠端資料庫
+    connectionString = builder.Configuration["PetDB"]
+        ?? throw new InvalidOperationException("找不到資料庫連接字串。請設定 User Secrets 或環境變數。");
+}
 
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
 
-Log.Logger = (Serilog.ILogger)new LoggerConfiguration();
+
+// 設定 Serilog
 Log.Logger = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
-    .WriteTo.Debug()
-    .WriteTo.File("logs/all-log-.txt", rollingInterval: RollingInterval.Day) 
-    .WriteTo.Seq("http://localhost:5341")
 
+    // 1. Console 輸出（開發環境用）
+    .WriteTo.Console()
 
-    // 1. 一般日誌：每天分檔 + 大小限制 (10MB)
+    // 2. 一般日誌：每天分檔 + 大小限制 (10MB)
     .WriteTo.File(
         path: "logs/all-log-.txt",
         rollingInterval: RollingInterval.Day,
@@ -39,7 +49,7 @@ Log.Logger = new LoggerConfiguration()
         shared: true                        // 若有多個程序讀取建議加上
     )
 
-    // 2. 錯誤日誌：篩選 Error 以上 + 大小限制 (5MB)
+    // 3. 錯誤日誌：篩選 Error 以上 + 大小限制 (5MB)
     .WriteTo.Logger(lc => lc
         .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
         .WriteTo.File(
@@ -50,14 +60,13 @@ Log.Logger = new LoggerConfiguration()
             retainedFileCountLimit: null         // 不限制數量，確保錯誤記錄不丟失
         )
     )
-    .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
-    .WriteTo.File("logs/only-errors-.txt", rollingInterval: RollingInterval.Day)
-    //.WriteTo.Seq("http://localhost:5341") 
+
+    // 4. Seq 伺服器（可選，開發環境用）
+    // .WriteTo.Seq("http://localhost:5341")
+
     .CreateLogger();
 
-builder.Host.UseSerilog(); 
-
-
+builder.Host.UseSerilog();
 
 var app = builder.Build();
 

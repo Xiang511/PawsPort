@@ -4,6 +4,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>99d6b6cf-ba6b-40af-93db-9f7d3fd3b818</UserSecretsId>
   </PropertyGroup>
 
   <ItemGroup>
@@ -24,6 +25,10 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\images\skins\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="efpt.config.json.user" />
   </ItemGroup>
 
 </Project>

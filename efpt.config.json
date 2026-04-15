@@ -1,0 +1,182 @@
+﻿{
+   "CodeGenerationMode": 6,
+   "ContextClassName": "PetDbContext",
+   "ContextNamespace": null,
+   "FilterSchemas": false,
+   "IncludeConnectionString": false,
+   "IrregularWords": null,
+   "MinimumProductVersion": "2.6.1382",
+   "ModelNamespace": null,
+   "OutputContextPath": null,
+   "OutputPath": "Models",
+   "PluralRules": null,
+   "PreserveCasingWithRegex": true,
+   "ProjectRootNamespace": "PawsPort",
+   "Schemas": null,
+   "SelectedHandlebarsLanguage": 2,
+   "SelectedToBeGenerated": 0,
+   "SingularRules": null,
+   "T4TemplatePath": null,
+   "Tables": [
+      {
+         "Name": "[dbo].[AdoptionRecords]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Article]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[ArticleImage]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Bookmark]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Category]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Chatrooms]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Comment]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[E-Newsletter]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[FAQ]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Following]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[GameContent]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[GameHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[HealthPassports]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Inventory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[InventoryLog]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LINE Bot]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[LoginActivity]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MedicalHistory]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Messages]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[MissingReports]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Notify]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[OAuthTable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Pets]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PlayerProfile]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[PointRecord]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[Q&A Record]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[RoleTable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SkinShop]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[SystemTable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserAuthTable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserSystemRole]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[UserTable]",
+         "ObjectType": 0
+      },
+      {
+         "Name": "[dbo].[VaccinationStatus]",
+         "ObjectType": 0
+      }
+   ],
+   "UiHint": null,
+   "UncountableWords": null,
+   "UseAsyncStoredProcedureCalls": true,
+   "UseBoolPropertiesWithoutDefaultSql": false,
+   "UseDatabaseNames": false,
+   "UseDatabaseNamesForRoutines": true,
+   "UseDateOnlyTimeOnly": true,
+   "UseDbContextSplitting": false,
+   "UseDecimalDataAnnotationForSprocResult": true,
+   "UseFluentApiOnly": true,
+   "UseHandleBars": false,
+   "UseHierarchyId": false,
+   "UseInflector": true,
+   "UseInternalAccessModifiersForSprocsAndFunctions": false,
+   "UseLegacyPluralizer": false,
+   "UseManyToManyEntity": false,
+   "UseNoDefaultConstructor": false,
+   "UseNoNavigations": false,
+   "UseNoObjectFilter": false,
+   "UseNodaTime": false,
+   "UseNullableReferences": false,
+   "UsePrefixNavigationNaming": false,
+   "UseSchemaFolders": false,
+   "UseSchemaNamespaces": false,
+   "UseSpatial": false,
+   "UseT4": false,
+   "UseT4Split": false,
+   "UseTypedTvpParameters": true
+}

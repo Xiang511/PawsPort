@@ -62,7 +62,7 @@ Log.Logger = new LoggerConfiguration()
     )
 
     // 4. Seq 伺服器（可選，開發環境用）
-    // .WriteTo.Seq("http://localhost:5341")
+     .WriteTo.Seq("http://localhost:5341")
 
     .CreateLogger();
 

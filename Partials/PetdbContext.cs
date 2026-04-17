@@ -1,40 +1,48 @@
 ﻿using Microsoft.EntityFrameworkCore;
+using Serilog;
+using Serilog.Core;
+using System.Diagnostics;
 
 namespace PawsPort.Models
 {
     public partial class PetDbContext : DbContext
     {
+        // 無參數建構函式（用於設計時工具，例如 Migrations）
         public PetDbContext()
         {
         }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
+            // 只有在沒有透過 DI 配置時才執行（例如在設計時工具或測試中）
             if (!optionsBuilder.IsConfigured)
             {
+                // 建立配置，優先順序: User Secrets > 環境變數 > appsettings.json
                 IConfiguration config = new ConfigurationBuilder()
                     .SetBasePath(AppDomain.CurrentDomain.BaseDirectory)
-                    .AddJsonFile("appsettings.json", optional: true)
+                    .AddJsonFile("appsettings.json", optional: true, reloadOnChange: true)
                     .AddEnvironmentVariables()
                     .AddUserSecrets<PetDbContext>(optional: true)
                     .Build();
 
-                // 檢查是否為 LOCAL 環境
-                string? environment = Environment.GetEnvironmentVariable("ASPNETCORE_ENVIRONMENT");
+                // 檢查是否為本地開發環境
+                string? isLocal = config["IS_LOCAL"];
                 string? connectionString;
 
-                if (environment == "LOCAL")
+                if (isLocal == "true")
                 {
-                    // 本機開發環境
-                    connectionString = config.GetConnectionString("LocalConnection")
-                        ?? "Server=localhost;Database=PetDB;Trusted_Connection=True;TrustServerCertificate=True;";
+                    // 本地開發環境使用 Windows 驗證
+                    connectionString = "Data Source=.;Initial Catalog=PetDB;Integrated Security=True;Encrypt=False";
+                    Log.Information("本地開發環境，使用 Windows 驗證連接資料庫");
                 }
                 else
                 {
-                    // 其他環境 - User Secrets > 環境變數 > appsettings.json
+                    // 生產環境或遠端資料庫 - 從 User Secrets 或環境變數讀取
                     connectionString = config["PetDB"]
                         ?? Environment.GetEnvironmentVariable("SQLSERVER_CONNECTION_STRING")
-                        ?? config.GetConnectionString("DefaultConnection");
+                        ?? throw new InvalidOperationException("找不到資料庫連接字串。請設定 User Secrets、環境變數或 appsettings.json。");
+
+                    Log.Information("生產環境或遠端資料庫，使用指定連接字串（已遮蔽敏感資訊）");
                 }
 
                 if (string.IsNullOrEmpty(connectionString))

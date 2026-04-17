@@ -38,7 +38,7 @@ namespace PawsPort.Models
                 else
                 {
                     // 生產環境或遠端資料庫 - 從 User Secrets 或環境變數讀取
-                    connectionString = config["PetDB"]
+                    connectionString = config["PETDB"]
                         ?? Environment.GetEnvironmentVariable("SQLSERVER_CONNECTION_STRING")
                         ?? throw new InvalidOperationException("找不到資料庫連接字串。請設定 User Secrets、環境變數或 appsettings.json。");
 

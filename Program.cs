@@ -21,17 +21,15 @@ if (isLocal == "true")
 else
 {
     // 生產環境或遠端資料庫
-    connectionString = builder.Configuration["PetDB"]
+    connectionString = builder.Configuration["PETDB"]
         ?? throw new InvalidOperationException("找不到資料庫連接字串。請設定 User Secrets 或環境變數。");
 }
 
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-
-
 // 設定 Serilog
-Log.Logger = new LoggerConfiguration()
+var loggerConfig = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
     .MinimumLevel.Information()
     .Enrich.FromLogContext()
@@ -59,12 +57,22 @@ Log.Logger = new LoggerConfiguration()
             fileSizeLimitBytes: 5 * 1024 * 1024, // 錯誤日誌通常較小，設 5MB
             retainedFileCountLimit: null         // 不限制數量，確保錯誤記錄不丟失
         )
-    )
+    );
 
-    // 4. Seq 伺服器（可選，開發環境用）
-     .WriteTo.Seq("http://localhost:5341")
+// 4. Seq 伺服器（根據環境變數決定是否啟用）
+string? seqEnabled = builder.Configuration["SEQ_ENABLED"];
+if (seqEnabled?.ToLower() == "true")
+{
+    string seqUrl = "http://localhost:5341";
+    loggerConfig.WriteTo.Seq(seqUrl);
+    Console.WriteLine($" Seq 日誌已啟用: {seqUrl}");
+}
+else
+{
+    Console.WriteLine(" Seq 日誌未啟用");
+}
 
-    .CreateLogger();
+Log.Logger = loggerConfig.CreateLogger();
 
 builder.Host.UseSerilog();
 
@@ -78,7 +86,7 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseStaticFiles(); 
+app.UseStaticFiles();
 
 
 app.UseSerilogRequestLogging();

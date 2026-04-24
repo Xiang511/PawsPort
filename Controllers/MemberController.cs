@@ -1,116 +1,170 @@
 ﻿using Humanizer;
 using Microsoft.AspNetCore.Mvc;
+using PawsPort.Dtos;
 using PawsPort.Models;
+using PawsPort.Services;
 using PawsPort.ViewModels;
+using Serilog;
 using System.Diagnostics;
 
 namespace PawsPort.Controllers
 {
-    public class MemberController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class MemberController : ApiControllerBase
     {
-
         private readonly PetDbContext _context;
-        public MemberController(PetDbContext context)
+        private readonly MemberProfileService _memberProfileService;
+
+        public MemberController(PetDbContext context, MemberProfileService memberProfileService)
         {
             _context = context;
+            _memberProfileService = memberProfileService;
         }
-        public IActionResult List()
+
+
+
+        /// <summary>
+        /// 取得所有會員列表（未刪除）
+        /// </summary>
+        /// <returns>會員列表 JSON</returns>
+        /// <response code="200">成功取得會員列表</response>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Members()
         {
-            var MemberCount = _context.UserTables.Where(x=>x.DeleteDay == null).Count();
-            ViewBag.MemberCount = MemberCount;
+            // 1. 使用 await 呼叫非同步版本的 Service 方法
+            // 註：Service 層的方法通常需改為 GetAllUserInfoAsync()
+            var users = await _memberProfileService.GetAllUserInfoAsync();
 
-            DateTime today = DateTime.Now;     
-            DateTime startOfMonth = new DateTime(today.Year, today.Month, 1);   // 2. 取得這個月的第一天 (時分秒自動為 00:00:00)      
-            DateTime startOfNextMonth = startOfMonth.AddMonths(1);  // 3. 取得下個月的第一天   
-            var MemberMonthSignUp = _context.UserTables      // 4. 進行範圍查詢 (效能最佳！)
-                .Count(u => u.CreatedAt >= startOfMonth && u.CreatedAt < startOfNextMonth);
-            ViewBag.MemberMonthSignUp = MemberMonthSignUp;
-
-            var MemberVerify = _context.UserTables.Where(x => x.IsVerify == true && x.DeleteDay == null).Count();
-            float Verify = ((float)MemberVerify / MemberCount)*100;
-            string displayVerify = Verify.ToString("F1");
-            Debug.WriteLine(displayVerify);
-            ViewBag.Verify = displayVerify;
-
-            var MemberRss = _context.UserTables.Where(x => x.IsSubscribe == true && x.DeleteDay == null).Count();
-            ViewBag.MemberRss = MemberRss;
-
-            var p = _context.UserTables.Where(x=>x.DeleteDay == null).ToList();
-            return View(p);
-        }
-
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Create(UserTable user)
-        {   
-            user.CreatedAt = DateTime.Now;
-            user.UpdatedAt = DateTime.Now;
-            _context.UserTables.Add(user);
-            _context.SaveChanges();
-            return RedirectToAction("List");
-        }
-
-
-        public IActionResult Edit(int? id)
-        {
-            if (id == null)
-                return RedirectToAction("List");
-
-            UserTable x = _context.UserTables.Where(m => m.UserId == id).FirstOrDefault();
-
-            if (x == null)
-                return RedirectToAction("List");
-
-            return View(x);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(UserTable uiUser)
-        {
-            UserTable DbUser = _context.UserTables.Where(m => m.UserId == uiUser.UserId).FirstOrDefault();
-
-            if (DbUser != null)
+            // 2. 根據你的邏輯回傳結果
+            // 如果是要回傳資料，應使用 Ok(users) 而非 NoContent()
+            if (users == null || !users.Any())
             {
-                DbUser.Name = uiUser.Name;
-                DbUser.Photo = uiUser.Photo;
-                DbUser.Job = uiUser.Job;
-                DbUser.Phone = uiUser.Phone;
-                DbUser.City = uiUser.City;
-                DbUser.Note = uiUser.Note;
-                DbUser.Birthday = uiUser.Birthday;
-                DbUser.Status = uiUser.Status;
-                DbUser.HasPriorExp = uiUser.HasPriorExp;
-                DbUser.Point = uiUser.Point;
-                DbUser.IsSubscribe = uiUser.IsSubscribe;
-                DbUser.IsVerify = uiUser.IsVerify;
-                DbUser.UpdatedAt = DateTime.Now;
-
-                _context.SaveChanges();
+                return NoContent();
             }
 
-            return RedirectToAction("List");
+            return Success(users, "Success", 200);
         }
 
 
-        public IActionResult Delete(int? id)
+        /// <summary>
+        /// 創建新會員
+        /// </summary>
+        /// <param name="user">會員資料</param>
+        /// <returns>創建的會員資料 JSON</returns>
+        /// <response code="200">成功創建會員</response>
+        [HttpPost]
+        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
+        public IActionResult Members(MemberUserDTO user)
         {
-            if (id == null)
-                return RedirectToAction("List");
+            var result = _memberProfileService.CreateUser(user);
 
-            UserTable x = _context.UserTables.Where(m => m.UserId == id).FirstOrDefault();
+            Log.Information("創建會員成功 名稱{result.Name}", result.Name);
 
-            if (x != null)
+
+            return Success(result, "創建會員成功", 200);
+        }
+
+        /// <summary>
+        /// 取得會員統計摘要資訊
+        /// </summary>
+        /// <returns>會員統計資料 JSON</returns>
+        /// <response code="200">成功取得統計資訊</response>
+        [HttpGet("Summary")]
+        [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
+        public IActionResult Summary()
+        {
+
+
+            // 取得會員統計資訊
+            var summary = _memberProfileService.GetMemberSummary();
+
+            return Success(summary, "成功取得統計資訊", 200);
+        }
+
+
+
+        /// <summary>
+        /// 更新指定會員資料
+        /// </summary>
+        /// <param name="id">會員ID</param>
+        /// <param name="userDto">更新的會員資料</param>
+        /// <returns>無內容</returns>
+        /// <response code="204">成功更新會員</response>
+        /// <response code="400">會員ID不一致或資料格式錯誤</response>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult UpdateMembers(int id, MemberUserDTO userDto)
+        {
+            // 驗證路由中的 id 與 DTO 中的 UserId 是否一致
+            if (id != userDto.UserId)
             {
-                x.DeleteDay = DateTime.Now;
-                x.UpdatedAt = DateTime.Now;
-                _context.SaveChanges();
+                return Failure("USER_ID_MISMATCH", "會員ID不一致", 400);
             }
 
-            return RedirectToAction("List");
+            var result = _memberProfileService.UpdateUserInfo(userDto);
+
+            if (result)
+            {
+                Log.Information("更新會員成功 會員ID:{UserId} 名稱:{Name}", userDto.UserId, userDto.Name);
+            }
+            else
+            {
+                Log.Warning("更新會員失敗 會員ID:{UserId}", userDto.UserId);
+            }
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// 刪除指定會員（軟刪除）
+        /// </summary>
+        /// <param name="id">會員ID</param>
+        /// <returns>無內容或錯誤訊息</returns>
+        /// <response code="204">成功刪除會員</response>
+        /// <response code="400">會員ID格式錯誤</response>
+        /// <response code="404">找不到指定會員</response>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public IActionResult Delete(string id)
+        {
+            // 手動驗證 id 是否為空
+            if (string.IsNullOrWhiteSpace(id))
+                return Failure("USER_ID_EMPTY", "會員ID不能為空", 400);
+
+            // 手動解析並驗證 id 是否為有效整數
+            if (!int.TryParse(id, out int memberId))
+                return Failure("USER_ID_INVALID", "會員ID格式錯誤，必須是數字", 400);
+            var result = _memberProfileService.DeleteUser(memberId);
+
+            if (result)
+            {
+                Log.Information("刪除會員成功 會員ID:{UserId}", memberId);
+                return NoContent();
+            }
+            else
+            {
+                Log.Warning("刪除會員失敗 會員ID:{UserId}", memberId);
+                return Failure("USER_NOT_FOUND", "找不到使用者", 404);
+            }
+        }
+
+        /// <summary>
+        /// 測試例外處理機制（僅供開發測試）
+        /// </summary>
+        /// <returns>拋出例外</returns>
+        /// <response code="500">內部伺服器錯誤</response>
+        [HttpGet("throw")]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        public IActionResult ThrowError()
+        {
+            // 模擬一個非預期的噴錯
+            throw new Exception("這是手動觸發的測試例外");
         }
     }
 }

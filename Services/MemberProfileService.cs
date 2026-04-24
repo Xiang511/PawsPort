@@ -3,6 +3,7 @@ using PawsPort.Dtos;
 using PawsPort.Models;
 using System.Diagnostics;
 using System.Drawing;
+using Microsoft.EntityFrameworkCore;
 
 namespace PawsPort.Services
 {
@@ -15,9 +16,9 @@ namespace PawsPort.Services
             _context = context;
         }
 
-        public List<MemberUserDTO> GetAllUserInfo()
+        public async Task<List<MemberUserDTO>> GetAllUserInfoAsync()
         {
-            var users = _context.UserTables
+            var users = await _context.UserTables
                 .Where(x => x.DeleteDay == null)
                 .Select(u => new MemberUserDTO
                 {
@@ -37,7 +38,7 @@ namespace PawsPort.Services
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt
                 })
-                .ToList();
+                .ToListAsync(); // 3. 這裡直接使用非同步擴充方法
 
             return users;
         }

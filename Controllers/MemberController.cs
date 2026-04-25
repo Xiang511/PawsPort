@@ -57,7 +57,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功創建會員</response>
         [HttpPost]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        public IActionResult Members(MemberUserDTO user)
+        public IActionResult Members(MemberUserDT user)
         {
             var result = _memberProfileService.CreateUser(user);
 
@@ -97,7 +97,7 @@ namespace PawsPort.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdateMembers(int id, MemberUserDTO userDto)
+        public IActionResult UpdateMembers(int id, MemberUserDT userDto)
         {
             // 驗證路由中的 id 與 DTO 中的 UserId 是否一致
             if (id != userDto.UserId)

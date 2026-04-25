@@ -16,11 +16,11 @@ namespace PawsPort.Services
             _context = context;
         }
 
-        public async Task<List<MemberUserDTO>> GetAllUserInfoAsync()
+        public async Task<List<MemberUserDT>> GetAllUserInfoAsync()
         {
             var users = await _context.UserTables
                 .Where(x => x.DeleteDay == null)
-                .Select(u => new MemberUserDTO
+                .Select(u => new MemberUserDT
                 {
                     UserId = u.UserId,
                     Name = u.Name,
@@ -69,7 +69,7 @@ namespace PawsPort.Services
 
 
 
-        public MemberUserDTO CreateUser(MemberUserDTO userDto)
+        public MemberUserDT CreateUser(MemberUserDT userDto)
         {
             // 將 DTO 轉換為 EF Core 實體
             var userEntity = new UserTable
@@ -103,14 +103,14 @@ namespace PawsPort.Services
         }
 
 
-        public MemberUserDTO GetUserInfoById(int? id)
+        public MemberUserDT GetUserInfoById(int? id)
         {
             if (id == null)
                 return null;
 
             var user = _context.UserTables
                 .Where(x => x.UserId == id && x.DeleteDay == null)
-                .Select(u => new MemberUserDTO
+                .Select(u => new MemberUserDT
                 {
                     UserId = u.UserId,
                     Name = u.Name,
@@ -134,7 +134,7 @@ namespace PawsPort.Services
         }
 
 
-        public bool UpdateUserInfo(MemberUserDTO userDto)
+        public bool UpdateUserInfo(MemberUserDT userDto)
         {
             var userEntity = _context.UserTables
                 .Where(m => m.UserId == userDto.UserId && m.DeleteDay == null)

@@ -1,6 +1,6 @@
 ﻿namespace PawsPort.Dtos
 {
-    public class MemberUserDTO
+    public class MemberUserDT
     {
         public int UserId { get; set; }
 

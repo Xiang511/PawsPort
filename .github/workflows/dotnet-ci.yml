@@ -20,7 +20,7 @@ jobs:
         dotnet-version: '8.0' # 根據你的版本調整 (例如 6.0, 7.0)
 
     - name: 3. 還原套件 (Restore)
-      run: dotnet restore PawsPort.sln
+      run: dotnet restore PawsPort.slnx
 
     - name: 4. 檢查程式碼格式與命名 (Dotnet Format)
       # 如果格式不合規，這一步會報錯並停止 CI

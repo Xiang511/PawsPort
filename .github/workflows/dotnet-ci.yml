@@ -1,0 +1,33 @@
+name: .NET Core CI
+
+on:
+  push:
+    branches: [ "codereview" ]
+  pull_request:
+    branches: [ "dev" ]
+
+jobs:
+  build_and_check:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: 1. 檢出程式碼
+      uses: actions/checkout@v4
+
+    - name: 2. 設定 .NET 環境
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0' # 根據你的版本調整 (例如 6.0, 7.0)
+
+    - name: 3. 還原套件 (Restore)
+      run: dotnet restore PawsPort.sln
+
+    - name: 4. 檢查程式碼格式與命名 (Dotnet Format)
+      # 如果格式不合規，這一步會報錯並停止 CI
+      run: dotnet format PawsPort.sln --verify-no-changes --verbosity normal
+
+    - name: 5. 編譯專案 (Build)
+      run: dotnet build PawsPort.sln --no-restore --configuration Release
+
+    - name: 6. 執行測試 (Test)
+      run: dotnet test PawsPort.sln --no-build --verbosity normal

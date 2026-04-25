@@ -3,9 +3,6 @@ name: DTO Naming Validation
 on:
   push:
     branches: [ '**' ]
-    paths:
-      - 'Dtos/**/*.cs'
-      - '.github/workflows/dto-validation.yml'
   pull_request:
     paths:
       - 'Dtos/**/*.cs'

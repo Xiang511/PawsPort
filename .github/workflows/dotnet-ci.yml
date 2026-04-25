@@ -17,14 +17,14 @@ jobs:
     - name: 2. 設定 .NET 環境
       uses: actions/setup-dotnet@v4
       with:
-        dotnet-version: '8.0' # 根據你的版本調整 (例如 6.0, 7.0)
+        dotnet-version: '10.0' # 根據你的版本調整 (例如 6.0, 7.0)
 
     - name: 3. 還原套件 (Restore)
       run: dotnet restore PawsPort.slnx
 
     - name: 4. 檢查程式碼格式與命名 (Dotnet Format)
       # 如果格式不合規，這一步會報錯並停止 CI
-      run: dotnet format --verify-no-changes --verbosity normal
+      run: dotnet format ./PawsPort.slnx --verify-no-changes --verbosity normal
 
     - name: 5. 編譯專案 (Build)
       run: dotnet build PawsPort.sln --no-restore --configuration Release

@@ -1,6 +1,6 @@
 ﻿namespace PawsPort.Services
 {
-    public class ClassServices
+    public class ClassService
     {
     }
 }

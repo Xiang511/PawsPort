@@ -40,12 +40,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <None Include="C:\Users\USER\OneDrive\桌面\PawsPort\.editorconfig" />
     <None Include="efpt.config.json.user" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <EditorConfigFiles Remove="C:\Users\USER\OneDrive\桌面\PawsPort\.editorconfig" />
   </ItemGroup>
 
 </Project>

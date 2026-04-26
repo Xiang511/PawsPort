@@ -5,7 +5,7 @@ on:
     branches: [ '**' ]
     paths:
       - '**/Dtos/**/*.cs'  # 增加 ** 確保抓到不同層級的 Dtos 資料夾
-      - '.github/workflows/dto-validation.yml'
+      - '.github/workflows/dotnet-ci.yml'
   pull_request:
     paths:
       - '**/Dtos/**/*.cs'

@@ -9,13 +9,13 @@ on:
 
 jobs:
   validate:
-    name: 命名與檔案規範檢查
+    name: 檔案命名檢查
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
       
-    - name: 🔍 執行類別與檔案命名檢查
+    - name: 執行檔案命名檢查
       shell: pwsh
       run: |
         $errors = @()
@@ -47,11 +47,11 @@ jobs:
         }
         
         if ($errors) {
-            Write-Host "::error::❌ 命名規範檢查失敗！"
+            Write-Host "::error:: 檢查失敗！"
             foreach ($err in $errors) {
                 Write-Host "::error file=$($err.File)::[$($err.Target)] 不合規。預期應為: $($err.Expected)"
             }
             exit 1
         }
         
-        Write-Host "::notice::✅ 所有檔案與類別命名均符合規範。"
+        Write-Host "::notice:: 所有檔案命名均符合規範。"

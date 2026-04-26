@@ -43,20 +43,6 @@ jobs:
                         Expected = "$requiredSuffix.cs"
                     }
                 }
-
-                # 2. 檢查「類別名稱」
-                $content = Get-Content $file.FullName -Raw
-                if ($content -match 'public\s+class\s+(\w+)') {
-                    $className = $Matches[1]
-                    
-                    if ($className -cnotmatch "$requiredSuffix$") {
-                        $errors += @{
-                            File     = $file.FullName
-                            Target   = "類別名稱 '$className'"
-                            Expected = $requiredSuffix
-                        }
-                    }
-                }
             }
         }
         

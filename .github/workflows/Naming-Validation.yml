@@ -1,0 +1,54 @@
+name: Naming Validation
+
+on:
+  push:
+    branches: [ '**' ]
+
+jobs:
+  validate:
+    name: 檔案命名檢查
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+      
+    - name: 執行檔案命名檢查
+      shell: pwsh
+      run: |
+        $errors = @()
+        
+        # 定義規則清單：資料夾名稱 => 必須的結尾
+        $rules = @{
+            "Dtos"        = "DTO"
+            "Controllers" = "Controller"
+            "Middlewares" = "Middleware"
+            "Services"    = "Service"
+        }
+        
+        foreach ($folder in $rules.Keys) {
+            $requiredSuffix = $rules[$folder]
+            
+            # 尋找目標資料夾下的所有 .cs 檔案
+            $files = Get-ChildItem -Filter "*.cs" -Recurse | Where-Object { $_.FullName -match "[\\/]$folder[\\/]" }
+            
+            foreach ($file in $files) {
+                # 1. 檢查「檔案名稱」是否以正確後綴結尾 (BaseName 不含副檔名)
+                if ($file.BaseName -cnotmatch "$requiredSuffix$") {
+                    $errors += @{
+                        File     = $file.FullName
+                        Target   = "檔案名稱 '$($file.Name)'"
+                        Expected = "$requiredSuffix.cs"
+                    }
+                }
+            }
+        }
+        
+        if ($errors) {
+            Write-Host "::error:: 檢查失敗！"
+            foreach ($err in $errors) {
+                Write-Host "::error file=$($err.File)::[$($err.Target)] 不合規。預期應為: $($err.Expected)"
+            }
+            exit 1
+        }
+        
+        Write-Host "::notice:: 所有檔案命名均符合規範。"

@@ -1,11 +1,8 @@
-name: Code Quality & Naming Validation
+name: Naming Validation
 
 on:
   push:
     branches: [ '**' ]
-  pull_request:
-    branches: 
-      - 'dev'
 
 jobs:
   validate:

@@ -3,9 +3,12 @@ name: DTO Naming Validation
 on:
   push:
     branches: [ '**' ]
+    paths:
+      - '**/Dtos/**/*.cs'  # 增加 ** 確保抓到不同層級的 Dtos 資料夾
+      - '.github/workflows/dto-validation.yml'
   pull_request:
     paths:
-      - 'Dtos/**/*.cs'
+      - '**/Dtos/**/*.cs'
 
 jobs:
   validate:
@@ -15,33 +18,49 @@ jobs:
     steps:
     - uses: actions/checkout@v4
       
-    - name: 🔍 檢查 DTO 命名規範
+    - name: 🔍 檢查 DTO 命名規範 (強制大寫 DTO)
       shell: pwsh
       run: |
         $errors = @()
         
-        Get-ChildItem -Path "Dtos/*.cs" -File | ForEach-Object {
-            $content = Get-Content $_.FullName -Raw
+        # 遞迴尋找所有在 Dtos 資料夾下的 .cs 檔案
+        $files = Get-ChildItem -Filter "*.cs" -Recurse | Where-Object { $_.FullName -match "[\\/]Dtos[\\/]" }
+        
+        foreach ($file in $files) {
+            $content = Get-Content $file.FullName -Raw
             
+            # 匹配 public class 名稱
             if ($content -match 'public\s+class\s+(\w+)') {
                 $className = $Matches[1]
                 
-                if ($className -notmatch 'DTO$') {
+                # 使用 -cmatch 進行「區分大小寫」的結尾匹配
+                if ($className -cnotmatch 'DTO$') {
+                    $expectedName = $className
+                    if ($className -imatch 'DTO$') {
+                        # 如果是小寫 dto 或混用，先移除再補上大寫
+                        $expectedName = ($className -ireplace 'DTO$', 'DTO')
+                    } elseif ($className -imatch 'DT$') {
+                        $expectedName = ($className -ireplace 'DT$', 'DTO')
+                    } else {
+                        $expectedName = $className + "DTO"
+                    }
+
                     $errors += @{
-                        File = $_.Name
+                        File = $file.FullName
                         Class = $className
-                        Expected = ($className -replace 'DT$', 'DTO') + $(if ($className -notmatch 'DT$') { 'DTO' })
+                        Expected = $expectedName
                     }
                 }
             }
         }
         
         if ($errors) {
-            Write-Host "::error::發現 DTO 命名違規"
-            $errors | ForEach-Object { 
-                Write-Host "::error file=$($_.File)::類別 '$($_.Class)' 應該命名為 '$($_.Expected)'"
+            Write-Host "::error::❌ 發現 DTO 命名不符合規範 (必須大寫 DTO 結尾)"
+            foreach ($err in $errors) {
+                # 輸出 GitHub 專用的錯誤格式，會直接顯示在程式碼變更頁面
+                Write-Host "::error file=$($err.File)::檔案中的類別 '$($err.Class)' 命名不合規。請改為 '$($err.Expected)'"
             }
             exit 1
         }
         
-        Write-Host "::notice::✅ 所有 DTO 命名符合規範"
+        Write-Host "::notice::✅ 所有 DTO 命名均已符合大寫 'DTO' 規範"

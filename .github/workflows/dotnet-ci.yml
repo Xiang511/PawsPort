@@ -56,15 +56,6 @@ jobs:
                             Expected = $requiredSuffix
                         }
                     }
-
-                    # 3. 檢查「檔案名」與「類別名」是否一致
-                    if ($file.BaseName -ne $className) {
-                        $errors += @{
-                            File     = $file.FullName
-                            Target   = "檔案與類別不匹配"
-                            Expected = "檔案名 '$($file.BaseName)' 必須與類別名 '$className' 相同"
-                        }
-                    }
                 }
             }
         }

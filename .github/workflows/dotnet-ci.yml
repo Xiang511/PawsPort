@@ -1,66 +1,80 @@
-name: DTO Naming Validation
+name: Code Quality & Naming Validation
 
 on:
   push:
     branches: [ '**' ]
-    paths:
-      - '**/Dtos/**/*.cs'  # 增加 ** 確保抓到不同層級的 Dtos 資料夾
-      - '.github/workflows/dotnet-ci.yml'
   pull_request:
     branches: 
       - 'dev'
 
 jobs:
   validate:
-    name: 驗證 DTO 命名
+    name: 命名與檔案規範檢查
     runs-on: ubuntu-latest
     
     steps:
     - uses: actions/checkout@v4
       
-    - name: 🔍 檢查 DTO 命名規範 (強制大寫 DTO)
+    - name: 🔍 執行類別與檔案命名檢查
       shell: pwsh
       run: |
         $errors = @()
         
-        # 遞迴尋找所有在 Dtos 資料夾下的 .cs 檔案
-        $files = Get-ChildItem -Filter "*.cs" -Recurse | Where-Object { $_.FullName -match "[\\/]Dtos[\\/]" }
+        # 定義規則清單：資料夾名稱 => 必須的結尾
+        $rules = @{
+            "Dtos"        = "DTO"
+            "Controllers" = "Controller"
+            "Middlewares" = "Middleware"
+            "Services"    = "Service"
+        }
         
-        foreach ($file in $files) {
-            $content = Get-Content $file.FullName -Raw
+        foreach ($folder in $rules.Keys) {
+            $requiredSuffix = $rules[$folder]
             
-            # 匹配 public class 名稱
-            if ($content -match 'public\s+class\s+(\w+)') {
-                $className = $Matches[1]
-                
-                # 使用 -cmatch 進行「區分大小寫」的結尾匹配
-                if ($className -cnotmatch 'DTO$') {
-                    $expectedName = $className
-                    if ($className -imatch 'DTO$') {
-                        # 如果是小寫 dto 或混用，先移除再補上大寫
-                        $expectedName = ($className -ireplace 'DTO$', 'DTO')
-                    } elseif ($className -imatch 'DT$') {
-                        $expectedName = ($className -ireplace 'DT$', 'DTO')
-                    } else {
-                        $expectedName = $className + "DTO"
+            # 尋找目標資料夾下的所有 .cs 檔案
+            $files = Get-ChildItem -Filter "*.cs" -Recurse | Where-Object { $_.FullName -match "[\\/]$folder[\\/]" }
+            
+            foreach ($file in $files) {
+                # 1. 檢查「檔案名稱」是否以正確後綴結尾 (BaseName 不含副檔名)
+                if ($file.BaseName -cnotmatch "$requiredSuffix$") {
+                    $errors += @{
+                        File     = $file.FullName
+                        Target   = "檔案名稱 '$($file.Name)'"
+                        Expected = "$requiredSuffix.cs"
+                    }
+                }
+
+                # 2. 檢查「類別名稱」
+                $content = Get-Content $file.FullName -Raw
+                if ($content -match 'public\s+class\s+(\w+)') {
+                    $className = $Matches[1]
+                    
+                    if ($className -cnotmatch "$requiredSuffix$") {
+                        $errors += @{
+                            File     = $file.FullName
+                            Target   = "類別名稱 '$className'"
+                            Expected = $requiredSuffix
+                        }
                     }
 
-                    $errors += @{
-                        File = $file.FullName
-                        Class = $className
-                        Expected = $expectedName
+                    # 3. 檢查「檔案名」與「類別名」是否一致
+                    if ($file.BaseName -ne $className) {
+                        $errors += @{
+                            File     = $file.FullName
+                            Target   = "檔案與類別不匹配"
+                            Expected = "檔案名 '$($file.BaseName)' 必須與類別名 '$className' 相同"
+                        }
                     }
                 }
             }
         }
         
         if ($errors) {
-            Write-Host "::error::❌ 發現 DTO 命名不符合規範 (必須大寫 DTO 結尾)"
+            Write-Host "::error::❌ 命名規範檢查失敗！"
             foreach ($err in $errors) {
-                # 輸出 GitHub 專用的錯誤格式，會直接顯示在程式碼變更頁面
-                Write-Host "::error file=$($err.File)::檔案中的類別 '$($err.Class)' 命名不合規。請改為 '$($err.Expected)'"
+                Write-Host "::error file=$($err.File)::[$($err.Target)] 不合規。預期應為: $($err.Expected)"
             }
             exit 1
         }
         
-        Write-Host "::notice::✅ 所有 DTO 命名均已符合大寫 'DTO' 規範"
+        Write-Host "::notice::✅ 所有檔案與類別命名均符合規範。"

@@ -15,11 +15,15 @@ public partial class Message
 
     public DateTime CreateAt { get; set; }
 
-    public string Image { get; set; }
+    public string ImageUrl { get; set; }
 
     public bool IsExist { get; set; }
 
     public int SenderId { get; set; }
 
     public int ChatroomId { get; set; }
+
+    public int? DeleteTypeId { get; set; }
+
+    public string DeleteNote { get; set; }
 }

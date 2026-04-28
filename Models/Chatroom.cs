@@ -16,4 +16,10 @@ public partial class Chatroom
     public bool IsExist { get; set; }
 
     public DateTime CreateAt { get; set; }
+
+    public bool IsActive { get; set; }
+
+    public int? DeleteTypeId { get; set; }
+
+    public string DeleteNote { get; set; }
 }

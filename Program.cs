@@ -12,7 +12,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
-
+builder.Services.AddScoped<ArticleService>();
 
 // 註冊資料庫連線
 // 優先順序: User Secrets > 環境變數 > appsettings.json

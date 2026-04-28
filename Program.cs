@@ -34,6 +34,10 @@ else
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+// Service DI
+builder.Services.AddScoped<PassPortService>();
+builder.Services.AddScoped<AdoptionRecordService>();
+
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)

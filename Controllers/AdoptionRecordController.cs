@@ -1,117 +1,68 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PawsPort.Models;
-using PawsPort.ViewModels;
+using PawsPort.ViewModels; 
+using PawsPort.DTOs;
+using PawsPort.Services;
 
 namespace PawsPort.Controllers
 {
     public class AdoptionRecordController : Controller
     {
-        public IActionResult List(KeywordViewModel vm)
+        private readonly AdoptionRecordService _service;
+        public AdoptionRecordController(AdoptionRecordService service)
         {
-            PetDbContext db = new PetDbContext();
-
-
-            var query = from h in db.AdoptionRecords
-                        join p in db.Pets on h.PetId equals p.PetId
-
-                        where p.DeletedAt == null
-                        select new AdoptionRecordViewModel
-                        {
-                            AdoptionId = h.AdoptionId,
-                            PetId = h.PetId,
-                            Name = p.Name, // 順利拿到名字
-                            UserId = h.UserId,
-                            ApplyDate = h.ApplyDate,
-                            AdoptDate = h.AdoptDate,
-                            ReturnDate = h.ReturnDate,
-                            ReturnReason = h.ReturnReason,
-                            FollowUpDeadline = h.FollowUpDeadline,
-                            Status = h.Status
-                            
-                        };
-
-
-            if (!string.IsNullOrEmpty(vm.txtKeyword))
-            {
-
-                query = query.Where(v => v.Name.Contains(vm.txtKeyword));
-
-
-            }
-
-            // 步驟 3：執行查詢，把資料變成 List，然後傳給 View
-            return View(query.ToList());
+            _service = service;
         }
 
+
+        public IActionResult List(KeywordViewModel vm)
+        {
+            // 直接呼叫 Service 幫我們做所有的資料庫查詢
+            var dtoList = _service.GetAdoptionRecords(vm.txtKeyword);
+
+            // 把 DTO 傳給畫面 (在還沒轉成 API 之前，我們可以暫時把 DTO 當 ViewModel 傳給 View)
+            return View(dtoList);
+        }
+
+        
         public IActionResult Create()
         {
             return View();
         }
+
         [HttpPost]
-        public IActionResult Create(AdoptionRecord p)
+        public IActionResult Create(AdoptionRecordCreateDto dto) // 直接接收 DTO
         {
-            PetDbContext db = new PetDbContext();
-            p.AdoptionId = 0;
-            db.AdoptionRecords.Add(p);
-            db.SaveChanges();
+            // 交給 Service 處理新增
+            _service.CreateRecord(dto);
             return RedirectToAction("List");
         }
 
+        
         public IActionResult Delete(int? id)
         {
-            // 1. 建立資料庫連線
-            PetDbContext db = new PetDbContext();
-
-            // 2. 找到那筆健康資料
-            AdoptionRecord x = db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == id);
-
-            if (x != null)
+            if (id.HasValue)
             {
-                // 這裡到時候要改成軟刪除
-                db.AdoptionRecords.Remove(x);
-                db.SaveChanges();
+                _service.DeleteRecord(id.Value);
             }
-
             return RedirectToAction("List");
         }
 
+        
         public IActionResult Edit(int? id)
         {
-            PetDbContext db = new PetDbContext();
-            AdoptionRecord x = db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == id);
-            if (x == null)
-                return RedirectToAction("List");
-            return View(x);
+            if (id == null) return RedirectToAction("List");
+
+            var dto = _service.GetRecordForEdit(id.Value);
+
+            if (dto == null) return RedirectToAction("List");
+
+            return View(dto);
         }
+
         [HttpPost]
-        public IActionResult Edit(AdoptionRecord uiAdoption) // 變數名稱改叫 uiPassport 比較不會搞混
+        public IActionResult Edit(AdoptionRecordEditDto dto) // 直接接收 DTO
         {
-            PetDbContext db = new PetDbContext();
-
-            // 1. 根據使用者傳回來的 PassportId，從資料庫把「舊的那筆資料」抓出來
-            AdoptionRecord dbAdoption = db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == uiAdoption.AdoptionId);
-
-            // 2. 確保資料庫真的有這筆資料！(這一步很重要)
-            if (dbAdoption != null)
-            {
-                // 3. 將表單傳進來的新資料 (uiPassport)，覆蓋掉資料庫裡的舊資料 (dbPassport)
-                // (這裡我列出了你第一張截圖裡的寵物屬性，你可以把你不想被修改的欄位刪除)
-                dbAdoption.ApplyDate = uiAdoption.ApplyDate;
-                dbAdoption.AdoptDate = uiAdoption.AdoptDate;
-                dbAdoption.ReturnDate = uiAdoption.ReturnDate;
-                dbAdoption.ReturnReason = uiAdoption.ReturnReason;
-                dbAdoption.FollowUpDeadline = uiAdoption.FollowUpDeadline;
-                dbAdoption.UserId = uiAdoption.UserId;
-                dbAdoption.Status = uiAdoption.Status;
-
-
-
-
-                // 4. 告訴資料庫把變更存起來
-                db.SaveChanges();
-            }
-
-            // 修改完成後，回到列表頁看結果
+            _service.UpdateRecord(dto);
             return RedirectToAction("List");
         }
     }

@@ -15,5 +15,7 @@ public partial class GameHistory
 
     public DateTime? LastPlayedDate { get; set; }
 
+    public bool ReceivedReward { get; set; }
+
     public int PlayerId { get; set; }
 }

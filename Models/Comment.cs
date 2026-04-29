@@ -17,7 +17,7 @@ public partial class Comment
 
     public int Status { get; set; }
 
-    public string Image { get; set; }
+    public string ImageUrl { get; set; }
 
     public int ReportedCount { get; set; }
 
@@ -28,4 +28,10 @@ public partial class Comment
     public int UserId { get; set; }
 
     public int ArticleId { get; set; }
+
+    public int? ParentId { get; set; }
+
+    public int? DeleteTypeId { get; set; }
+
+    public string DeleteNote { get; set; }
 }

@@ -19,7 +19,7 @@ namespace PawsPort.Dtos
 
         public string Content { get; set; }
         [Required]
-        [Range(0,3)] //0:草稿, 1:公開, 2:私人, 3:(官方)隱藏
+        [Range(0,3)] //0:草稿, 1:公開, 2:私人, 3:刪除
         public int Status { get; set; }
 
         public string UserName { get; set; }

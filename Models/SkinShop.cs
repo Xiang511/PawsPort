@@ -19,5 +19,5 @@ public partial class SkinShop
 
     public bool IsAvailable { get; set; }
 
-    public bool? IsDel { get; set; }
+    public bool IsDel { get; set; }
 }

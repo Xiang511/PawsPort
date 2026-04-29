@@ -18,4 +18,6 @@ public partial class Tag
     public DateTime? LastEditTime { get; set; }
 
     public DateTime CreateAt { get; set; }
+
+    public bool IsActive { get; set; }
 }

@@ -9,5 +9,9 @@ public partial class PlayerProfile
 {
     public int PlayerId { get; set; }
 
-    public int? Point { get; set; }
+    public int UserId { get; set; }
+
+    public int? CurrentPoint { get; set; }
+
+    public string UserName { get; set; }
 }

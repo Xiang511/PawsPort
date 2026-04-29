@@ -99,10 +99,15 @@ namespace PawsPort.Services
 
                 //先撈出原本的標籤關聯
                 var ExistingMaps = await _context.ArticleTagMaps.Where(m => m.ArticleId == articleDto.ArticleId).ToListAsync();
-                //刪除它
-                _context.ArticleTagMaps.RemoveRange(ExistingMaps);
+                //這裡應該要改成停用舊的關聯(isExist = false)
+                foreach (var map in ExistingMaps)
+                {
+                    map.IsExist = false;
+                }
+                //可能要加上一個比對新舊標籤的功能
                 //打包新的標籤list
                 var NewTags = await PrepareTagsAsync(articleDto.TagNames);
+
                 //建立新的標籤關聯(一個map = tagID + articleID)
                 var NewMaps = NewTags.Select(t => new ArticleTagMap
                 {
@@ -119,15 +124,38 @@ namespace PawsPort.Services
         }
 
 
+        //=====刪除文章=====
+        public async Task<bool> DeleteArticleAsync(int id)
+        {
+            //去資料庫撈對應id的文章實體和標籤關聯
+            var ArticleEntity = await _context.Articles.FirstOrDefaultAsync(a => a.ArticleId == id);
 
-        //刪除文章
+            //如果找不到，回傳false
+            //如果找到，將它的IsExist改為false，存回資料庫，回傳true
+            if (ArticleEntity == null || ArticleEntity.IsExist == false) return false;
+
+            //有找到的話，先找出標籤關聯
+            var Maps = await _context.ArticleTagMaps.Where(m => m.ArticleId == id && m.IsExist == true).ToListAsync();
+
+            //把文章本體和標籤關聯的IsExist改為false
+            ArticleEntity.IsExist = false;
+            ArticleEntity.LastEditTime = DateTime.UtcNow;
+
+            foreach (var map in Maps)
+            {
+                map.IsExist = false;
+                map.LastEditTime = DateTime.UtcNow;
+            }
+
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
         //查詢文章
 
         //活動列表
 
         //=====處理標籤 //private=====
-
         private async Task<List<Tag>> PrepareTagsAsync(List<string> TagNames)
         {
             //先檢查有無TagNames

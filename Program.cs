@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<QuestionsService>();
+builder.Services.AddScoped<ShopService>();
 
 
 // 註冊資料庫連線

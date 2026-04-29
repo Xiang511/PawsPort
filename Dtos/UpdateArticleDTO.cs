@@ -2,7 +2,7 @@
 
 namespace PawsPort.Dtos
 {
-    public class CreateArticleDTO
+    public class UpdateArticleDTO
     {
         //隱藏
         public int ArticleId { get; set; }
@@ -18,15 +18,15 @@ namespace PawsPort.Dtos
 
         public string EventLocation { get; set; }
 
-
         //顯示
         [Required]
         [StringLength(100, ErrorMessage = "標題長度不能超過100個字元")]
         public string Title { get; set; }
 
         public string Content { get; set; }
+
         [Required]
-        [Range(0,2)] //0:草稿, 1:公開, 2:私人
+        [Range(0, 2)] //0:草稿, 1:公開, 2:私人
         public int Status { get; set; }
 
         public string UserName { get; set; }
@@ -35,7 +35,8 @@ namespace PawsPort.Dtos
 
         public List<string> TagNames { get; set; }
 
-        //public List<IFormFile>? ImageFiles { get; set; }
+        public bool IsExist { get; set; }
 
+        //public List<IFormFile>? ImageFiles { get; set; }
     }
 }

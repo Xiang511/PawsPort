@@ -19,21 +19,21 @@ namespace PawsPort.Services
 
 
 
-        //新增文章(非同步)
+        //=====新增文章(非同步)=====
         public async Task<CreateArticleDTO> CreateArticleAsync(CreateArticleDTO articleDto)
         {
             //將ArticleDTO轉換為Article實體
-            var articleEntity = new Article
+            var ArticleEntity = new Article
             {
                 CreateAt = DateTime.UtcNow,
-                LastEditTime = DateTime.UtcNow, 
+                LastEditTime = DateTime.UtcNow,
                 Title = articleDto.Title,
                 Content = articleDto.Content,
                 Status = articleDto.Status,
                 ViewCount = 0,
                 ReportedCount = 0,
                 LastReported = null,
-                EventStartDate = null,     //活動文章另外放在event，會固定categoryID
+                EventStartDate = null,
                 EventEndDate = null,
                 EventLocation = null,
                 IsExist = true,
@@ -44,16 +44,16 @@ namespace PawsPort.Services
             };
 
             //將Article實體添加到資料庫
-            _context.Articles.Add(articleEntity);
-            //保存更改到資料庫，為了拿到ArticleId
+            _context.Articles.Add(ArticleEntity);
+            //保存更改到資料庫，拿到ArticleId
             await _context.SaveChangesAsync();
 
             //處理標籤
             var Tags = await PrepareTagsAsync(articleDto.TagNames);
-
+            //建立文章-標籤關聯
             var Maps = Tags.Select(t => new ArticleTagMap
             {
-                ArticleId = articleEntity.ArticleId,
+                ArticleId = ArticleEntity.ArticleId,
                 TagId = t.TagId,
             }).ToList();
 
@@ -64,30 +64,85 @@ namespace PawsPort.Services
             await _context.SaveChangesAsync();
 
             //將新增的Article實體轉換回ArticleDTO
-            articleDto.ArticleId = articleEntity.ArticleId;
-            
+            articleDto.ArticleId = ArticleEntity.ArticleId;
+
             return articleDto;
         }
 
-        //修改文章
 
+        //=====修改文章(非同步)=====
+        public async Task<UpdateArticleDTO> UpdateArticleAsync(UpdateArticleDTO articleDto)
+        {
+            //比對articleDto.articleId和資料庫裡的ArticleId，去資料庫撈出對應的文章實體
+            var ArticleEntity = await _context.Articles.FirstOrDefaultAsync(a => a.ArticleId == articleDto.ArticleId);
+
+            if (ArticleEntity == null)
+            {
+                //查無此文章，拋出例外或回傳null
+                return null;
+            }
+            else
+            {
+                //找到文章實體
+                //更新文章內容
+                ArticleEntity.CategoryId = articleDto.CategoryId;
+
+                ArticleEntity.LastEditTime = DateTime.UtcNow;
+                ArticleEntity.Title = articleDto.Title;
+                ArticleEntity.Content = articleDto.Content;
+                ArticleEntity.Status = articleDto.Status;   //狀態(0:草稿,1:公開,2:封鎖)
+                ArticleEntity.IsExist = articleDto.IsExist; //是否刪除
+
+                ArticleEntity.EventStartDate = articleDto.EventStartDate;
+                ArticleEntity.EventEndDate = articleDto.EventEndDate;
+                ArticleEntity.EventLocation = articleDto.EventLocation;
+
+                //先撈出原本的標籤關聯
+                var ExistingMaps = await _context.ArticleTagMaps.Where(m => m.ArticleId == articleDto.ArticleId).ToListAsync();
+                //刪除它
+                _context.ArticleTagMaps.RemoveRange(ExistingMaps);
+                //打包新的標籤list
+                var NewTags = await PrepareTagsAsync(articleDto.TagNames);
+                //建立新的標籤關聯(一個map = tagID + articleID)
+                var NewMaps = NewTags.Select(t => new ArticleTagMap
+                {
+                    ArticleId = articleDto.ArticleId,
+                    TagId = t.TagId
+
+                }).ToList();
+                //加入新的標籤關聯
+                _context.ArticleTagMaps.AddRange(NewMaps);
+                //存回資料庫
+                await _context.SaveChangesAsync();
+            }
+            return articleDto;
+        }
+
+
+
+
+
+
+
+        }
+        
         //刪除文章
 
         //查詢文章
 
         //活動列表
 
-        //處理標籤 //private
+        //=====處理標籤 //private=====
 
         private async Task<List<Tag>> PrepareTagsAsync(List<string> TagNames)
         {
             //先檢查有無TagNames
             if (TagNames == null || !TagNames.Any())
                 return new List<Tag>();
-            
+
             //去除空白和重複的標籤(不分大小寫)
             var UniqueTagNames = TagNames
-                .Select(t=>t.Trim())
+                .Select(t => t.Trim())
                 .Distinct(StringComparer.OrdinalIgnoreCase);
 
             //去資料庫撈出所有tag表中名稱有包含在輸入的tagnames裡的資料，轉換成list<tag>
@@ -101,12 +156,12 @@ namespace PawsPort.Services
             var NewTagsList = UniqueTagNames
                 .Except(ExistingNames, StringComparer.OrdinalIgnoreCase)
                 .Select(name => new Tag
-            {
-                TagName = name,
-                CreateAt = DateTime.UtcNow,
-                LastEditTime = DateTime.UtcNow,
-                IsExist = true
-            }).ToList();
+                {
+                    TagName = name,
+                    CreateAt = DateTime.UtcNow,
+                    LastEditTime = DateTime.UtcNow,
+                    IsExist = true
+                }).ToList();
 
             //只要NewTags不為空(=true)，把新的tag存到資料庫以獲取tagid
             if (NewTagsList.Any())

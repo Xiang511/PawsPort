@@ -126,7 +126,7 @@ namespace PawsPort.Controllers
                         {
                             ArticleImage Img = new ArticleImage();
                             Img.ArticleId = p.article.ArticleId; //將圖片與文章關聯
-                            Img.Image = "/Image/" + ImageName; //存入路徑
+                            Img.ImageUrl = "/Image/" + ImageName; //存入路徑
                             db.ArticleImages.Add(Img); //圖片資訊存入資料庫
                         }
                     }

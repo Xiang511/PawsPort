@@ -12,6 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<PlayerService>();
+builder.Services.AddScoped<QuestionsService>();
 
 
 // 註冊資料庫連線

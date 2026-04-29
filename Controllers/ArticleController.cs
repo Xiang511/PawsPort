@@ -103,7 +103,7 @@ namespace PawsPort.Controllers
             {
                 var result = await _articleService.CreateArticleAsync(articleDto);
                 return Success(result, "文章建立成功", 200);
-                //跳轉到文章詳細頁面
+                //**跳轉到文章詳細頁面
             }
             catch (Exception ex)
             {
@@ -134,33 +134,31 @@ namespace PawsPort.Controllers
             else
             {
                 return Success(result, "文章更新成功", 200);
-                //跳轉到文章詳細頁面
+                //**跳轉到文章詳細頁面
             }
 
         }
 
-        ////[HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
-        //public IActionResult DeleteArticle(int? id)
-        //{
-        //    if (id == null)
-        //        return RedirectToAction("ArticleList");
+        [HttpDelete("{id}")] 
+        public async Task<IActionResult> Delete(int id)
+        {
+            //檢查id是否有效
+            if (id <= 0) return Failure("INVALID_ID", "無效的文章編號", 400);
 
-        //    using (PetDbContext db = new PetDbContext())
-        //    {
-        //        Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-        //        if (x != null)
-        //        {
-        //            x.IsExist = false;
-        //            var ImageList =db.ArticleImages.Where(p => p.ArticleId == id).ToList();
-        //            foreach (var img in ImageList)
-        //            {
-        //                img.IsExist = false; //將與該文章相關的圖片標記為不存在
-        //            }
-        //            db.SaveChanges();
-        //        }
-        //    }
-        //    return RedirectToAction("ArticleList");
-        //}
+            //有效的話呼叫service
+            var result = await _articleService.DeleteArticleAsync(id);
+            //若service回傳false，代表找不到該文章
+            //若service回傳true，代表刪除成功
+            if (result == false)
+            {
+                //回傳找不到該編號文章
+                return Failure("ARTICLE_NOT_FOUND", "找不到該文章", 404);
+            }
+            else
+            {
+                return Success(result, "文章刪除成功", 200);
+            }
+        }
 
 
         //public IActionResult ArticleImageList(KeywordViewModel vm)

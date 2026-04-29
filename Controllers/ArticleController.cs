@@ -90,74 +90,54 @@ namespace PawsPort.Controllers
         //    }
         //}
 
-       
+
 
         [HttpPost]
         public async Task<IActionResult> Article([FromBody] CreateArticleDTO articleDto)
         {
-            if (!ModelState.IsValid) 
+            if (!ModelState.IsValid)
             {
                 return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
             }
             try
             {
                 var result = await _articleService.CreateArticleAsync(articleDto);
-                return Success(result,"文章建立成功",200);
+                return Success(result, "文章建立成功", 200);
+                //跳轉到文章詳細頁面
             }
-            catch (Exception ex) 
+            catch (Exception ex)
             {
-                return Failure("INTERNAL_ERROR","伺服器內部錯誤",500);
+                return Failure("INTERNAL_ERROR", "伺服器內部錯誤", 500);
             }
         }
 
 
-        //public IActionResult EditArticle(int? id)
-        //{
-        //    if (id == null) return RedirectToAction("ArticleList");
-        //    using (PetDbContext db = new PetDbContext())
-        //    {
-        //        Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-        //        if (x == null)
-        //            return RedirectToAction("ArticleList");
-                
-        //        // 準備分類下拉選單 (供編輯時切換)
-        //        ViewBag.CategoryList = db.Categories
-        //            .Where(c => c.IsExist)
-        //            .OrderBy(c => c.Level).ThenBy(c => c.SortOrder)
-        //            .ToList();
-
-        //        ArticleWrap p = new ArticleWrap(); //創建一個ArticleWrap物件
-        //        p.article = x;  //將從資料庫中查找到的文章賦值給ArticleWrap物件的article屬性
-
-        //        return View(p);
-        //    }
-        //}
-
-        //[HttpPost]
-        //public IActionResult EditArticle(ArticleWrap UiArticle)
-        //{
-        //    using (PetDbContext db = new PetDbContext())
-        //    {
-        //        var id = UiArticle.article.ArticleId;
-        //        Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-        //        //從資料庫中查找要編輯的文章
 
 
-        //        if (dbArticle != null && dbArticle.IsExist == true)
-        //        {
-        //            dbArticle.Title = UiArticle.Title; //更新文章標題
-        //            dbArticle.Content = UiArticle.Content; //更新文章內容
-        //            dbArticle.CategoryId = UiArticle.CategoryId;
-        //            dbArticle.IsExist = UiArticle.IsExist;
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Article(int id, [FromBody] UpdateArticleDTO articleDto)
+        {
+            //檢查網址id與dto id是否一致
+            if (id != articleDto.ArticleId)
+            {
+                return Failure("ID_MISMATCH", "文章編號不符", 400);
+                //如果不一致，回傳文章編號不符
+            }
 
-        //            dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
-        //            db.SaveChanges(); //保存更改到資料庫
+            //如果一致，呼叫service更新文章
+            var result = await _articleService.UpdateArticleAsync(articleDto);
+            if(result == null)
+            {
+                //回傳找不到該編號文章
+                return Failure("ARTICLE_NOT_FOUND", "找不到該文章", 404);
+            }
+            else
+            {
+                return Success(result, "文章更新成功", 200);
+                //跳轉到文章詳細頁面
+            }
 
-        //        }
-        //        return RedirectToAction("ArticleList");
-        //    }
-
-        //}
+        }
 
         ////[HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
         //public IActionResult DeleteArticle(int? id)

@@ -1,94 +1,65 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using PawsPort.Dtos;
 using PawsPort.Models;
-using System.Diagnostics;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class QuestionsController : Controller
+    [Route("api/[controller]")]
+    public class QuestionsController : ApiControllerBase
     {
-        // 題庫列表
+        private readonly QuestionsService _questionsService;
+
+        public QuestionsController(QuestionsService questionsService)
+        {
+            _questionsService = questionsService;
+        }
+
+        // GET: api/Questions
+        [HttpGet]
         public IActionResult List(string category = "")
         {
-            PetDbContext db = new PetDbContext();
-            var GameList = db.GameContents.ToList();
-            if (!string.IsNullOrEmpty(category))
-            {
-                GameList = GameList.Where(g => g.GameName == category).ToList();
-            }
-            var categories = db.GameContents
-               .Select(g => g.GameName)
-               .Distinct()
-               .OrderBy(g => g)
-               .ToList();
+            var data = _questionsService.GetQuestionsList(category);
+            var categories = _questionsService.GetCategories();
 
-            ViewBag.Categories = categories;
-            ViewBag.SelectedCategory = category;
-            return View(GameList);
+            return Success(new
+            {
+                Data = data,
+                Categories = categories,
+                SelectedCategory = category
+            });
         }
-        public IActionResult Create()
-        {
-            return View();
-        }
+
+        // POST: api/Questions
         [HttpPost]
-        public IActionResult Create(GameContent G)
+        public IActionResult Create(QuestionsCreateDTO createDto)
         {
-            PetDbContext db = new PetDbContext();
-            db.GameContents.Add(G);
-            db.SaveChanges();
-            return RedirectToAction("List");
+            Log.Information("GameName: {GameName}", createDto.GameName);
+            Log.Information("Questions: {Questions}", createDto.Questions);
+            Log.Information("AnswersDetail: {AnswersDetail}", createDto.AnswersDetail);
+            Log.Information("Answers: {Answers}", createDto.Answers);
+            Log.Information("IsActive: {IsActive}", createDto.IsActive);
+            Log.Information("Rewards: {Rewards}", createDto.Rewards);
+            Log.Information("Type: {Type}", createDto.Type);
+            _questionsService.CreateQuestion(createDto);
+            return Success(createDto, "新增成功", 200);
         }
 
-
-        // 編輯題目 - GET 方法
-        public IActionResult Edit(int? id)
+        // PUT: api/Questions/{id}
+        [HttpPut("{id}")]
+        public IActionResult Edit(QuestionsEditDTO editDto)
         {
-            PetDbContext db = new PetDbContext();
-            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == id);
-            if (game == null)
-                return RedirectToAction("List");
-            return View(game);
+            _questionsService.UpdateQuestion(editDto);
+            return Success(editDto, "更新成功", 200);
         }
 
-        // 編輯題目 - POST 方法
-        [HttpPost]
-        public IActionResult Edit(GameContent G, string category = "")
+        // DELETE: api/Questions/{id}
+        [HttpDelete("{id}")]
+        public IActionResult Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
-            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == G.GameId);
-            if (game != null)
-            {
-                game.GameName = G.GameName;
-                game.Questions = G.Questions;
-                game.AnswersDetail = G.AnswersDetail;
-                game.Answers = G.Answers;
-                game.IsActive = G.IsActive;
-                game.Rewards = G.Rewards;
-                game.Type = G.Type;
-                db.SaveChanges();
-            }
-            if (string.IsNullOrEmpty(category))
-            {
-                category = G.GameName;
-            }
-            return RedirectToAction("List", new { category = category });
+            _questionsService.DeleteQuestion(id);
+            return Success(id, "刪除成功", 200);
         }
-
-        // 刪除題目 - POST 方法
-        [HttpPost]
-        public IActionResult Delete(int id, string category = "")
-        {
-            PetDbContext db = new PetDbContext();
-            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == id);
-
-            if (game != null)
-            {
-                db.GameContents.Remove(game);
-                db.SaveChanges();
-            }
-
-            return RedirectToAction("List", new { category = category });
-        }
-
     }
 }

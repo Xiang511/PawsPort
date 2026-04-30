@@ -63,10 +63,10 @@ namespace PawsPort.Services
         public void DeleteReport(int id)
         {
             
-            var missingreport = _db.MissingReports.FirstOrDefault(p => p.ReportId == id);
-            if (missingreport != null)
+            var MissingReport = _db.MissingReports.FirstOrDefault(p => p.ReportId == id);
+            if (MissingReport != null)
             {
-                missingreport.DeletedAt = DateTime.Now;
+                MissingReport.DeletedAt = DateTime.Now;
                 _db.SaveChanges();
             }
         }

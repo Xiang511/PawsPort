@@ -2,6 +2,7 @@
 using PawsPort.Dtos;
 using PawsPort.Models;
 using Microsoft.EntityFrameworkCore;
+using System.Diagnostics;
 
 namespace PawsPort.Services
 {
@@ -15,7 +16,7 @@ namespace PawsPort.Services
         }
 
 
-       
+
         //=====新增文章(非同步)=====
         public async Task<int> CreateArticleAsync(ArticleSaveDTO articleDto)
         {
@@ -27,7 +28,7 @@ namespace PawsPort.Services
                 Title = articleDto.Title,
                 Content = articleDto.Content,
                 Status = articleDto.Status,
-             
+
                 EventStartDate = articleDto.EventStartDate,
                 EventEndDate = articleDto.EventEndDate,
                 EventLocation = articleDto.EventLocation,
@@ -42,7 +43,7 @@ namespace PawsPort.Services
                 LastReported = null,
                 DeleteTypeId = null,
                 DeleteNote = null
-               
+
             };
 
             //將Article實體添加到資料庫
@@ -151,32 +152,71 @@ namespace PawsPort.Services
             return true;
         }
 
-     
+
 
         //=====文章列表(所有文章)=====
-        //public async Task<List<ArticleDTO>> GetAllArticlesAsync()
-        //{
-        //    var Articles = await _context.Articles
-        //        .Where(a => a.IsExist == true)
-        //        .Select(a => new ArticleDTO
-        //        {
-        //            ArticleId = a.ArticleId,
-        //            Title = a.Title,
-        //            Content = a.Content,
-        //            Status = a.Status,
-        //            ViewCount = a.ViewCount,
-        //            ReportedCount = a.ReportedCount,
-        //            LastReported = a.LastReported,
-        //            EventStartDate = a.EventStartDate,
-        //            EventEndDate = a.EventEndDate,
-        //            EventLocation = a.EventLocation,
-        //            CreateAt = a.CreateAt,
-        //            LastEditTime = a.LastEditTime,
-        //            UserId = a.UserId,
-        //            CategoryId = a.CategoryId
-        //        }).ToListAsync();
-        //    return Articles;
-        //}
+        //使用參數來篩選，預設為null(不篩選)，有值的話才篩選
+        //status: 0:草稿,1:公開,2:私人
+        public async Task<List<ArticleListDTO>> GetAllArticlesAsync(int? status = null, bool? isActive = null, int? userId = null)
+        {
+            //撈文章+使用者名稱+分類名稱，轉換成ArticleListDTO
+            var query = from a in _context.Articles
+                        join u in _context.UserTables on a.UserId equals u.UserId
+                        join c in _context.Categories on a.CategoryId equals c.CategoryId
+                        where a.IsExist == true
+                        select new { a, u, c };
+            //加上篩選條件
+            if (status.HasValue)
+            {
+                query = query.Where(x => x.a.Status == status.Value);
+            }
+
+            if (isActive.HasValue)
+            {
+                query = query.Where(x => x.a.IsActive == isActive.Value);
+            }
+
+            if (userId.HasValue)
+            {
+                query = query.Where(x => x.a.UserId == userId.Value);
+            }
+            //
+            var ArticleList = await query.Select(x => new ArticleListDTO
+            {
+                ArticleId = x.a.ArticleId,
+                Title = x.a.Title,
+                //Summary = x.a.Content.Length > 100 ? x.a.Content.Substring(0, 100) + "..." : x.a.Content,
+                CreateAt = x.a.CreateAt,
+                LastEditTime = x.a.LastEditTime,
+                Status = x.a.Status,
+                ViewCount = x.a.ViewCount,
+                EventStartDate = x.a.EventStartDate,
+                EventEndDate = x.a.EventEndDate,
+                EventLocation = x.a.EventLocation,
+                CategoryName = x.c.CategoryName,
+                UserName = x.u.Name
+            }).ToListAsync();
+
+            //從文章列表中撈出文章id
+            var ArticleIds = ArticleList.Select(a => a.ArticleId).ToList();
+
+            //撈出對應的tagid
+            var Tags = await (from m in _context.ArticleTagMaps
+                              join t in _context.Tags on m.TagId equals t.TagId
+                              where ArticleIds.Contains(m.ArticleId) && m.IsExist == true
+                              select new
+                              {
+                                  m.ArticleId,
+                                  t.TagName
+                              }).ToListAsync();
+
+            //把tagname塞回對應的文章裡
+            foreach (var a in ArticleList)
+            {
+                a.TagNames = Tags.Where(t => t.ArticleId == a.ArticleId).Select(t => t.TagName).ToList();
+            }
+            return ArticleList;
+        }
 
 
         //=====查詢文章(文章id)=====

@@ -28,70 +28,32 @@ namespace PawsPort.Controllers
             _articleService = articleService;
         }
 
+        //取得所有文章
+        /// <summary>
+        /// 按照status、isActive、userId等條件取得所有文章
+        /// </summary>
+        /// <param name="queryDto">篩選條件</param>
+        /// <returns></returns>
+        /// <response code="200">取得所有文章成功</response>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto) 
+        {
+            var result = await _articleService.GetAllArticlesAsync(
+                status:queryDto.Status,
+                isActive:queryDto.IsActive,
+                userId:queryDto.UserId
+                );
+            return Success(result, "取得所有文章成功", 200);
 
+        }
 
-        //public IActionResult ArticleList(ArticleListViewModel vm) //貼文管理頁面
-        //{
-
-        //    using (PetDbContext db = new PetDbContext())
-        //    {
-        //        // 1. 基本查詢：只抓存在的文章，並包含 User 與 Category 資料
-        //        var query = db.Articles.Where(p => p.IsExist);
-
-        //        // 2. 關鍵字篩選 (標題、內容、作者)
-        //        if (!string.IsNullOrEmpty(vm.TxtKeyword))
-        //        {
-        //            var MatchUserIDs = db.UserTables.Where(u => u.Name.Contains(vm.TxtKeyword))
-        //                .Select(u => u.UserId).ToList();
-
-        //            query = query.Where(p => p.Title.Contains(vm.TxtKeyword)
-        //                                  || p.Content.Contains(vm.TxtKeyword)
-        //                                  || MatchUserIDs.Contains(p.UserId));
-        //        }
-
-        //        // 3. 計算總筆數
-        //        vm.TotalCount = query.Count();
-
-        //        // 4. 在 Select 時「現場去別張表抓資料」
-        //        vm.ArticleItem = query
-        //            .OrderByDescending(p => p.CreateAt)
-        //            .Skip((vm.CurrentPage - 1) * vm.PageSize)
-        //            .Take(vm.PageSize)
-        //            .Select(p => new ArticleItemViewModel
-        //            {
-        //                ArticleId = p.ArticleId,
-        //                UserId = p.UserId,
-        //                Title = p.Title,
-        //                CreateAt = p.CreateAt,
-        //                ViewCount = p.ViewCount,
-        //                IsExist = p.IsExist,
-
-        //                // 【抓作者名稱】去 UserTable 找 ID 一樣的那個人，取其 Name
-        //                AuthorName = db.UserTables
-        //                    .Where(u => u.UserId == p.UserId)
-        //                    .Select(u => u.Name)
-        //                    .FirstOrDefault() ?? "未知作者",
-
-        //                // 【抓分類名稱】去 Categories 找 ID 一樣的那組，取其 Name
-        //                CategoryName = db.Categories
-        //                    .Where(c => c.CategoryId == p.CategoryId)
-        //                    .Select(c => c.CategoryName)
-        //                    .FirstOrDefault() ?? "未分類",
-
-        //                // 【算留言數】去 Comments 找這篇文章的留言數量
-        //                CommentCount = db.Comments.Count(c => c.ArticleId == p.ArticleId && c.IsExist),
-
-        //                // 【算書籤數】去 Bookmarks 找這篇文章的收藏數量
-        //                BookmarkCount = db.Bookmarks.Count(b => b.ArticleId == p.ArticleId)
-        //            })
-        //            .ToList();
-
-        //        return View(vm);
-        //    }
-        //}
-
-
-
+        //新增文章
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
@@ -111,20 +73,24 @@ namespace PawsPort.Controllers
             }
         }
 
-
-
-
+        //編輯文章
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
         {
-         
-            if(id<=0)
+            if (id <= 0)
             {
                 return Failure("INVALID_ID", "無效的文章編號", 400);
             }
+
             //如果一致，呼叫service更新文章
             var result = await _articleService.UpdateArticleAsync(id, articleDto);
-            if(result == null)
+            if (result == null)
             {
                 //回傳找不到該編號文章
                 return Failure("ARTICLE_NOT_FOUND", "找不到該文章", 404);
@@ -137,6 +103,14 @@ namespace PawsPort.Controllers
 
         }
 
+
+
+        //軟刪除文章
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpDelete("{id}")] 
         public async Task<IActionResult> Delete(int id)
         {

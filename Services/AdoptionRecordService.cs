@@ -61,11 +61,11 @@ namespace PawsPort.Services
         public void DeleteRecord(int id)
         {
             
-            AdoptionRecord x = _db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == id);
+            AdoptionRecord AdoptRecord = _db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == id);
 
-            if (x != null)
+            if (AdoptRecord != null)
             {
-                _db.AdoptionRecords.Remove(x); // 你有提到未來要改軟刪除，可以在這裡改！
+                AdoptRecord.DeletedAt = DateTime.Now;
                 _db.SaveChanges();
             }
         }

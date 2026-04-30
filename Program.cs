@@ -36,7 +36,9 @@ builder.Services.AddDbContext<PetDbContext>(options =>
 
 // Service DI
 builder.Services.AddScoped<PassPortService>();
+builder.Services.AddScoped<PetService>();
 builder.Services.AddScoped<AdoptionRecordService>();
+builder.Services.AddScoped<MissingReportsService>();
 
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()

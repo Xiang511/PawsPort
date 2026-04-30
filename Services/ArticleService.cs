@@ -15,32 +15,34 @@ namespace PawsPort.Services
         }
 
 
-        //文章列表
-
-
-
+       
         //=====新增文章(非同步)=====
-        public async Task<CreateArticleDTO> CreateArticleAsync(CreateArticleDTO articleDto)
+        public async Task<int> CreateArticleAsync(ArticleSaveDTO articleDto)
         {
             //將ArticleDTO轉換為Article實體
             var ArticleEntity = new Article
             {
-                CreateAt = DateTime.UtcNow,
-                LastEditTime = DateTime.UtcNow,
+                UserId = articleDto.UserId,
+                CategoryId = articleDto.CategoryId,
                 Title = articleDto.Title,
                 Content = articleDto.Content,
                 Status = articleDto.Status,
+             
+                EventStartDate = articleDto.EventStartDate,
+                EventEndDate = articleDto.EventEndDate,
+                EventLocation = articleDto.EventLocation,
+
+                CreateAt = DateTime.UtcNow,
+                LastEditTime = DateTime.UtcNow,
                 ViewCount = 0,
+                IsExist = true,
+                IsActive = true,
+
                 ReportedCount = 0,
                 LastReported = null,
-                EventStartDate = null,
-                EventEndDate = null,
-                EventLocation = null,
-                IsExist = true,
-                UserId = articleDto.UserId,
-                CategoryId = articleDto.CategoryId,
                 DeleteTypeId = null,
                 DeleteNote = null
+               
             };
 
             //將Article實體添加到資料庫
@@ -64,9 +66,9 @@ namespace PawsPort.Services
             await _context.SaveChangesAsync();
 
             //將新增的Article實體轉換回ArticleDTO
-            articleDto.ArticleId = ArticleEntity.ArticleId;
+            //articleDto.ArticleId = ArticleEntity.ArticleId;
 
-            return articleDto;
+            return ArticleEntity.ArticleId;
         }
 
 
@@ -124,7 +126,7 @@ namespace PawsPort.Services
         }
 
 
-        //=====刪除文章=====
+        //=====刪除文章(非同步)=====
         public async Task<bool> DeleteArticleAsync(int id)
         {
             //去資料庫撈對應id的文章實體和標籤關聯
@@ -151,9 +153,45 @@ namespace PawsPort.Services
             return true;
         }
 
-        //查詢文章
+     
 
-        //活動列表
+        //=====文章列表(所有文章)=====
+        //public async Task<List<ArticleDTO>> GetAllArticlesAsync()
+        //{
+        //    var Articles = await _context.Articles
+        //        .Where(a => a.IsExist == true)
+        //        .Select(a => new ArticleDTO
+        //        {
+        //            ArticleId = a.ArticleId,
+        //            Title = a.Title,
+        //            Content = a.Content,
+        //            Status = a.Status,
+        //            ViewCount = a.ViewCount,
+        //            ReportedCount = a.ReportedCount,
+        //            LastReported = a.LastReported,
+        //            EventStartDate = a.EventStartDate,
+        //            EventEndDate = a.EventEndDate,
+        //            EventLocation = a.EventLocation,
+        //            CreateAt = a.CreateAt,
+        //            LastEditTime = a.LastEditTime,
+        //            UserId = a.UserId,
+        //            CategoryId = a.CategoryId
+        //        }).ToListAsync();
+        //    return Articles;
+        //}
+
+
+        //=====查詢文章(文章id)=====
+
+        //=====查詢文章(關鍵字)=====
+
+        //=====查詢文章(分類)=====
+
+        //=====查詢文章(標籤)=====
+
+        //=====查詢文章(使用者)=====
+
+        //=====活動列表=====
 
         //=====處理標籤 //private=====
         private async Task<List<Tag>> PrepareTagsAsync(List<string> TagNames)

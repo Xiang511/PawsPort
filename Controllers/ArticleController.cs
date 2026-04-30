@@ -93,7 +93,7 @@ namespace PawsPort.Controllers
 
 
         [HttpPost]
-        public async Task<IActionResult> Article([FromBody] CreateArticleDTO articleDto)
+        public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
             if (!ModelState.IsValid)
             {

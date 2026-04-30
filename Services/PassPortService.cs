@@ -98,11 +98,11 @@ namespace PawsPort.Services
         public void DeletePassport(int id)
         {
             
-            HealthPassport x = _db.HealthPassports.FirstOrDefault(p => p.PassportId == id);
+            var passport = _db.HealthPassports.FirstOrDefault(p => p.PassportId == id);
 
-            if (x != null)
+            if (passport != null)
             {
-                _db.HealthPassports.Remove(x);
+                passport.DeletedAt = DateTime.Now;
                 _db.SaveChanges();
             }
         }

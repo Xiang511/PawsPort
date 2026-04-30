@@ -43,21 +43,21 @@ namespace PawsPort.Services
             return users;
         }
 
-        public MemberSummaryDTO GetMemberSummary()
+        public async Task<MemberSummaryDTO> GetMemberSummaryAsync()
         {
-            int memberCount = _context.UserTables.Count(x => x.DeleteDay == null);
+            int memberCount = await _context.UserTables.CountAsync(x => x.DeleteDay == null);
 
             DateTime today = DateTime.Now;
             DateTime startOfMonth = new DateTime(today.Year, today.Month, 1);
             DateTime startOfNextMonth = startOfMonth.AddMonths(1);
 
-            int memberMonthSignUp = _context.UserTables.Count(u => u.CreatedAt >= startOfMonth && u.CreatedAt < startOfNextMonth);
-            int memberVerify = _context.UserTables.Count(x => x.IsVerify == true && x.DeleteDay == null);
+            int memberMonthSignUp = await _context.UserTables.CountAsync(u => u.CreatedAt >= startOfMonth && u.CreatedAt < startOfNextMonth);
+            int memberVerify = await _context.UserTables.CountAsync(x => x.IsVerify == true && x.DeleteDay == null);
             float verifyPercentage = memberCount > 0 ? ((float)memberVerify / memberCount) * 100 : 0;
             string displayVerify = verifyPercentage.ToString("F1");
 
             //Debug.WriteLine($"驗證比例: {displayVerify}%");
-            int memberRss = _context.UserTables.Count(x => x.IsSubscribe == true && x.DeleteDay == null);
+            int memberRss = await _context.UserTables.CountAsync(x => x.IsSubscribe == true && x.DeleteDay == null);
             return new MemberSummaryDTO
             {
                 MemberCount = memberCount,
@@ -69,7 +69,7 @@ namespace PawsPort.Services
 
 
 
-        public MemberUserDTO CreateUser(MemberUserDTO userDto)
+        public async Task<MemberUserDTO> CreateUserAsync(MemberUserDTO userDto)
         {
             // 將 DTO 轉換為 EF Core 實體
             var userEntity = new UserTable
@@ -95,20 +95,20 @@ namespace PawsPort.Services
             _context.SaveChanges();
 
             // 將儲存後的實體（包含自動生成的 UserId）轉回 DTO
-            userDto.UserId = userEntity.UserId;
-            userDto.CreatedAt = userEntity.CreatedAt;
-            userDto.UpdatedAt = userEntity.UpdatedAt;
+            userDto.UserId = await Task.FromResult(userEntity.UserId);
+            userDto.CreatedAt = await Task.FromResult(userEntity.CreatedAt);
+            userDto.UpdatedAt = await Task.FromResult(userEntity.UpdatedAt);
 
             return userDto;
         }
 
 
-        public MemberUserDTO GetUserInfoById(int? id)
+        public async Task<MemberUserDTO> GetUserInfoByIdAsync(int? id)
         {
             if (id == null)
                 return null;
 
-            var user = _context.UserTables
+            var user = await _context.UserTables
                 .Where(x => x.UserId == id && x.DeleteDay == null)
                 .Select(u => new MemberUserDTO
                 {
@@ -128,60 +128,60 @@ namespace PawsPort.Services
                     CreatedAt = u.CreatedAt,
                     UpdatedAt = u.UpdatedAt
                 })
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             return user;
         }
 
 
-        public bool UpdateUserInfo(MemberUserDTO userDto)
+        public async Task<bool> UpdateUserInfoAsync(MemberUserDTO userDto)
         {
-            var userEntity = _context.UserTables
+            var userEntity = await _context.UserTables
                 .Where(m => m.UserId == userDto.UserId && m.DeleteDay == null)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
-            if (userEntity == null)
+            if (userEntity == null || userDto == null)
                 return false;
 
             // 更新實體屬性
-            userEntity.Name = userDto.Name;
-            userEntity.Photo = userDto.Photo;
-            userEntity.Job = userDto.Job;
-            userEntity.Phone = userDto.Phone;
-            userEntity.Birthday = userDto.Birthday;
-            userEntity.City = userDto.City;
+            userEntity.Name = await Task.FromResult(userDto.Name);
+            userEntity.Photo = await Task.FromResult(userDto.Photo);
+            userEntity.Job = await Task.FromResult(userDto.Job);
+            userEntity.Phone = await Task.FromResult(userDto.Phone);
+            userEntity.Birthday = await Task.FromResult(userDto.Birthday);
+            userEntity.City = await Task.FromResult(userDto.City);
             userEntity.Point = userDto.Point ?? 0;
-            userEntity.Note = userDto.Note;
-            userEntity.HasPriorExp = userDto.HasPriorExp;
-            userEntity.Status = userDto.Status;
-            userEntity.IsSubscribe = userDto.IsSubscribe;
-            userEntity.IsVerify = userDto.IsVerify;
+            userEntity.Note = await Task.FromResult(userDto.Note);
+            userEntity.HasPriorExp = await Task.FromResult(userDto.HasPriorExp);
+            userEntity.Status = await Task.FromResult(userDto.Status);
+            userEntity.IsSubscribe = await Task.FromResult(userDto.IsSubscribe);
+            userEntity.IsVerify = await Task.FromResult(userDto.IsVerify);
             userEntity.UpdatedAt = DateTime.Now;
 
-            _context.SaveChanges();
+            await _context.SaveChangesAsync();
 
             // 更新 DTO 的 UpdatedAt
-            userDto.UpdatedAt = userEntity.UpdatedAt;
+            userDto.UpdatedAt = await Task.FromResult(userEntity.UpdatedAt);
 
             return true;
         }
 
 
-        public bool DeleteUser(int? id)
+        public async Task<bool> DeleteUserAsync(int? id)
         {
             if (id == null)
                 return false;
 
-            var userEntity = _context.UserTables
+            var userEntity = await _context.UserTables
                 .Where(m => m.UserId == id && m.DeleteDay == null)
-                .FirstOrDefault();
+                .FirstOrDefaultAsync();
 
             if (userEntity == null)
                 return false;
 
-            userEntity.DeleteDay = DateTime.Now;
-            userEntity.UpdatedAt = DateTime.Now;
-            _context.SaveChanges();
+            userEntity.DeleteDay = await Task.FromResult(DateTime.Now);
+            userEntity.UpdatedAt = await Task.FromResult(DateTime.Now);
+            await _context.SaveChangesAsync();
 
             return true;
         }

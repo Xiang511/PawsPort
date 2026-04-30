@@ -57,12 +57,11 @@ namespace PawsPort.Controllers
         /// <response code="200">成功創建會員</response>
         [HttpPost]
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        public IActionResult Members(MemberUserDTO user)
+        public async Task<IActionResult> Members(MemberUserDTO user)
         {
-            var result = _memberProfileService.CreateUser(user);
+            var result = await _memberProfileService.CreateUserAsync(user);
 
-            Log.Information("創建會員成功 名稱{result.Name}", result.Name);
-
+            Log.Information("創建會員成功 名稱{Name}", result.Name);
 
             return Success(result, "創建會員成功", 200);
         }
@@ -74,16 +73,13 @@ namespace PawsPort.Controllers
         /// <response code="200">成功取得統計資訊</response>
         [HttpGet("Summary")]
         [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
-        public IActionResult Summary()
+        public async Task<IActionResult> Summary()
         {
-
-
             // 取得會員統計資訊
-            var summary = _memberProfileService.GetMemberSummary();
+            var summary = await _memberProfileService.GetMemberSummaryAsync();
 
             return Success(summary, "成功取得統計資訊", 200);
         }
-
 
 
         /// <summary>
@@ -97,7 +93,7 @@ namespace PawsPort.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult UpdateMembers(int id, MemberUserDTO userDto)
+        public async Task<IActionResult> UpdateMembers(int id, MemberUserDTO userDto)
         {
             // 驗證路由中的 id 與 DTO 中的 UserId 是否一致
             if (id != userDto.UserId)
@@ -105,7 +101,7 @@ namespace PawsPort.Controllers
                 return Failure("USER_ID_MISMATCH", "會員ID不一致", 400);
             }
 
-            var result = _memberProfileService.UpdateUserInfo(userDto);
+            var result = await _memberProfileService.UpdateUserInfoAsync(userDto);
 
             if (result)
             {
@@ -131,7 +127,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public IActionResult Delete(string id)
+        public async Task<IActionResult> Delete(string id)
         {
             // 手動驗證 id 是否為空
             if (string.IsNullOrWhiteSpace(id))
@@ -140,7 +136,7 @@ namespace PawsPort.Controllers
             // 手動解析並驗證 id 是否為有效整數
             if (!int.TryParse(id, out int memberId))
                 return Failure("USER_ID_INVALID", "會員ID格式錯誤，必須是數字", 400);
-            var result = _memberProfileService.DeleteUser(memberId);
+            var result = await _memberProfileService.DeleteUserAsync(memberId);
 
             if (result)
             {

@@ -2,68 +2,95 @@
 using PawsPort.ViewModels; 
 using PawsPort.DTOs;
 using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class AdoptionRecordController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class AdoptionRecordController : ApiControllerBase
     {
         private readonly AdoptionRecordService _service;
+
         public AdoptionRecordController(AdoptionRecordService service)
         {
             _service = service;
         }
 
-
-        public IActionResult List(KeywordViewModel vm)
+        /// <summary>
+        /// 取得所有領養紀錄列表
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<AdoptionRecordListDto>), StatusCodes.Status200OK)]
+        public IActionResult List([FromQuery] string? keyword)
         {
-            // 直接呼叫 Service 幫我們做所有的資料庫查詢
-            var dtoList = _service.GetAdoptionRecords(vm.txtKeyword);
+            var dtoList = _service.GetAdoptionRecords(keyword);
 
-            // 把 DTO 傳給畫面 (在還沒轉成 API 之前，我們可以暫時把 DTO 當 ViewModel 傳給 View)
-            return View(dtoList);
-        }
-
-        
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        public IActionResult Create(AdoptionRecordCreateDto dto) // 直接接收 DTO
-        {
-            // 交給 Service 處理新增
-            _service.CreateRecord(dto);
-            return RedirectToAction("List");
-        }
-
-        
-        public IActionResult Delete(int? id)
-        {
-            if (id.HasValue)
+            if (dtoList == null || !dtoList.Any())
             {
-                _service.DeleteRecord(id.Value);
+                return NoContent();
             }
-            return RedirectToAction("List");
+
+            return Success(dtoList, "成功取得領養紀錄列表", 200);
         }
 
-        
-        public IActionResult Edit(int? id)
+        /// <summary>
+        /// 取得供編輯用的單筆領養資料
+        /// </summary>
+        [HttpGet("{id}/edit")]
+        public IActionResult GetEditData(int id)
         {
-            if (id == null) return RedirectToAction("List");
+            var dto = _service.GetRecordForEdit(id);
+            if (dto == null)
+                return Failure("RECORD_NOT_FOUND", "找不到指定的領養紀錄", 404);
 
-            var dto = _service.GetRecordForEdit(id.Value);
-
-            if (dto == null) return RedirectToAction("List");
-
-            return View(dto);
+            return Success(dto, "成功取得編輯資料", 200);
         }
 
+        /// <summary>
+        /// 創建新領養紀錄
+        /// </summary>
         [HttpPost]
-        public IActionResult Edit(AdoptionRecordEditDto dto) // 直接接收 DTO
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult Create([FromBody] AdoptionRecordCreateDto dto)
         {
+            _service.CreateRecord(dto);
+            Log.Information("創建領養紀錄成功 PetId:{PetId}, UserId:{UserId}", dto.PetId, dto.UserId);
+
+            return Success(dto, "新增領養紀錄成功！", 200);
+        }
+
+        /// <summary>
+        /// 更新領養紀錄
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Edit(int id, [FromBody] AdoptionRecordEditDto dto)
+        {
+            if (id != dto.AdoptionId)
+            {
+                return Failure("ID_MISMATCH", "領養紀錄ID不一致", 400);
+            }
+
             _service.UpdateRecord(dto);
-            return RedirectToAction("List");
+            Log.Information("更新領養紀錄成功 AdoptionId:{AdoptionId}", id);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// 刪除領養紀錄
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult Delete(int id)
+        {
+            _service.DeleteRecord(id);
+            Log.Information("刪除領養紀錄成功 AdoptionId:{AdoptionId}", id);
+
+            return NoContent();
         }
     }
 }

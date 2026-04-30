@@ -2,53 +2,96 @@
 using PawsPort.ViewModels;
 using PawsPort.Dtos;
 using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class PetController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class PetController : ApiControllerBase
     {
         private readonly PetService _service;
+
         public PetController(PetService service)
         {
             _service = service;
         }
 
-        public IActionResult List(KeywordViewModel vm)
+        /// <summary>
+        /// 取得所有寵物列表
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<PetListDto>), StatusCodes.Status200OK)]
+        public IActionResult List([FromQuery] string? keyword)
         {
-            var dtoList = _service.GetPets(vm.txtKeyword);
-            return View(dtoList);
+            var dtoList = _service.GetPets(keyword);
+
+            if (dtoList == null || !dtoList.Any())
+            {
+                return NoContent();
+            }
+
+            return Success(dtoList, "成功取得寵物列表", 200);
         }
 
-        public IActionResult Create() => View();
+        /// <summary>
+        /// 取得供編輯用的單筆寵物資料
+        /// </summary>
+        [HttpGet("{id}/edit")]
+        public IActionResult GetEditData(int id)
+        {
+            var dto = _service.GetPetForEdit(id);
+            if (dto == null)
+                return Failure("PET_NOT_FOUND", "找不到指定的寵物資料", 404);
 
+            return Success(dto, "成功取得編輯資料", 200);
+        }
+
+        /// <summary>
+        /// 創建新寵物資料
+        /// </summary>
         [HttpPost]
-        public IActionResult Create(PetCreateDto dto)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public IActionResult Create([FromBody] PetCreateDto dto)
         {
             _service.CreatePet(dto);
-            return RedirectToAction("List");
+            Log.Information("創建寵物資料成功 Name:{Name}", dto.Name);
+
+            return Success(dto, "新增寵物資料成功！", 200);
         }
 
-        public IActionResult Delete(int? id)
+        /// <summary>
+        /// 更新寵物資料
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public IActionResult Edit(int id, [FromBody] PetEditDto dto)
         {
-            if (id.HasValue) _service.SoftDeletePet(id.Value);
-            return RedirectToAction("List");
-        }
+            if (id != dto.PetId)
+            {
+                return Failure("ID_MISMATCH", "寵物ID不一致", 400);
+            }
 
-        public IActionResult Edit(int? id)
-        {
-            if (!id.HasValue) return RedirectToAction("List");
-
-            var dto = _service.GetPetForEdit(id.Value);
-            if (dto == null) return RedirectToAction("List");
-
-            return View(dto);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(PetEditDto dto)
-        {
             _service.UpdatePet(dto);
-            return RedirectToAction("List");
+            Log.Information("更新寵物資料成功 PetId:{PetId}", id);
+
+            return NoContent();
+        }
+
+        /// <summary>
+        /// 刪除寵物 (軟刪除)
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public IActionResult Delete(int id)
+        {
+            // 注意這裡對應的是你 Service 裡的 SoftDeletePet
+            _service.SoftDeletePet(id);
+            Log.Information("軟刪除寵物資料成功 PetId:{PetId}", id);
+
+            return NoContent();
         }
     }
 }

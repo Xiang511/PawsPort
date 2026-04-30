@@ -73,10 +73,10 @@ namespace PawsPort.Services
 
 
         //=====修改文章(非同步)=====
-        public async Task<UpdateArticleDTO> UpdateArticleAsync(UpdateArticleDTO articleDto)
+        public async Task<int?> UpdateArticleAsync(int id, ArticleSaveDTO articleDto)
         {
             //比對articleDto.articleId和資料庫裡的ArticleId，去資料庫撈出對應的文章實體
-            var ArticleEntity = await _context.Articles.FirstOrDefaultAsync(a => a.ArticleId == articleDto.ArticleId);
+            var ArticleEntity = await _context.Articles.FirstOrDefaultAsync(a => a.ArticleId == id);
 
             if (ArticleEntity == null)
             {
@@ -87,20 +87,18 @@ namespace PawsPort.Services
             {
                 //找到文章實體
                 //更新文章內容
-                ArticleEntity.CategoryId = articleDto.CategoryId;
-
                 ArticleEntity.LastEditTime = DateTime.UtcNow;
+                ArticleEntity.CategoryId = articleDto.CategoryId;
                 ArticleEntity.Title = articleDto.Title;
                 ArticleEntity.Content = articleDto.Content;
                 ArticleEntity.Status = articleDto.Status;   //狀態(0:草稿,1:公開,2:封鎖)
-                ArticleEntity.IsExist = articleDto.IsExist; //是否刪除
 
                 ArticleEntity.EventStartDate = articleDto.EventStartDate;
                 ArticleEntity.EventEndDate = articleDto.EventEndDate;
                 ArticleEntity.EventLocation = articleDto.EventLocation;
 
                 //先撈出原本的標籤關聯
-                var ExistingMaps = await _context.ArticleTagMaps.Where(m => m.ArticleId == articleDto.ArticleId).ToListAsync();
+                var ExistingMaps = await _context.ArticleTagMaps.Where(m => m.ArticleId == id).ToListAsync();
                 //這裡應該要改成停用舊的關聯(isExist = false)
                 foreach (var map in ExistingMaps)
                 {
@@ -113,7 +111,7 @@ namespace PawsPort.Services
                 //建立新的標籤關聯(一個map = tagID + articleID)
                 var NewMaps = NewTags.Select(t => new ArticleTagMap
                 {
-                    ArticleId = articleDto.ArticleId,
+                    ArticleId = id,
                     TagId = t.TagId
 
                 }).ToList();
@@ -122,7 +120,7 @@ namespace PawsPort.Services
                 //存回資料庫
                 await _context.SaveChangesAsync();
             }
-            return articleDto;
+            return ArticleEntity.ArticleId;
         }
 
 

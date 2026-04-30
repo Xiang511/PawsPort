@@ -115,17 +115,15 @@ namespace PawsPort.Controllers
 
 
         [HttpPut("{id}")]
-        public async Task<IActionResult> Article(int id, [FromBody] UpdateArticleDTO articleDto)
+        public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
         {
-            //檢查網址id與dto id是否一致
-            if (id != articleDto.ArticleId)
+         
+            if(id<=0)
             {
-                return Failure("ID_MISMATCH", "文章編號不符", 400);
-                //如果不一致，回傳文章編號不符
+                return Failure("INVALID_ID", "無效的文章編號", 400);
             }
-
             //如果一致，呼叫service更新文章
-            var result = await _articleService.UpdateArticleAsync(articleDto);
+            var result = await _articleService.UpdateArticleAsync(id, articleDto);
             if(result == null)
             {
                 //回傳找不到該編號文章

@@ -1,0 +1,95 @@
+name: Validate-Controller-Standards
+
+on:
+  push:
+    branches: [ '**' ]
+
+jobs:
+  validate-controller-standards:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0 # 獲取完整歷史以供 git diff 使用
+
+    - name: Run Integrated Validation
+      shell: pwsh
+      run: |
+        # 1. 取得自 dev 之後的變動檔案
+        Write-Host "正在檢查與 origin/dev 的差異..." -ForegroundColor Cyan
+        git fetch origin dev
+        
+        $changedFiles = git diff --name-only --diff-filter=AM origin/dev...HEAD | Where-Object { $_ -like "Controllers/*Controller.cs" }
+
+        if (-not $changedFiles) {
+            Write-Host "✅ 本次變更未包含任何 Controller 檔案，跳過檢查。" -ForegroundColor Green
+            exit 0
+        }
+
+        # 2. 開始檢查邏輯
+        $allViolations = @{}
+        $hasError = $false
+
+        foreach ($filePath in $changedFiles) {
+            if (-not (Test-Path $filePath)) { continue }
+
+            $content = Get-Content $filePath -Raw
+            $fileName = Split-Path $filePath -Leaf
+            $fileViolations = @()
+            
+            Write-Host "🔍 正在檢查: $fileName" -ForegroundColor Cyan
+            
+            # --- 規則 1: 檢查繼承 ---
+            if ($content -notmatch ":\s*ApiControllerBase") {
+                $fileViolations += "   ❌ 缺少繼承: 必須繼承自 ApiControllerBase"
+            }
+            
+            # --- 規則 2: 檢查非同步 (async Task) ---
+            # 檢查是否有同步的 ActionResult 或 IActionResult 方法（不含 async Task）
+            if ($content -match "public\s+(IActionResult|ActionResult)\s+\w+\(") {
+                $fileViolations += "   ⚠️  同步方法: 應改用 async Task<IActionResult>"
+            }
+            # 檢查是否有 Task 但缺少 async 關鍵字
+            if ($content -match "public\s+Task<(IActionResult|ActionResult)>\s+\w+\(" -and $content -notmatch "public\s+async\s+Task<") {
+                $fileViolations += "   ⚠️  缺少 async: Task<IActionResult> 方法必須加上 async 關鍵字"
+            }
+            
+            # --- 規則 3: 檢查建構子 (DI) ---
+            $className = [System.IO.Path]::GetFileNameWithoutExtension($fileName)
+            if ($content -notmatch "public\s+$className\s*\(") {
+                $fileViolations += "   ⚠️  缺少建構子: 可能未實作依賴注入 (DI)"
+            }
+            
+            # --- 規則 4: 檢查回傳方法 ---
+            # 檢查舊的 API 返回方式
+            if ($content -match "\breturn\s+(Ok|BadRequest|NotFound)\(") {
+                $fileViolations += "   ⚠️  回傳格式: 應改用 Success/Failure/NoContent"
+            }
+            # 檢查 MVC 返回方式（API Controller 不應使用）
+            if ($content -match "\breturn\s+(View|RedirectToAction|Redirect|PartialView|Json)\(") {
+                $fileViolations += "   ❌ MVC 回傳方式: API Controller 不應使用 View/RedirectToAction，應改用 Success/Failure"
+            }
+
+            # 彙整錯誤
+            if ($fileViolations.Count -gt 0) {
+                $allViolations[$fileName] = $fileViolations
+                $hasError = $true
+            }
+        }
+
+        # 3. 輸出結果
+        if ($hasError) {
+            Write-Host "`n[ 發現編碼標準違規 ] (僅針對您自 dev 之後的變更)" -ForegroundColor Red
+            foreach ($file in $allViolations.Keys) {
+                Write-Host "`n📄 檔案: $file" -ForegroundColor Yellow
+                foreach ($violation in $allViolations[$file]) {
+                    Write-Host $violation
+                }
+            }
+            Write-Host "`n請修正以上問題後再重新提交。" -ForegroundColor Red
+            exit 1
+        } else {
+            Write-Host "`n✅ 您所修改的 Controller 皆符合編碼標準！" -ForegroundColor Green
+        }

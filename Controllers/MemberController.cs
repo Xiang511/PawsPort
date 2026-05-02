@@ -1,11 +1,8 @@
-﻿using Humanizer;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
-using PawsPort.ViewModels;
 using Serilog;
-using System.Diagnostics;
 
 namespace PawsPort.Controllers
 {
@@ -157,7 +154,7 @@ namespace PawsPort.Controllers
         /// <response code="500">內部伺服器錯誤</response>
         [HttpGet("throw")]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public IActionResult ThrowError()
+        public async Task<IActionResult> ThrowError()
         {
             // 模擬一個非預期的噴錯
             throw new Exception("這是手動觸發的測試例外");

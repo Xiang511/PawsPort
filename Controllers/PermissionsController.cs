@@ -13,13 +13,11 @@ namespace PawsPort.Controllers
     [Produces("application/json")]
     public class PermissionsController : ApiControllerBase
     {
-        private readonly PetDbContext _context;
         private readonly MemberPermissionService _memberPermissionService;
 
 
         public PermissionsController(PetDbContext context, MemberPermissionService memberPermissionService)
         {
-            _context = context;
             _memberPermissionService = memberPermissionService;
         }
 

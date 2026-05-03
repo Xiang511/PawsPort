@@ -11,12 +11,10 @@ namespace PawsPort.Controllers
     [Produces("application/json")]
     public class MemberController : ApiControllerBase
     {
-        private readonly PetDbContext _context;
         private readonly MemberProfileService _memberProfileService;
 
         public MemberController(PetDbContext context, MemberProfileService memberProfileService)
         {
-            _context = context;
             _memberProfileService = memberProfileService;
         }
 

@@ -19,41 +19,67 @@ namespace PawsPort.Controllers
 
         // GET /api/Player
         [HttpGet]
-        public IActionResult List(int page = 1)
+        public async Task<IActionResult> List(int page = 1)
         {
-            var allPlayers = _playerService.GetPlayerList();
-
-            // 分頁邏輯保留在 Controller，因為這是呈現層細節
-            int pageSize = 10;
-            var pagedList = allPlayers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
-
-            return Success(new
+            try
             {
-                Data = pagedList,
-                CurrentPage = page,
-                TotalCount = allPlayers.Count
-            });
+                var allPlayers = await _playerService.GetPlayerListAsync();
+
+                int pageSize = 10;
+                var pagedList = allPlayers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                return Success(new
+                {
+                    Data = pagedList,
+                    CurrentPage = page,
+                    TotalCount = allPlayers.Count
+                }, "取得玩家列表成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 取得列表失敗");
+                return Failure("PLAYER_LIST_FAILED", "伺服器讀取玩家資料失敗", 500);
+            }
         }
 
         // PUT /api/Player/{id}
         [HttpPut("{id}")]
-        public IActionResult Edit(PlayerEditDTO EditDTO)
+        public async Task<IActionResult> Edit(int id, [FromBody] PlayerEditDTO EditDTO)
         {
-            Log.Information("playerid: {playerid}", EditDTO.PlayerId);
-            Log.Information("point: {point}", EditDTO.Point);
-            Log.Information("skinId: {skinId}", EditDTO.SkinId);
-            Log.Information("Enable: {Enable}", EditDTO.Enable);
-            Log.Information("-------------------------------");
-            _playerService.UpdatePlayer(EditDTO);
-            return Success(EditDTO, "更新成功", 200);
+            if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "網址 ID 與資料 ID 不符", 400);
+
+            try
+            {
+                await _playerService.UpdatePlayerAsync(EditDTO);
+                return Success(EditDTO, "更新成功", 200);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "玩家不存在" || ex.Message == "庫存不存在")
+                    return Failure("PLAYER_NOT_FOUND", ex.Message, 404);
+
+                Log.Error(ex, "PlayerController: 更新玩家 {id} 失敗", id);
+                return Failure("PLAYER_UPDATE_FAILED", "更新過程發生錯誤", 500);
+            }
         }
 
         // DELETE /api/Player/{id}
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            _playerService.DeletePlayer(id);
-            return Success(id, "刪除成功", 200);
+            try
+            {
+                await _playerService.DeletePlayerAsync(id);
+                return Success(id, "刪除成功", 200);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "玩家不存在")
+                    return Failure("PLAYER_NOT_FOUND", "找不到玩家", 404);
+
+                Log.Error(ex, "PlayerController: 刪除玩家 {id} 失敗", id);
+                return Failure("PLAYER_DELETE_FAILED", "刪除過程發生錯誤", 500);
+            }
         }
     }
 }

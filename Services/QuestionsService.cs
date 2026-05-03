@@ -14,8 +14,8 @@ namespace PawsPort.Services
             _db = db;
         }
 
-        // 取得題庫列表
-        public List<QuestionsListDTO> GetQuestionsList(string GameCategory)
+        // 取得題庫列表 (Async 版)
+        public async Task<List<QuestionsListDTO>> GetQuestionsListAsync(string GameCategory)
         {
             var query = _db.GameContents.AsQueryable();
 
@@ -24,7 +24,7 @@ namespace PawsPort.Services
                 query = query.Where(g => g.GameName == GameCategory);
             }
 
-            return query.Select(g => new QuestionsListDTO
+            return await query.Select(g => new QuestionsListDTO
             {
                 GameId = g.GameId,
                 GameName = g.GameName,
@@ -34,21 +34,21 @@ namespace PawsPort.Services
                 IsActive = g.IsActive,
                 Rewards = g.Rewards,
                 Type = g.Type
-            }).ToList();
+            }).ToListAsync();
         }
 
-        // 取得分類列表
-        public List<string> GetCategories()
+        // 取得分類列表 (Async 版)
+        public async Task<List<string>> GetCategoriesAsync()
         {
-            return _db.GameContents
+            return await _db.GameContents
                 .Select(g => g.GameName)
                 .Distinct()
                 .OrderBy(g => g)
-                .ToList();
+                .ToListAsync();
         }
 
-        // 新增題目
-        public void CreateQuestion(QuestionsCreateDTO QuestionsCreateDto)
+        // 新增題目 (Async 版)
+        public async Task CreateQuestionAsync(QuestionsCreateDTO QuestionsCreateDto)
         {
             var newGame = new GameContent
             {
@@ -62,14 +62,16 @@ namespace PawsPort.Services
             };
 
             _db.GameContents.Add(newGame);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             Log.Information("已新增題目: {GameName}", QuestionsCreateDto.GameName);
         }
 
-        // 更新題目
-        public void UpdateQuestion(QuestionsEditDTO QuestionsEditDto)
+        // 更新題目 (Async 版)
+        public async Task UpdateQuestionAsync(QuestionsEditDTO QuestionsEditDto)
         {
-            var game = _db.GameContents.FirstOrDefault(g => g.GameId == QuestionsEditDto.GameId);
+            // 使用 FirstOrDefaultAsync()
+            var game = await _db.GameContents.FirstOrDefaultAsync(g => g.GameId == QuestionsEditDto.GameId);
+
             if (game == null)
                 throw new Exception("題目不存在");
 
@@ -82,19 +84,21 @@ namespace PawsPort.Services
             game.Rewards = QuestionsEditDto.Rewards;
             game.Type = QuestionsEditDto.Type;
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync(); 
             Log.Information("題目 {GameId} 更新完成", QuestionsEditDto.GameId);
         }
 
-        // 刪除題目
-        public void DeleteQuestion(int id)
+        // 刪除題目 (Async 版)
+        public async Task DeleteQuestionAsync(int id)
         {
-            var game = _db.GameContents.FirstOrDefault(g => g.GameId == id);
+            // 使用 FirstOrDefaultAsync()
+            var game = await _db.GameContents.FirstOrDefaultAsync(g => g.GameId == id);
+
             if (game == null)
                 throw new Exception("題目不存在");
 
             _db.GameContents.Remove(game);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
             Log.Information("題目 ID: {GameId} 已刪除", id);
         }
     }

@@ -14,9 +14,11 @@ namespace PawsPort.Services
             _db = db;
         }
 
-        public List<PlayerListDTO> GetPlayerList()
+        public async Task<List<PlayerListDTO>> GetPlayerListAsync()
         {
-            return _db.PlayerProfiles
+            // 由於內部包含複雜選取與子查詢，建議先將主表非同步取出，
+            // 或是直接在 IQueryable 上使用 ToListAsync()
+            return await _db.PlayerProfiles
                 .Select(p => new PlayerListDTO
                 {
                     PlayerId = p.PlayerId,
@@ -37,15 +39,16 @@ namespace PawsPort.Services
                             SkinId = l.SkinId,
                             CreateTime = l.CreateTime,
                             AcquireType = l.AcquireType,
+                            // 注意：在 Select 內部使用同步 FirstOrDefault 是 EF Core 允許的轉譯，但外層必須非同步結束
                             SkinName = _db.SkinShops.FirstOrDefault(s => s.SkinId == l.SkinId).SkinName ?? "未知造型"
                         }).OrderByDescending(l => l.CreateTime).ToList(),
                     PointRecords = _db.PointTransactions.Where(pr => pr.PlayerId == p.PlayerId).OrderByDescending(pr => pr.TransactionDate).ToList()
-                }).ToList();
+                }).ToListAsync();
         }
 
-        public void UpdatePlayer(PlayerEditDTO EditDTO)
+        public async Task UpdatePlayerAsync(PlayerEditDTO EditDTO)
         {
-            var player = _db.PlayerProfiles.FirstOrDefault(p => p.PlayerId == EditDTO.PlayerId);
+            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == EditDTO.PlayerId);
             if (player == null)
                 throw new Exception("玩家不存在");
 
@@ -64,14 +67,14 @@ namespace PawsPort.Services
                 //}
                 Log.Information("SkinId: {SkinId}", EditDTO.SkinId);
                 Log.Information("playerId: {playerId}", EditDTO.PlayerId);
-                var inventory = _db.Inventories.FirstOrDefault(i =>  i.SkinId == EditDTO.SkinId && i.PlayerId == EditDTO.PlayerId);
+                var inventory = await _db.Inventories.FirstOrDefaultAsync(i =>  i.SkinId == EditDTO.SkinId && i.PlayerId == EditDTO.PlayerId);
                 if (inventory == null) {
                     throw new Exception("庫存不存在");
                 }
 
 
                 inventory.Enable = EditDTO.Enable;
-                Log.Information("已經找到目標{inventory}", inventory);
+                Log.Information("PlayerService: 玩家 {PlayerId} 與庫存更新完成", EditDTO);
                 //if (inventory != null)
                 //{
                 //    Log.Information("finish");
@@ -82,18 +85,22 @@ namespace PawsPort.Services
             //}
         }
 
-        public void DeletePlayer(int id)
+        public async Task DeletePlayerAsync(int id)
         {
-            var player = _db.PlayerProfiles.FirstOrDefault(p => p.PlayerId == id);
+            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == id);
             if (player == null)
                 throw new Exception("玩家不存在");
-            //if (player != null)
-            //{
-                _db.Inventories.RemoveRange(_db.Inventories.Where(i => i.PlayerId == id));
-                _db.GameHistories.RemoveRange(_db.GameHistories.Where(h => h.PlayerId == id));
-                _db.PlayerProfiles.Remove(player);
-                _db.SaveChanges();
-            //}
+
+            // 移除關聯資料
+            var inventories = _db.Inventories.Where(i => i.PlayerId == id);
+            var histories = _db.GameHistories.Where(h => h.PlayerId == id);
+
+            _db.Inventories.RemoveRange(inventories);
+            _db.GameHistories.RemoveRange(histories);
+            _db.PlayerProfiles.Remove(player);
+
+            await _db.SaveChangesAsync();
+            Log.Information("PlayerService: 玩家 ID {id} 及其關聯資料已刪除", id);
         }
 
     }

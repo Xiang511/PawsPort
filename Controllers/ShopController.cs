@@ -11,41 +11,55 @@ namespace PawsPort.Controllers
     {
         private readonly ShopService _shopService;
 
-        public ShopController(ShopService shopService) => _shopService = shopService;
-
-        [HttpGet]
-        public IActionResult List() => Success(_shopService.GetShopList(), "取得成功", 200);
-
-        [HttpPost]
-        public IActionResult Create(ShopCreateDTO dto)
+        public ShopController(ShopService shopService)
         {
-            Log.Information("ShopController: 收到 JSON 新增商品請求: {SkinName}", dto.SkinName);
-            // 圖片驗證檢查
+            _shopService = shopService;
+        }
 
+        // GET /api/Shop
+        [HttpGet]
+        public async Task<IActionResult> List()
+        {
             try
             {
-                _shopService.Create(dto);
-                return Success<object>(null, "建立成功", 201);
+                var data = await _shopService.GetShopListAsync();
+                return Success(data, "取得商品列表成功", 200);
             }
             catch (Exception ex)
             {
-                Log.Information(ex, "ShopController: 新增商品失敗");
+                Log.Error(ex, "ShopController: 取得商品列表時發生異常");
+                return Failure("SHOP_LIST_ERROR", "伺服器目前無法讀取商品資料，請稍後再試", 500);
+            }
+        }
+
+        // POST /api/Shop
+        [HttpPost]
+        public async Task<IActionResult> Create(ShopCreateDTO dto)
+        {
+            Log.Information("ShopController: 收到 JSON 新增商品請求: {SkinName}", dto.SkinName);
+
+            try
+            {
+                await _shopService.CreateAsync(dto);
+                return Success<object>(dto, "建立成功", 201);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "ShopController: 新增商品失敗");
                 return Failure("SHOP_CREATE_FAILED", "伺服器儲存資料失敗", 500);
             }
         }
 
+        // PUT /api/Shop/{id}
         [HttpPut("{id}")]
-        public IActionResult Edit(int id, ShopEditDTO dto)
+        public async Task<IActionResult> Edit(int id, ShopEditDTO dto)
         {
-            // 1. 參數驗證失敗 (400)
             if (id != dto.SkinId) return Failure("SHOP_ID_MISMATCH", "網址 ID 與資料 ID 不符", 400);
 
-            // 2. 圖片驗證失敗 (400)
-            
             try
             {
-                _shopService.Update(dto);
-                return Success<object>(null, "更新成功", 200);
+                await _shopService.UpdateAsync(dto);
+                return Success<object>(dto, "更新成功", 200);
             }
             catch (Exception ex)
             {
@@ -57,17 +71,17 @@ namespace PawsPort.Controllers
             }
         }
 
+        // DELETE /api/Shop/{id}
         [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                _shopService.Delete(id);
-                return Success<object>(null, "刪除成功", 200);
+                await _shopService.DeleteAsync(id);
+                return Success<object>(id, "刪除成功", 200);
             }
             catch (Exception ex)
             {
-                // 找不到資料回 404
                 if (ex.Message == "商品不存在")
                     return Failure("SHOP_NOT_FOUND", "找不到指定的商品", 404);
 

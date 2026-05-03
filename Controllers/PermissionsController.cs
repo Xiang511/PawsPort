@@ -122,7 +122,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
 
-        public async Task<IActionResult> Edit(int? mappingId, MemberPermissionUpdateRole user)
+        public async Task<IActionResult> Edit(int? mappingId, MemberPermissionUpdateRoleDTO user)
         {
             // 驗證路由參數：mappingId 不可為 null 或小於 0
             if (mappingId == null || mappingId < 0)

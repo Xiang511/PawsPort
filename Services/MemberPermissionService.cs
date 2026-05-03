@@ -78,7 +78,7 @@ namespace PawsPort.Services
             return true;
 
         }
-        public async Task<bool> UpdateMemberPermissionRoleAsync(int? mappingId, MemberPermissionUpdateRole user)
+        public async Task<bool> UpdateMemberPermissionRoleAsync(int? mappingId, MemberPermissionUpdateRoleDTO user)
         {
 
             var userEntity = await _context.UserSystemRoles.FindAsync(mappingId);
@@ -108,7 +108,7 @@ namespace PawsPort.Services
             return true;
 
         }
-        public async Task<bool> CheckMemberPermissionExistAsync(MemberPermissionUpdateRole user)
+        public async Task<bool> CheckMemberPermissionExistAsync(MemberPermissionUpdateRoleDTO user)
         {
             var exists = await _context.UserSystemRoles.AnyAsync(usr => usr.UserId == user.UserId
                && usr.SystemId == user.SystemId

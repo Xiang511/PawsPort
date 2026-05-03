@@ -14,7 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 // 註冊應用程式服務
 builder.Services.AddScoped<MemberProfileService>();
-
+builder.Services.AddScoped<MemberPermissionService>();
 // 註冊資料庫連線
 // 優先順序: User Secrets > 環境變數 > appsettings.json
 string? isLocal = builder.Configuration["IS_LOCAL"];
@@ -35,53 +35,22 @@ else
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-// 設定 Serilog
+
+// 設定 Serilog - 完全從 appsettings.json 讀取
 var loggerConfig = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration)
-    .MinimumLevel.Information()
-    .Enrich.FromLogContext()
+    .ReadFrom.Configuration(builder.Configuration) 
+    .Enrich.FromLogContext();
 
-    // 1. Console 輸出（開發環境用）
-    .WriteTo.Console()
-
-    // 2. 一般日誌：每天分檔 + 大小限制 (10MB)
-    .WriteTo.File(
-        path: "logs/all-log-.txt",
-        rollingInterval: RollingInterval.Day,
-        rollOnFileSizeLimit: true,          // 開啟大小限制分檔
-        fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
-        retainedFileCountLimit: 31,         // 保留最近 31 個檔案
-        shared: true                        // 若有多個程序讀取建議加上
-    )
-
-    // 3. 錯誤日誌：篩選 Error 以上 + 大小限制 (5MB)
-    .WriteTo.Logger(lc => lc
-        .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
-        .WriteTo.File(
-            path: "logs/only-errors-.txt",
-            rollingInterval: RollingInterval.Day,
-            rollOnFileSizeLimit: true,
-            fileSizeLimitBytes: 5 * 1024 * 1024, // 錯誤日誌通常較小，設 5MB
-            retainedFileCountLimit: null         // 不限制數量，確保錯誤記錄不丟失
-        )
-    );
-
-// 4. Seq 伺服器（根據環境變數決定是否啟用）
+// Seq 可以保留在程式碼中動態控制
 string? seqEnabled = builder.Configuration["SEQ_ENABLED"];
 if (seqEnabled?.ToLower() == "true")
 {
-    string seqUrl = "http://localhost:5341";
-    loggerConfig.WriteTo.Seq(seqUrl);
-    Console.WriteLine($" Seq 日誌已啟用: {seqUrl}");
-}
-else
-{
-    Console.WriteLine(" Seq 日誌未啟用");
+    loggerConfig.WriteTo.Seq("http://localhost:5341");
 }
 
 Log.Logger = loggerConfig.CreateLogger();
-
 builder.Host.UseSerilog();
+
 
 
 builder.Services.AddOpenApi(options =>

@@ -27,7 +27,7 @@ namespace PawsPort.Controllers
 
                 return Success(new
                 {
-                    Data = data,
+                    QuestionContent = data,
                     Categories = categories,
                     SelectedCategory = category
                 }, "取得成功", 200);

@@ -41,8 +41,6 @@ public partial class PetDbContext : DbContext
 
     public virtual DbSet<Inventory> Inventories { get; set; }
 
-    public virtual DbSet<InventoryLog> InventoryLogs { get; set; }
-
     public virtual DbSet<LineBot> LineBots { get; set; }
 
     public virtual DbSet<LoginActivity> LoginActivities { get; set; }
@@ -60,8 +58,6 @@ public partial class PetDbContext : DbContext
     public virtual DbSet<Pet> Pets { get; set; }
 
     public virtual DbSet<PlayerProfile> PlayerProfiles { get; set; }
-
-    public virtual DbSet<PointRecord> PointRecords { get; set; }
 
     public virtual DbSet<QARecord> QARecords { get; set; }
 
@@ -83,7 +79,7 @@ public partial class PetDbContext : DbContext
     {
         modelBuilder.Entity<AdoptionRecord>(entity =>
         {
-            entity.HasKey(e => e.AdoptionId).HasName("PK__Adoption__38BABF2C5F76E3B7");
+            entity.HasKey(e => e.AdoptionId).HasName("PK__Adoption__38BABF2CFB71A6C7");
 
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
             entity.Property(e => e.ReturnReason).HasMaxLength(255);
@@ -91,7 +87,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Article>(entity =>
         {
-            entity.HasKey(e => e.ArticleId).HasName("PK__Article__9C6270C8FCFC7842");
+            entity.HasKey(e => e.ArticleId).HasName("PK__Article__9C6270C8AD6CC885");
 
             entity.ToTable("Article");
 
@@ -116,7 +112,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<ArticleImage>(entity =>
         {
-            entity.HasKey(e => e.ImageId).HasName("PK__ArticleI__7516F4EC26D19839");
+            entity.HasKey(e => e.ImageId).HasName("PK__ArticleI__7516F4EC49792289");
 
             entity.ToTable("ArticleImage");
 
@@ -140,7 +136,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Bookmark>(entity =>
         {
-            entity.HasKey(e => e.BookmarkId).HasName("PK__Bookmark__541A3A910CAF6D7F");
+            entity.HasKey(e => e.BookmarkId).HasName("PK__Bookmark__541A3A916D1B7E99");
 
             entity.ToTable("Bookmark");
 
@@ -160,7 +156,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Category>(entity =>
         {
-            entity.HasKey(e => e.CategoryId).HasName("PK__Category__19093A2BFB921E73");
+            entity.HasKey(e => e.CategoryId).HasName("PK__Category__19093A2BF4D944A3");
 
             entity.ToTable("Category");
 
@@ -185,7 +181,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Chatroom>(entity =>
         {
-            entity.HasKey(e => e.ChatroomId).HasName("PK__Chatroom__B83BDF286C1EC973");
+            entity.HasKey(e => e.ChatroomId).HasName("PK__Chatroom__B83BDF28F6BEFEC6");
 
             entity.HasIndex(e => new { e.UserId1, e.UserId2 }, "IX_Unique_Chatroom_Active")
                 .IsUnique()
@@ -203,7 +199,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Comment>(entity =>
         {
-            entity.HasKey(e => e.CommentId).HasName("PK__Comment__C3B4DFAA0DEBFA74");
+            entity.HasKey(e => e.CommentId).HasName("PK__Comment__C3B4DFAAAB98B007");
 
             entity.ToTable("Comment");
 
@@ -226,7 +222,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<ENewsletter>(entity =>
         {
-            entity.HasKey(e => e.NewsLetterId).HasName("PK__E-Newsle__7F740FC228E1C026");
+            entity.HasKey(e => e.NewsLetterId).HasName("PK__E-Newsle__7F740FC231D22849");
 
             entity.ToTable("E-Newsletter");
 
@@ -234,6 +230,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Content)
                 .IsRequired()
                 .HasMaxLength(500);
+            entity.Property(e => e.Image).HasColumnType("image");
             entity.Property(e => e.Note).HasMaxLength(100);
             entity.Property(e => e.PublishDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(100);
@@ -247,7 +244,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Faq>(entity =>
         {
-            entity.HasKey(e => e.Faqid).HasName("PK__FAQ__4B89D18239393225");
+            entity.HasKey(e => e.Faqid).HasName("PK__FAQ__4B89D18203BC7E51");
 
             entity.ToTable("FAQ");
 
@@ -274,7 +271,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Following>(entity =>
         {
-            entity.HasKey(e => e.FollowingIdPk).HasName("PK__Followin__A05EF690A3170F27");
+            entity.HasKey(e => e.FollowingIdPk).HasName("PK__Followin__A05EF690720D49B2");
 
             entity.ToTable("Following");
 
@@ -294,7 +291,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<GameContent>(entity =>
         {
-            entity.HasKey(e => e.GameId).HasName("PK__GameCont__2AB897FD9A2713A5");
+            entity.HasKey(e => e.GameId).HasName("PK__GameCont__2AB897FD3735498C");
 
             entity.ToTable("GameContent");
 
@@ -312,7 +309,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<GameHistory>(entity =>
         {
-            entity.HasKey(e => e.HistoryId).HasName("PK__GameHist__4D7B4ABD93BB3055");
+            entity.HasKey(e => e.HistoryId).HasName("PK__GameHist__4D7B4ABD89768E3B");
 
             entity.ToTable("GameHistory");
 
@@ -321,7 +318,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<HealthPassport>(entity =>
         {
-            entity.HasKey(e => e.PassportId).HasName("PK__HealthPa__185653D0B2D734DC");
+            entity.HasKey(e => e.PassportId).HasName("PK__HealthPa__185653D06058BF3A");
 
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
@@ -332,25 +329,16 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Inventory>(entity =>
         {
-            entity.HasKey(e => e.InventoryId).HasName("PK__Inventor__F5FDE6B3099E4C03");
+            entity.HasKey(e => e.InventoryId).HasName("PK__Inventor__F5FDE6B372FD8DFC");
 
             entity.ToTable("Inventory");
 
             entity.Property(e => e.CreateTime).HasColumnType("datetime");
         });
 
-        modelBuilder.Entity<InventoryLog>(entity =>
-        {
-            entity.HasKey(e => e.LogId).HasName("PK__Inventor__5E5486488E9E3ABF");
-
-            entity.ToTable("InventoryLog");
-
-            entity.Property(e => e.CreateTime).HasColumnType("datetime");
-        });
-
         modelBuilder.Entity<LineBot>(entity =>
         {
-            entity.HasKey(e => e.Id).HasName("PK__LINE Bot__3214EC07B83C3983");
+            entity.HasKey(e => e.Id).HasName("PK__LINE Bot__3214EC073A3D60D1");
 
             entity.ToTable("LINE Bot");
 
@@ -370,7 +358,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<LoginActivity>(entity =>
         {
-            entity.HasKey(e => e.LogId).HasName("PK__LoginAct__5E5499A8F3532348");
+            entity.HasKey(e => e.LogId).HasName("PK__LoginAct__5E5499A8118BEBDE");
 
             entity.ToTable("LoginActivity");
 
@@ -390,7 +378,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<MedicalHistory>(entity =>
         {
-            entity.HasKey(e => e.MedicalDetailId).HasName("PK__MedicalH__DC48BDDEC2BCB5EA");
+            entity.HasKey(e => e.MedicalDetailId).HasName("PK__MedicalH__DC48BDDE3680181A");
 
             entity.ToTable("MedicalHistory");
 
@@ -405,7 +393,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Message>(entity =>
         {
-            entity.HasKey(e => e.MessageId).HasName("PK__Messages__C87C037CFC229C34");
+            entity.HasKey(e => e.MessageId).HasName("PK__Messages__C87C037CEE232A67");
 
             entity.Property(e => e.MessageId).HasColumnName("MessageID");
             entity.Property(e => e.ChatroomId).HasColumnName("ChatroomID");
@@ -423,7 +411,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<MissingReport>(entity =>
         {
-            entity.HasKey(e => e.ReportId).HasName("PK__MissingR__D5BD4805B3C9F206");
+            entity.HasKey(e => e.ReportId).HasName("PK__MissingR__D5BD4805ACDF46F9");
 
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
@@ -436,7 +424,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Notify>(entity =>
         {
-            entity.HasKey(e => e.NotifyId).HasName("PK__Notify__AD54A2DC500F89AC");
+            entity.HasKey(e => e.NotifyId).HasName("PK__Notify__AD54A2DCB1FCAC96");
 
             entity.ToTable("Notify");
 
@@ -458,7 +446,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<OauthTable>(entity =>
         {
-            entity.HasKey(e => e.OauthId).HasName("PK__OAuthTab__BE2FE48D434D83AB");
+            entity.HasKey(e => e.OauthId).HasName("PK__OAuthTab__BE2FE48D89FA9442");
 
             entity.ToTable("OAuthTable");
 
@@ -474,7 +462,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Pet>(entity =>
         {
-            entity.HasKey(e => e.PetId).HasName("PK__Pets__48E53862BEB8D9AA");
+            entity.HasKey(e => e.PetId).HasName("PK__Pets__48E5386293C6D7A4");
 
             entity.Property(e => e.BehavioralTraits).HasMaxLength(255);
             entity.Property(e => e.CoatColor).HasMaxLength(100);
@@ -488,19 +476,9 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<PlayerProfile>(entity =>
         {
-            entity.HasKey(e => e.PlayerId).HasName("PK__PlayerPr__4A4E74C81354BA18");
+            entity.HasKey(e => e.PlayerId).HasName("PK__PlayerPr__4A4E74C843E6CFF2");
 
             entity.ToTable("PlayerProfile");
-        });
-
-        modelBuilder.Entity<PointRecord>(entity =>
-        {
-            entity.HasKey(e => e.PointDetailId).HasName("PK__PointRec__C990F4979D6C36C5");
-
-            entity.ToTable("PointRecord");
-
-            entity.Property(e => e.CreateTime).HasColumnType("datetime");
-            entity.Property(e => e.Upstream).HasMaxLength(50);
         });
 
         modelBuilder.Entity<QARecord>(entity =>
@@ -532,7 +510,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<RoleTable>(entity =>
         {
-            entity.HasKey(e => e.RoleId).HasName("PK__RoleTabl__8AFACE1AAF467F62");
+            entity.HasKey(e => e.RoleId).HasName("PK__RoleTabl__8AFACE1A5B85459C");
 
             entity.ToTable("RoleTable");
 
@@ -543,7 +521,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<SkinShop>(entity =>
         {
-            entity.HasKey(e => e.SkinId).HasName("PK__SkinShop__9A70C30B6625BB79");
+            entity.HasKey(e => e.SkinId).HasName("PK__SkinShop__9A70C30BF7693005");
 
             entity.ToTable("SkinShop");
 
@@ -562,7 +540,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<SystemTable>(entity =>
         {
-            entity.HasKey(e => e.SystemId).HasName("PK__SystemTa__9394F68A35B3F12F");
+            entity.HasKey(e => e.SystemId).HasName("PK__SystemTa__9394F68ABD3F5F42");
 
             entity.ToTable("SystemTable");
 
@@ -575,13 +553,13 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<UserAuthTable>(entity =>
         {
-            entity.HasKey(e => e.AuthId).HasName("PK__UserAuth__12C15DD325C62705");
+            entity.HasKey(e => e.AuthId).HasName("PK__UserAuth__12C15DD37E33C921");
 
             entity.ToTable("UserAuthTable");
 
-            entity.HasIndex(e => e.UserId, "UQ__UserAuth__1788CC4DEEF5CF04").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__UserAuth__1788CC4D37EECCA2").IsUnique();
 
-            entity.HasIndex(e => e.Email, "UQ__UserAuth__A9D10534F7B7A7F0").IsUnique();
+            entity.HasIndex(e => e.Email, "UQ__UserAuth__A9D10534CC301F2B").IsUnique();
 
             entity.Property(e => e.Email)
                 .IsRequired()
@@ -595,7 +573,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<UserSystemRole>(entity =>
         {
-            entity.HasKey(e => e.MappingId).HasName("PK__UserSyst__8B5781BD3F003F93");
+            entity.HasKey(e => e.MappingId).HasName("PK__UserSyst__8B5781BD194B8F8F");
 
             entity.ToTable("UserSystemRole");
 
@@ -607,7 +585,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<UserTable>(entity =>
         {
-            entity.HasKey(e => e.UserId).HasName("PK__UserTabl__1788CC4C94BD83FB");
+            entity.HasKey(e => e.UserId).HasName("PK__UserTabl__1788CC4CEBF35F31");
 
             entity.ToTable("UserTable");
 
@@ -634,7 +612,7 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<VaccinationStatus>(entity =>
         {
-            entity.HasKey(e => e.HistoryId).HasName("PK__Vaccinat__4D7B4ABD6CC0117D");
+            entity.HasKey(e => e.HistoryId).HasName("PK__Vaccinat__4D7B4ABDE6A03C9C");
 
             entity.ToTable("VaccinationStatus");
 

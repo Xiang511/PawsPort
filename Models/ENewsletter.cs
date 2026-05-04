@@ -24,4 +24,6 @@ public partial class ENewsletter
     public string Note { get; set; }
 
     public int UserId { get; set; }
+
+    public byte[] Image { get; set; }
 }

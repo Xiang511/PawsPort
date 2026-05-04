@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.OpenApi;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
+﻿using Microsoft.EntityFrameworkCore;
 using PawsPort.Middlewares;
 using PawsPort.Models;
 using PawsPort.Services;
@@ -33,6 +31,10 @@ else
 
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<FaqService>();
+
+builder.Services.AddScoped<QaService>();
 
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()

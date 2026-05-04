@@ -25,39 +25,43 @@ namespace PawsPort.Services
             //output:新分類Id
 
             int TargetLevel = 0; //預設為大分類
-            int FinalSort = 0;
 
-
-            //如果parentid有值=是子分類
-            if (categorySaveDTO.ParentId.HasValue)
+            //如果parentid沒有值(null):預設給0(最大分類)
+            if (!categorySaveDTO.ParentId.HasValue)
             {
+                TargetLevel = 0;
+            }
+            else
+            {
+                //如果parentid有值=是子分類
                 //去撈parent id的資料
-                var ParentCategory = await _context.Categories
+                var Parent = await _context.Categories
                     .FirstOrDefaultAsync(p => p.CategoryId == categorySaveDTO.ParentId && p.IsExist == true);
 
-                //檢查parent id是否存在，且level為0(最上層)
-                if (ParentCategory == null) throw new Exception("找不到指定的父分類");
-                if (ParentCategory.Level >= 2) throw new Exception("目前僅支援三層分類結構，該分類無法再擁有子分類");
+                //檢查parent id是否存在，且level >=2(最多只能到1)
+                if (Parent == null) throw new Exception("找不到指定的父分類");
+                if (Parent.Level >= 2) throw new Exception("目前僅支援三層分類結構，該分類無法再擁有子分類");
 
                 //驗證ok，此分類的level基於父分類level+1
-                TargetLevel = ParentCategory.Level + 1;
+                TargetLevel = (Parent.Level ?? 0) + 1;
             }
 
             //自動排序
-            if (categorySaveDTO.SortOrder == 0)
+            int FinalSort = 0;
+            if (!categorySaveDTO.SortOrder.HasValue)
             {
                 //沒有傳入排序的話
-                //找同一個parent id下有幾個子分類，取最大值並+1
-                //沒資料(null)的話，值就會=0
-                 var MaxSort = await _context.Categories.Where(m => m.ParentId == categorySaveDTO.ParentId)
-                    .Select(m => (int?)m.SortOrder)
-                    .MaxAsync();
-                FinalSort = MaxSort.HasValue ? MaxSort.Value+1 : 0;
+                //MaxAsync:找同一個parent id下，sortorder欄位的最大值
+                var MaxSort = await _context.Categories.Where(m => m.ParentId == categorySaveDTO.ParentId && m.IsExist == true)
+                   .Select(m => (int?)m.SortOrder)
+                   .MaxAsync();
+                //如果maxsort=null，那排序=0(-1+1)，如果maxsort=0，那排序=1(0+1)
+                FinalSort = (MaxSort ?? -1) + 1;
             }
             else
             {
                 //有輸入排序
-                FinalSort = categorySaveDTO.SortOrder;
+                FinalSort = categorySaveDTO.SortOrder.Value;
             }
 
             //建立新的分類實體，並設定屬性
@@ -83,7 +87,60 @@ namespace PawsPort.Services
 
 
         //編輯分類
+        public async Task<int> UpdateCategoryAsync(int id, CategorySaveDTO categorySaveDTO)
+        {
+            //先去撈看看有沒有對應id的分類
+            var CategoryEntity = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == id && c.IsExist == true);
+            //沒有就回傳找不到
+            if (CategoryEntity == null) throw new Exception("找不到指定的分類");
 
+            //處理層級，避免人為任意修改
+            int TargetLevel = 0;
+            if (categorySaveDTO.ParentId.HasValue)
+            {
+                if (categorySaveDTO.ParentId == id) throw new Exception("父分類不能設定為分類自己本身");
+                var Parent = await _context.Categories
+                    .FirstOrDefaultAsync(p => p.CategoryId == categorySaveDTO.ParentId && p.IsExist == true);
+                if (Parent == null) throw new Exception("找不到指定的父分類");
+                if (Parent.Level >= 2) throw new Exception("分類層級過深，不支援此結構"); //最多層級到2，由於必須+1，父分類層級最多到1
+                
+                TargetLevel = (Parent.Level ?? 0) + 1;
+            }
+
+            //自動排序
+            //如果沒有傳入排序，或換了父分類(實體與傳入不相等)，會自動排序到最尾
+            bool NeedReSort = !categorySaveDTO.SortOrder.HasValue || CategoryEntity.ParentId != categorySaveDTO.ParentId;
+            int FinalSort = 0;
+
+            if (NeedReSort)
+            {
+                //沒有傳入排序的話
+                //MaxAsync:找同一個parent id下，sortorder欄位的最大值
+                //沒資料(null)的話，值就會=0
+                var MaxSort = await _context.Categories.Where(m => m.ParentId == categorySaveDTO.ParentId && m.IsExist==true)
+                   .Select(m => (int?)m.SortOrder)
+                   .MaxAsync();
+                //如果maxsort=null，那排序=0(-1+1)，如果maxsort=0，那排序=1(0+1)
+                FinalSort = (MaxSort ?? -1) + 1;
+            }
+            else
+            {
+                //有輸入排序
+                FinalSort = categorySaveDTO.SortOrder.Value;
+            }
+
+            //更新屬性
+            CategoryEntity.CategoryName = categorySaveDTO.CategoryName;
+            CategoryEntity.CategoryDescription = categorySaveDTO.CategoryDescription;
+            CategoryEntity.ParentId = categorySaveDTO.ParentId;
+            CategoryEntity.Level = TargetLevel;
+            CategoryEntity.SortOrder = FinalSort;
+            CategoryEntity.LastEditTime = DateTime.UtcNow;
+
+            //儲存修改
+            await _context.SaveChangesAsync();
+            return CategoryEntity.CategoryId;
+        }
 
 
         //刪除分類

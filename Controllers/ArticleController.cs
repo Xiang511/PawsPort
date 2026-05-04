@@ -141,43 +141,5 @@ namespace PawsPort.Controllers
             }
         }
 
-
-        //public IActionResult ArticleImageList(KeywordViewModel vm)
-        //{
-        //    PetDbContext db = new PetDbContext();
-
-        //    IEnumerable<ArticleImage> Datas = null; //宣告一個變數來存放查詢結果
-        //    if (string.IsNullOrEmpty(vm.TxtArticleId.ToString()))
-        //    {
-        //        Datas = db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
-        //    }
-        //    else
-        //    {
-        //        Datas = db.ArticleImages.Where(p => p.IsExist
-        //        && (p.ArticleId == vm.TxtArticleId
-        //        )).ToList(); //根據搜尋條件查詢文章圖片
-        //    }
-        //    return View(Datas);
-        //}
-
-
-        //public IActionResult EventList(KeywordViewModel vm) //活動管理頁面
-        //{
-        //    PetDbContext db = new PetDbContext();
-        //    vm.TxtCategoryId = 1; //假設活動的CategoryId為1
-
-        //    IEnumerable<Article> datas = null; //宣告一個變數來存放查詢結果
-
-        //    datas = db.Articles.Where(p => p.IsExist
-        //    && (p.CategoryId == vm.TxtCategoryId) //篩選出活動類別的文章
-        //    || (p.Title.Contains(vm.TxtKeyword)
-        //    || p.Content.Contains(vm.TxtKeyword))
-        //    || p.EventLocation.Contains(vm.TxtKeyword)
-        //         ); //根據搜尋條件查詢文章
-
-        //    return View(datas);
-
-        //}
-
     }
 }

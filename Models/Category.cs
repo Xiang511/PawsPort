@@ -15,9 +15,9 @@ public partial class Category
 
     public int? ParentId { get; set; }
 
-    public int Level { get; set; }
+    public int? Level { get; set; }
 
-    public int SortOrder { get; set; }
+    public int? SortOrder { get; set; }
 
     public bool IsExist { get; set; }
 

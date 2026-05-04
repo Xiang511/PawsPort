@@ -214,7 +214,6 @@ public partial class PetDbContext : DbContext
                 .HasColumnName("Create_at");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.LastEditTime).HasColumnType("datetime");
-            entity.Property(e => e.Level).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasColumnName("ParentID");
         });
 
@@ -298,6 +297,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Content)
                 .IsRequired()
                 .HasMaxLength(500);
+            entity.Property(e => e.Image).HasColumnType("image");
             entity.Property(e => e.Note).HasMaxLength(100);
             entity.Property(e => e.PublishDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(100);

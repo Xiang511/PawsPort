@@ -30,19 +30,19 @@ namespace PawsPort.Controllers
 
         //取得所有文章
         /// <summary>
-        /// 按照status、isActive、userId等條件取得所有文章
+        /// 按照篩選條件取得所有文章
         /// </summary>
         /// <param name="queryDto">篩選條件</param>
         /// <returns></returns>
         /// <response code="200">取得所有文章成功</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto) 
+        public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
         {
             var result = await _articleService.GetAllArticlesAsync(
-                status:queryDto.Status,
-                isActive:queryDto.IsActive,
-                userId:queryDto.UserId
+                status: queryDto.Status,
+                isActive: queryDto.IsActive,
+                userId: queryDto.UserId
                 );
             return Success(result, "取得所有文章成功", 200);
 
@@ -50,10 +50,13 @@ namespace PawsPort.Controllers
 
         //新增文章
         /// <summary>
-        /// 
+        /// 新增文章
         /// </summary>
         /// <param name="articleDto"></param>
         /// <returns></returns>
+        /// <response code="400">資料驗證失敗</response>
+        /// <response code="200">文章建立成功</response>
+        /// <response code="500">伺服器內部錯誤</response>
         [HttpPost]
         public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
@@ -75,11 +78,14 @@ namespace PawsPort.Controllers
 
         //編輯文章
         /// <summary>
-        /// 
+        /// 編輯文章
         /// </summary>
         /// <param name="id"></param>
         /// <param name="articleDto"></param>
         /// <returns></returns>
+        /// <response code="400">無效的文章編號</response>
+        /// <response code="404">找不到該文章</response>
+        /// <response code="200">文章更新成功</response>
         [HttpPut("{id}")]
         public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
         {
@@ -107,11 +113,14 @@ namespace PawsPort.Controllers
 
         //軟刪除文章
         /// <summary>
-        /// 
+        /// 軟刪除文章
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("{id}")] 
+        /// <response code="400">無效的文章編號</response>
+        /// <response code="404">找不到該文章</response>
+        /// <response code="200">文章刪除成功</response>
+        [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
             //檢查id是否有效

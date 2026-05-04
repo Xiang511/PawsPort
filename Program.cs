@@ -13,6 +13,19 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<MemberProfileService>();
 builder.Services.AddScoped<MemberPermissionService>();
 builder.Services.AddScoped<MemberBlockListService>();
+// 處理CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowVueApp", policy =>
+    {
+        policy.WithOrigins("http://localhost:5173") // 這是你的 Vue 預設埠號
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
+
+
 // 註冊資料庫連線
 // 優先順序: User Secrets > 環境變數 > appsettings.json
 string? isLocal = builder.Configuration["IS_LOCAL"];
@@ -113,6 +126,8 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.UseRouting();
+// 啟用 CORS
+app.UseCors("AllowVueApp");
 
 app.UseAuthorization();
 

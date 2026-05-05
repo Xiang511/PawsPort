@@ -55,6 +55,38 @@ namespace PawsPort.Controllers
         }
 
         //軟刪除留言
+        /// <summary>
+        /// 軟刪除留言
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            //檢查id是否正常
+            if (id <= 0) return Failure("INVALID_ID", "無效的留言編號", 400);
+            try
+            {
+                var result = await _commentService.DeleteCommentAsync(id);
+                if (result == false)
+                {
+                    return Failure("COMMENT_NOT_FOUND", "找不到該留言", 404);
+                }
+                else
+                {
+                    return Success(result, "留言刪除成功", 200);
+                }
+            }
+            catch (InvalidOperationException ex)
+            {
+                // 專門處理「被屏蔽而禁止刪除」的情況
+                return Failure("FORBIDDEN_ACTION", ex.Message, 403);
+            }
+            catch (Exception)
+            {
+                return Failure("INTERNAL_ERROR", "伺服器錯誤", 500);
+            }
+        }
 
         //管理留言
     }

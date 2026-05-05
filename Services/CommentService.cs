@@ -1,6 +1,7 @@
 ﻿using PawsPort.Dtos;
 using PawsPort.Models;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Identity.Client;
 
 
 namespace PawsPort.Services
@@ -13,7 +14,6 @@ namespace PawsPort.Services
         {
             _context = context;
         }
-
 
         //新增留言
         public async Task<int> CreateCommentAsync(CommentSaveDTO commentSaveDTO)
@@ -54,6 +54,26 @@ namespace PawsPort.Services
             await _context.SaveChangesAsync();
             //返回留言id
             return CommentEntity.CommentId;
+
         }
+
+        //刪除留言
+        public async Task<bool> DeleteCommentAsync(int id)
+        {
+            //撈看看有無此留言
+            var CommentEntity = await _context.Comments.FirstOrDefaultAsync(c => c.CommentId == id);
+
+            if(CommentEntity==null||CommentEntity.IsExist==false) return false;
+
+            if(CommentEntity.IsActive == false) throw new InvalidOperationException("該留言因違反規範已被屏蔽，無法執行刪除。");
+
+            CommentEntity.IsExist = false;
+            CommentEntity.LastEditTime = DateTime.UtcNow;
+
+            await _context.SaveChangesAsync();
+            return true;
+
+        }
+
     }
 }

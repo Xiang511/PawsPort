@@ -13,10 +13,12 @@ namespace PawsPort.Controllers
     public class UsersController : ApiControllerBase
     {
         private readonly MemberProfileService _memberProfileService;
+        private readonly MemberPermissionService _memberPermissionService;
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService)
         {
             _memberProfileService = memberProfileService;
+            _memberPermissionService = memberPermissionService;
         }
 
         /// <summary>
@@ -28,16 +30,16 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(List<MemberUserDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Members()
         {
-            Log.Information("[UsersController] Members GET - ");
+            Log.Information("[UsersController] Members GET - Entry");
 
             Log.Information("[UsersController] 調用 MemberProfileService.GetAllUserInfoAsync");
             var users = await _memberProfileService.GetAllUserInfoAsync();
-            Log.Information("取得會員資料成功 共{user}筆", users.Count);
+            Log.Information("[UsersController] 取得會員資料成功, 共 {Count} 筆", users.Count);
             return Success(users, "Success", 200);
         }
 
         /// <summary>
-        /// 取得會員資訊
+        /// 取得指定會員資訊
         /// </summary>
         /// <param name="id">會員 ID</param>
         /// <returns>會員詳細資料</returns>
@@ -49,7 +51,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Members(int? id)
         {
-            Log.Information("[UsersController] Members GET by id - , UserId: {UserId}", id);
+            Log.Information("[UsersController] Members GET by id - Entry, UserId: {UserId}", id);
 
             Log.Information("[UsersController] 調用 MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
             bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
@@ -62,7 +64,7 @@ namespace PawsPort.Controllers
 
             Log.Information("[UsersController] 調用 MemberProfileService.GetUserInfoByIdAsync, UserId: {UserId}", id);
             var users = await _memberProfileService.GetUserInfoByIdAsync(id);
-            Log.Information("取得會員資料成功 Id:{users.UserId} 名稱:{users.Name}", users.UserId, users.Name);
+            Log.Information("[UsersController] 取得會員資料成功, UserId: {UserId}, 名稱: {Name}", users.UserId, users.Name);
             return Success(users, "Success", 200);
         }
 
@@ -80,12 +82,12 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Members(CreateMemberDTO user)
         {
-            Log.Information("[UsersController] Members POST - , 會員名稱: {Name}", user.Name);
+            Log.Information("[UsersController] Members POST - Entry, 會員名稱: {Name}", user.Name);
 
             Log.Information("[UsersController] 調用 MemberProfileService.CreateUserAsync, 會員名稱: {Name}", user.Name);
             var result = await _memberProfileService.CreateUserAsync(user);
 
-            Log.Information("創建會員成功 名稱:{Name}", result.Name);
+            Log.Information("[UsersController] 創建會員成功, 名稱: {Name}", result.Name);
 
             return Success(result, "創建會員成功", 200);
         }
@@ -100,13 +102,14 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(MemberSummaryDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Summary()
         {
-            Log.Information("[UsersController] Summary GET - ");
+            Log.Information("[UsersController] Summary GET - Entry");
 
             // 取得會員統計資訊
             Log.Information("[UsersController] 調用 MemberProfileService.GetMemberSummaryAsync");
             var summary = await _memberProfileService.GetMemberSummaryAsync();
 
-            Log.Information("成功取得統計資訊 會員總數{summary.MemberCount},月註冊數{summary.MemberMonthSignUp},認證比例{summary.VerifyPercentage},訂閱電子報人數{summary.SubscribedMemberCount}", summary.MemberCount,
+            Log.Information("[UsersController] 成功取得統計資訊, 會員總數: {MemberCount}, 月註冊數: {MonthSignUp}, 認證比例: {VerifyPercentage}, 訂閱電子報人數: {SubscribedCount}", 
+                summary.MemberCount,
                 summary.MemberMonthSignUp,
                 summary.VerifyPercentage,
                 summary.SubscribedMemberCount);
@@ -116,7 +119,7 @@ namespace PawsPort.Controllers
 
 
         /// <summary>
-        /// 更新會員資訊
+        /// 更新指定會員資訊
         /// </summary>
         /// <param name="id">會員ID</param>
         /// <param name="userDto">更新的會員資料</param>
@@ -151,13 +154,13 @@ namespace PawsPort.Controllers
             Log.Information("[UsersController] 調用 MemberProfileService.UpdateUserInfoAsync, UserId: {UserId}", id);
             var result = await _memberProfileService.UpdateUserInfoAsync(id.Value, userDto);
 
-            Log.Information("更新會員成功 會員ID:{UserId} 名稱:{Name}", userDto.UserId, userDto.Name);
+            Log.Information("[UsersController] 更新會員成功, 會員ID: {UserId}, 名稱: {Name}", userDto.UserId, userDto.Name);
             return Success(result, "Success", 200);
 
         }
 
         /// <summary>
-        /// 刪除會員（軟刪除）
+        /// 刪除指定會員（軟刪除）
         /// </summary>
         /// <param name="id">會員 ID</param>
         /// <returns>無內容（204）或錯誤訊息</returns>
@@ -167,23 +170,177 @@ namespace PawsPort.Controllers
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(int? id)
+        public async Task<IActionResult> DeleteMember(int? id)
         {
-            Log.Information("[UsersController] Delete - , UserId: {UserId}", id);
+            Log.Information("[UsersController] DeleteMember DELETE - Entry, UserId: {UserId}", id);
 
             Log.Information("[UsersController] 調用 MemberProfileService.DeleteUserAsync, UserId: {UserId}", id);
             var result = await _memberProfileService.DeleteUserAsync(id);
 
             if (result)
             {
-                Log.Information("刪除會員成功 會員ID:{UserId}", id);
+                Log.Information("[UsersController] 刪除會員成功, 會員ID: {UserId}", id);
                 return NoContent();
             }
             else
             {
-                Log.Warning("刪除會員失敗 會員ID:{UserId}", id);
+                Log.Warning("[UsersController] 刪除會員失敗, 會員ID: {UserId}", id);
                 return Failure("USER_NOT_FOUND", "找不到使用者", 404);
             }
+        }
+
+        /// <summary>
+        /// 取得指定會員的權限列表
+        /// </summary>
+        /// <param name="id">使用者 ID</param>
+        /// <returns>使用者的權限角色列表</returns>
+        /// <response code="200">成功取得使用者權限</response>
+        /// <response code="404">找不到指定的使用者</response>
+        [HttpGet("/api/users/{id}/roles")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> QueryRoleById(int? id)
+        {
+            Log.Information("[UsersController] QueryRoleById GET - Entry, UserId: {UserId}", id);
+
+            Log.Information("[UsersController] 調用 MemberPermissionService.GetUserPermissionsAsync, UserId: {UserId}", id);
+            var userPermission = await _memberPermissionService.GetUserPermissionsAsync(id);
+
+            if (userPermission == null)
+            {
+                Log.Warning("[UsersController] 找不到指定的使用者權限, UserId: {UserId}", id);
+                return Failure("PERMISSION_NOT_FOUND", "找不到指定的使用者", 404);
+            }
+
+            Log.Information("[UsersController] 成功取得使用者權限, UserId: {UserId}", id);
+            return Success(userPermission, "Success", 200);
+        }
+
+
+
+        /// <summary>
+        /// 新增會員權限
+        /// </summary>
+        /// <param name="US">使用者權限資料（包含 UserId、SystemId、RoleId）</param>
+        /// <returns>操作結果 JSON</returns>
+        /// <response code="200">成功新增使用者權限</response>
+        /// <response code="204">新增失敗（可能因為權限已存在或參數無效）</response>
+        /// <response code="409">權限衝突（該使用者已擁有此系統的相同角色權限）</response>
+        [HttpPost("/api/users/roles")]
+        [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        public async Task<IActionResult> CreateRole(MemberUserSystemRoleDTO US)
+        {
+            Log.Information("[UsersController] CreateRole POST - Entry, UserId: {UserId}, SystemId: {SystemId}, RoleId: {RoleId}", US.UserId, US.SystemId, US.RoleId);
+
+            Log.Information("[UsersController] 調用 MemberPermissionService.CheckMemberPermissionExistAsync");
+            bool exist = await _memberPermissionService.CheckMemberPermissionExistAsync(US);
+
+            if (exist)
+            {
+                Log.Warning("[UsersController] 嘗試新增已存在的使用者權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
+                return Failure("PERMISSION_ALREADY_EXISTS", "該使用者已擁有此系統的相同角色權限", 409);
+            }
+
+            Log.Information("[UsersController] 調用 MemberPermissionService.CreateMemberPermissionAsync");
+            var result = await _memberPermissionService.CreateMemberPermissionAsync(US);
+
+            if (result == false)
+            {
+                Log.Warning("[UsersController] 新增使用者權限失敗: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
+                return NoContent();
+            }
+
+            Log.Information("[UsersController] 成功新增使用者權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
+            return Success(result, "Success", 200);
+        }
+
+        /// <summary>
+        /// 更新使用者權限
+        /// </summary>
+        /// <param name="mappingId">權限對應 ID</param>
+        /// <param name="user">更新的權限資料（包含 UserId、SystemId、RoleId）</param>
+        /// <returns>操作結果</returns>
+        /// <response code="204">成功更新使用者權限</response>
+        /// <response code="400">無效的權限對應 ID（ID 為空或小於 0）</response>
+        /// <response code="409">權限衝突或權限不存在</response>
+        [HttpPatch("/api/users/{mappingId}/roles")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+
+        public async Task<IActionResult> EditRole(int? mappingId, MemberPermissionUpdateRoleDTO user)
+        {
+            Log.Information("[UsersController] EditRole PATCH - Entry, MappingId: {MappingId}, UserId: {UserId}, SystemId: {SystemId}, RoleId: {RoleId}", mappingId, user.UserId, user.SystemId, user.RoleId);
+
+            // 驗證路由參數：mappingId 不可為 null 或小於 0
+            if (mappingId == null || mappingId < 0)
+            {
+                Log.Warning("[UsersController] 無效的權限對應 ID: {MappingId}", mappingId);
+                return Failure("INVALID_MAPPING_ID", "無效ID", 400);
+            }
+
+            Log.Information("[UsersController] 調用 MemberPermissionService.CheckMemberPermissionExistAsync");
+            bool exist = await _memberPermissionService.CheckMemberPermissionExistAsync(user);
+
+            if (exist)
+            {
+                Log.Warning("[UsersController] 嘗試更新為已存在的使用者權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", user.UserId, user.SystemId, user.RoleId);
+                return Failure("PERMISSION_ALREADY_EXISTS", "該使用者已擁有相同角色權限", 409);
+            }
+
+            Log.Information("[UsersController] 調用 MemberPermissionService.UpdateMemberPermissionRoleAsync, MappingId: {MappingId}", mappingId);
+            bool result = await _memberPermissionService.UpdateMemberPermissionRoleAsync(mappingId, user);
+
+
+            if (!result)
+            {
+                Log.Warning("[UsersController] 找不到指定的使用者權限: MappingId={MappingId}", mappingId);
+                return Failure("User_NOT_FOUND", "找不到指定的Id或是使用者", 404);
+            }
+
+            Log.Information("[UsersController] 成功更新使用者權限: MappingId={MappingId}, UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", mappingId, user.UserId, user.SystemId, user.RoleId);
+            return NoContent();
+
+        }
+
+        /// <summary>
+        /// 刪除使用者權限
+        /// </summary>
+        /// <param name="mappingId">權限對應 ID</param>
+        /// <returns>操作結果</returns>
+        /// <response code="204">成功刪除使用者權限</response>
+        /// <response code="400">無效的權限對應 ID（ID 為空）</response>
+        /// <response code="404">找不到指定的權限</response>
+
+        [HttpDelete("/api/users/{mappingId}/roles")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> DeleteRole(int? mappingId)
+        {
+            Log.Information("[UsersController] DeleteRole DELETE - Entry, MappingId: {MappingId}", mappingId);
+
+            // 驗證路由參數：mappingId 不可為 null
+            if (mappingId == null)
+            {
+                Log.Warning("[UsersController] 刪除使用者權限失敗，無效的權限對應 ID: {MappingId}", mappingId);
+                return Failure("INVALID_MAPPING_ID", "無效ID", 400);
+            }
+
+            Log.Information("[UsersController] 調用 MemberPermissionService.DeleteMemberPermissionRoleAsync, MappingId: {MappingId}", mappingId);
+            bool result = await _memberPermissionService.DeleteMemberPermissionRoleAsync(mappingId);
+
+            if (!result)
+            {
+                Log.Warning("[UsersController] 找不到指定的使用者權限，刪除失敗: MappingId={MappingId}", mappingId);
+                return Failure("PERMISSION_NOT_FOUND", "找不到指定的權限", 404);
+            }
+
+            Log.Information("[UsersController] 成功刪除使用者權限: MappingId={MappingId}", mappingId);
+            return NoContent();
         }
     }
 }

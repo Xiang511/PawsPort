@@ -4,6 +4,7 @@ using PawsPort.Models;
 using System.Diagnostics;
 using System.Drawing;
 using Microsoft.EntityFrameworkCore;
+using Serilog;
 
 namespace PawsPort.Services
 {
@@ -105,9 +106,6 @@ namespace PawsPort.Services
 
         public async Task<MemberUserDTO> GetUserInfoByIdAsync(int? id)
         {
-            if (id == null)
-                return null;
-
             var user = await _context.UserTables
                 .Where(x => x.UserId == id && x.DeleteDay == null)
                 .Select(u => new MemberUserDTO
@@ -134,16 +132,12 @@ namespace PawsPort.Services
         }
 
 
-        public async Task<bool> UpdateUserInfoAsync(MemberUserDTO userDto)
+        public async Task<MemberUserDTO> UpdateUserInfoAsync(int id ,MemberUserDTO userDto)
         {
             var userEntity = await _context.UserTables
-                .Where(m => m.UserId == userDto.UserId && m.DeleteDay == null)
+                .Where(m => m.UserId == id && m.DeleteDay == null)
                 .FirstOrDefaultAsync();
 
-            if (userEntity == null || userDto == null)
-                return false;
-
-            // 更新實體屬性
             userEntity.Name = await Task.FromResult(userDto.Name);
             userEntity.Photo = await Task.FromResult(userDto.Photo);
             userEntity.Job = await Task.FromResult(userDto.Job);
@@ -160,10 +154,9 @@ namespace PawsPort.Services
 
             await _context.SaveChangesAsync();
 
-            // 更新 DTO 的 UpdatedAt
             userDto.UpdatedAt = await Task.FromResult(userEntity.UpdatedAt);
 
-            return true;
+            return userDto;
         }
 
 
@@ -176,12 +169,31 @@ namespace PawsPort.Services
                 .Where(m => m.UserId == id && m.DeleteDay == null)
                 .FirstOrDefaultAsync();
 
-            if (userEntity == null)
-                return false;
+            userEntity.DeleteDay = DateTime.Now;
+            userEntity.UpdatedAt = DateTime.Now;
 
-            userEntity.DeleteDay = await Task.FromResult(DateTime.Now);
-            userEntity.UpdatedAt = await Task.FromResult(DateTime.Now);
             await _context.SaveChangesAsync();
+
+            return true;
+        }
+
+        public async Task<bool> CheckUserInfoAsync(int? id ,string? Email)
+        {
+
+            if (id.HasValue)
+            {
+                var userEntity = await _context.UserTables
+               .Where(m => m.UserId == id && m.DeleteDay == null)
+               .FirstOrDefaultAsync();
+
+                if (userEntity == null || id == null)
+                {
+                    return false;
+                }
+
+                return true;
+            }
+            // 以後擴充方法
 
             return true;
         }

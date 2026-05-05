@@ -70,7 +70,7 @@ namespace PawsPort.Services
 
 
 
-        public async Task<MemberUserDTO> CreateUserAsync(MemberUserDTO userDto)
+        public async Task<CreateMemberDTO> CreateUserAsync(CreateMemberDTO userDto)
         {
             // 將 DTO 轉換為 EF Core 實體
             var userEntity = new UserTable
@@ -96,7 +96,6 @@ namespace PawsPort.Services
             _context.SaveChanges();
 
             // 將儲存後的實體（包含自動生成的 UserId）轉回 DTO
-            userDto.UserId = await Task.FromResult(userEntity.UserId);
             userDto.CreatedAt = await Task.FromResult(userEntity.CreatedAt);
             userDto.UpdatedAt = await Task.FromResult(userEntity.UpdatedAt);
 

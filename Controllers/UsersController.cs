@@ -25,7 +25,7 @@ namespace PawsPort.Controllers
         /// <returns>會員列表 JSON</returns>
         /// <response code="200">成功取得會員列表</response>
         [HttpGet]
-        [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(List<MemberUserDTO>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Members()
         {
 
@@ -35,12 +35,16 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// 取得單一會員資訊
+        /// 取得會員資訊
         /// </summary>
-        /// <returns>會員列表 JSON</returns>
-        /// <response code="200">成功取得會員列表</response>
+        /// <param name="id">會員 ID</param>
+        /// <returns>會員詳細資料</returns>
+        /// <response code="200">成功取得會員資料</response>
+        /// <response code="404">找不到指定的會員</response>
+        
         [HttpGet("{id}")]
-        [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Members(int? id)
         {
             bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
@@ -60,28 +64,31 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 創建新會員
         /// </summary>
-        /// <param name="user">會員資料</param>
-        /// <returns>創建的會員資料 JSON</returns>
+        /// <param name="createDto">會員註冊資料（UserId 會由系統自動生成）</param>
+        /// <returns>創建成功的會員資料（包含自動生成的 UserId）</returns>
         /// <response code="200">成功創建會員</response>
+        /// <response code="400">請求資料格式錯誤或必填欄位缺失</response>
         [HttpPost]
-        [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
-        public async Task<IActionResult> Members(MemberUserDTO user)
+        [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Members(CreateMemberDTO user)
         {
 
             var result = await _memberProfileService.CreateUserAsync(user);
 
-            Log.Information("創建會員成功 名稱{Name}", result.Name);
+            Log.Information("創建會員成功 名稱:{Name}", result.Name);
 
             return Success(result, "創建會員成功", 200);
         }
 
         /// <summary>
-        /// 取得會員統計摘要資訊
+        /// 取得會員統計資訊（儀表板用）
         /// </summary>
-        /// <returns>會員統計資料 JSON</returns>
+        /// <returns>會員統計數據，包含總數、月註冊數、認證比例、訂閱數等</returns>
         /// <response code="200">成功取得統計資訊</response>
+
         [HttpGet("Summary")]
-        [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(MemberSummaryDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Summary()
         {
             // 取得會員統計資訊
@@ -97,16 +104,19 @@ namespace PawsPort.Controllers
 
 
         /// <summary>
-        /// 更新指定會員資料
+        /// 更新會員資訊
         /// </summary>
         /// <param name="id">會員ID</param>
         /// <param name="userDto">更新的會員資料</param>
-        /// <returns>無內容</returns>
+        /// <returns>更新後的會員資料</returns>
         /// <response code="200">成功更新會員</response>
-        /// <response code="400">會員ID不一致或資料格式錯誤</response>
+        /// <response code="400">會員 ID 不一致或資料格式錯誤</response>
+        /// <response code="404">找不到指定的會員</response>
+
         [HttpPut("{id}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> UpdateMembers(int? id, MemberUserDTO userDto)
         {
 
@@ -130,16 +140,15 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// 刪除指定會員（軟刪除）
+        /// 刪除會員（軟刪除）
         /// </summary>
-        /// <param name="id">會員ID</param>
-        /// <returns>無內容或錯誤訊息</returns>
-        /// <response code="204">成功刪除會員</response>
-        /// <response code="400">會員ID格式錯誤</response>
+        /// <param name="id">會員 ID</param>
+        /// <returns>無內容（204）或錯誤訊息</returns>
+        /// <response code="204">成功刪除會員（軟刪除）</response>
         /// <response code="404">找不到指定會員</response>
+       
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int? id)
         {

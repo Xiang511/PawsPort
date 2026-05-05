@@ -18,7 +18,7 @@ namespace PawsPort.Services
         //分類列表
 
 
-        //新增分類
+        //=====新增分類=====
         public async Task<int> CreateCategoryAsync(CategorySaveDTO categorySaveDTO)
         {
             //input:分類名稱、分類描述、父分類Id、排序順序
@@ -86,7 +86,7 @@ namespace PawsPort.Services
         }
 
 
-        //編輯分類
+        //=====編輯分類=====
         public async Task<int> UpdateCategoryAsync(int id, CategorySaveDTO categorySaveDTO)
         {
             //先去撈看看有沒有對應id的分類
@@ -143,8 +143,23 @@ namespace PawsPort.Services
         }
 
 
-        //刪除分類
+        //=====刪除分類=====
+        public async Task<bool> DeleteCategoryAsync(int id)
+        {
+            //撈對應id的分類
+            var CategoryEntity = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == id);
+            
+            //檢查有沒有該分類，或他是否已被軟刪除
+            if(CategoryEntity == null||CategoryEntity.IsExist == false) return false;
 
+            //軟刪除+紀錄編輯時間
+            CategoryEntity.IsExist = false;
+            CategoryEntity.LastEditTime = DateTime.UtcNow;
+
+            //儲存修改
+            await _context.SaveChangesAsync();
+            return true;
+        }
 
     }
 }

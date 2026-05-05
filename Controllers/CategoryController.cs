@@ -26,9 +26,6 @@ namespace PawsPort.Controllers
             _categoryService = categoryService;
         }
 
-        
-
-
 
         //新增分類
         /// <summary>
@@ -84,6 +81,28 @@ namespace PawsPort.Controllers
             }
         }
 
+        //軟刪除分類
+        /// <summary>
+        /// 
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            if (id <= 0) return Failure("INVALID_ID", "無效的分類編號", 400);
+
+            var result = await _categoryService.DeleteCategoryAsync(id);
+
+            if(result == false)
+            {
+                return Failure("CATEGORY_NOT_FOUND", "找不到該分類", 404);
+            }
+            else
+            {
+                return Success(result, "分類刪除成功", 200);
+            }      
+        }
 
     }
 }

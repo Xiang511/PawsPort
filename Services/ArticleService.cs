@@ -17,7 +17,7 @@ namespace PawsPort.Services
 
 
 
-        //=====新增文章(非同步)=====
+        //=====新增文章=====
         public async Task<int> CreateArticleAsync(ArticleSaveDTO articleDto)
         {
             //將ArticleDTO轉換為Article實體
@@ -73,7 +73,7 @@ namespace PawsPort.Services
         }
 
 
-        //=====修改文章(非同步)=====
+        //=====修改文章=====
         public async Task<int?> UpdateArticleAsync(int id, ArticleSaveDTO articleDto)
         {
             //比對articleDto.articleId和資料庫裡的ArticleId，去資料庫撈出對應的文章實體
@@ -125,7 +125,7 @@ namespace PawsPort.Services
         }
 
 
-        //=====刪除文章(非同步)=====
+        //=====刪除文章=====
         public async Task<bool> DeleteArticleAsync(int id)
         {
             //去資料庫撈對應id的文章實體和標籤關聯

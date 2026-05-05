@@ -3,25 +3,24 @@ using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
 using Serilog;
+using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    public class MemberController : ApiControllerBase
+    public class UsersController : ApiControllerBase
     {
         private readonly MemberProfileService _memberProfileService;
 
-        public MemberController(PetDbContext context, MemberProfileService memberProfileService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService)
         {
             _memberProfileService = memberProfileService;
         }
 
-
-
         /// <summary>
-        /// 取得所有會員列表（未刪除）
+        /// 取得所有會員列表
         /// </summary>
         /// <returns>會員列表 JSON</returns>
         /// <response code="200">成功取得會員列表</response>
@@ -29,19 +28,33 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
         public async Task<IActionResult> Members()
         {
-            // 1. 使用 await 呼叫非同步版本的 Service 方法
-            // 註：Service 層的方法通常需改為 GetAllUserInfoAsync()
+
             var users = await _memberProfileService.GetAllUserInfoAsync();
-
-            // 2. 根據你的邏輯回傳結果
-            // 如果是要回傳資料，應使用 Ok(users) 而非 NoContent()
-            if (users == null || !users.Any())
-            {
-                return NoContent();
-            }
-
+            Log.Information("取得會員資料成功 共{user}筆", users.Count);
             return Success(users, "Success", 200);
         }
+
+        /// <summary>
+        /// 取得單一會員資訊
+        /// </summary>
+        /// <returns>會員列表 JSON</returns>
+        /// <response code="200">成功取得會員列表</response>
+        [HttpGet("{id}")]
+        [ProducesResponseType(typeof(IEnumerable<UserTable>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> Members(int? id)
+        {
+            bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
+
+            if (!exist)
+            {
+                return Failure("USER_NOT_FOUND", "找不到使用者", 404);
+            }
+
+            var users = await _memberProfileService.GetUserInfoByIdAsync(id);
+            Log.Information("取得會員資料成功 Id:{users.UserId} 名稱:{users.Name}", users.UserId, users.Name);
+            return Success(users, "Success", 200);
+        }
+
 
 
         /// <summary>
@@ -54,6 +67,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(object), StatusCodes.Status200OK)]
         public async Task<IActionResult> Members(MemberUserDTO user)
         {
+
             var result = await _memberProfileService.CreateUserAsync(user);
 
             Log.Information("創建會員成功 名稱{Name}", result.Name);
@@ -73,6 +87,11 @@ namespace PawsPort.Controllers
             // 取得會員統計資訊
             var summary = await _memberProfileService.GetMemberSummaryAsync();
 
+            Log.Information("成功取得統計資訊 會員總數{summary.MemberCount},月註冊數{summary.MemberMonthSignUp},認證比例{summary.VerifyPercentage},訂閱電子報人數{summary.SubscribedMemberCount}", summary.MemberCount,
+                summary.MemberMonthSignUp,
+                summary.VerifyPercentage,
+                summary.SubscribedMemberCount);
+
             return Success(summary, "成功取得統計資訊", 200);
         }
 
@@ -83,31 +102,31 @@ namespace PawsPort.Controllers
         /// <param name="id">會員ID</param>
         /// <param name="userDto">更新的會員資料</param>
         /// <returns>無內容</returns>
-        /// <response code="204">成功更新會員</response>
+        /// <response code="200">成功更新會員</response>
         /// <response code="400">會員ID不一致或資料格式錯誤</response>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public async Task<IActionResult> UpdateMembers(int id, MemberUserDTO userDto)
+        public async Task<IActionResult> UpdateMembers(int? id, MemberUserDTO userDto)
         {
-            // 驗證路由中的 id 與 DTO 中的 UserId 是否一致
+
             if (id != userDto.UserId)
             {
                 return Failure("USER_ID_MISMATCH", "會員ID不一致", 400);
             }
 
-            var result = await _memberProfileService.UpdateUserInfoAsync(userDto);
+            bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
 
-            if (result)
+            if (!exist)
             {
-                Log.Information("更新會員成功 會員ID:{UserId} 名稱:{Name}", userDto.UserId, userDto.Name);
-            }
-            else
-            {
-                Log.Warning("更新會員失敗 會員ID:{UserId}", userDto.UserId);
+                return Failure("USER_NOT_FOUND", "找不到使用者", 404);
             }
 
-            return NoContent();
+            var result = await _memberProfileService.UpdateUserInfoAsync(id.Value, userDto);
+
+            Log.Information("更新會員成功 會員ID:{UserId} 名稱:{Name}", userDto.UserId, userDto.Name);
+            return Success(result, "Success", 200);
+
         }
 
         /// <summary>
@@ -122,40 +141,21 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        public async Task<IActionResult> Delete(string id)
+        public async Task<IActionResult> Delete(int? id)
         {
-            // 手動驗證 id 是否為空
-            if (string.IsNullOrWhiteSpace(id))
-                return Failure("USER_ID_EMPTY", "會員ID不能為空", 400);
-
-            // 手動解析並驗證 id 是否為有效整數
-            if (!int.TryParse(id, out int memberId))
-                return Failure("USER_ID_INVALID", "會員ID格式錯誤，必須是數字", 400);
-            var result = await _memberProfileService.DeleteUserAsync(memberId);
+            
+            var result = await _memberProfileService.DeleteUserAsync(id);
 
             if (result)
             {
-                Log.Information("刪除會員成功 會員ID:{UserId}", memberId);
+                Log.Information("刪除會員成功 會員ID:{UserId}", id);
                 return NoContent();
             }
             else
             {
-                Log.Warning("刪除會員失敗 會員ID:{UserId}", memberId);
+                Log.Warning("刪除會員失敗 會員ID:{UserId}", id);
                 return Failure("USER_NOT_FOUND", "找不到使用者", 404);
             }
-        }
-
-        /// <summary>
-        /// 測試例外處理機制（僅供開發測試）
-        /// </summary>
-        /// <returns>拋出例外</returns>
-        /// <response code="500">內部伺服器錯誤</response>
-        [HttpGet("throw")]
-        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
-        public async Task<IActionResult> ThrowError()
-        {
-            // 模擬一個非預期的噴錯
-            throw new Exception("這是手動觸發的測試例外");
         }
     }
 }

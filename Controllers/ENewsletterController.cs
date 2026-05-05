@@ -1,151 +1,80 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.CodeAnalysis.Options;
-using PawsPort.Models;
-using System.Linq;
+using PawsPort.Dtos;
+using PawsPort.Services;
 
 namespace PawsPort.Controllers
 {
-    public class ENewsletterController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+
+    public class ENewsletterController : ApiControllerBase
     {
-        public ActionResult List()
+        private readonly ENewsletterService _newsletterService;
+
+        public ENewsletterController(ENewsletterService newsletterService)
         {
-            PetDbContext db = new PetDbContext();
-
-            
-            var categoryOrder = new List<string>
-            {
-                  "活動公告",
-                  "認養資訊",
-                  "飼養知識",
-                  "遊戲挑戰",
-                  "其它類別"
-                  
-              };
-            var listFromDb = db.ENewsletters
-                       .Where(n => n.Status != "已刪除")
-                       .ToList();
-
-            var list = listFromDb
-                      .OrderBy(n =>
-                      {
-                          // 去問：這個分類排在名單裡的第幾個位置？ (0, 1, 2, 3, 4)
-                          int index = categoryOrder.IndexOf(n.Category);
-                          // 防呆：如果以前有舊資料的分類不在名單上 (index 會是 -1)，就把它踢到最後面 (給它 99 號)
-                          return index == -1 ? 99 : index;
-                      })
-
-                      .ThenByDescending(n => n.NewsLetterId) // 同一個分類裡，最新的依然排最上面
-                      .ToList();
-
-            return View(list);
+            _newsletterService = newsletterService;
         }
 
 
-
-
-        public ActionResult Create()
+        [HttpGet]
+        public async Task<IActionResult> GetList()
         {
-            return View();
+            var result = await _newsletterService.GetAllNewslettersAsync();
+
+            return Success(result, "取得電子報列表成功", 200);
         }
 
 
         [HttpPost]
-        public ActionResult Create(ENewsletter n)
+        public async Task<IActionResult> Create(ENewsletterCreateDTO dto)
         {
-
-            if (string.IsNullOrEmpty(n.Status))
+            if (!ModelState.IsValid)
             {
-                n.Status = "草稿";
+                return Failure("VALIDATION_ERROR", "資料格式錯誤", 400);
             }
 
+            var result = await _newsletterService.CreateNewsletterAsync(dto);
 
-            if (n.Status == "已發送" && n.PublishDate == null)
-            {
-                n.PublishDate = DateTime.Now;
-            }
-
-            // 實務上這裡會抓取「目前登入者的會員ID」，但在我們接上登入功能前，先預設給 1 避免資料庫報錯
-            if (n.UserId == 0)
-            {
-                n.UserId = 1;
-            }
-
-
-            PetDbContext db = new PetDbContext();
-            db.ENewsletters.Add(n);
-            db.SaveChanges();
-
-
-            return RedirectToAction("List");
+            return Success(result, "電子報新增成功", 201);
         }
 
 
-
-        public ActionResult Edit(int? id)
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Update(int id, ENewsletterUpdateDTO dto)
         {
-            if (id == null) return RedirectToAction("List");
+            if (!ModelState.IsValid)
+            {
+                return Failure("VALIDATION_ERROR", "資料格式錯誤，請檢查必填欄位", 400);
+            }
 
-            PetDbContext db = new PetDbContext();
 
-            var news = db.ENewsletters.FirstOrDefault(n => n.NewsLetterId == id);
+            var isSuccess = await _newsletterService.UpdateNewsletterAsync(id, dto);
 
-            if (news == null) return RedirectToAction("List");
 
-            return View(news);
+            if (!isSuccess)
+            {
+                return Failure("NEWS_NOT_FOUND", "找不到指定的電子報，更新失敗", 404);
+            }
+
+
+            return Success<object>(null, "電子報修改成功", 200);
         }
 
 
-        [HttpPost]
-        public ActionResult Edit(ENewsletter n)
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
+            var isSuccess = await _newsletterService.DeleteNewsletterAsync(id);
 
-
-            var newsInDb = db.ENewsletters.FirstOrDefault(x => x.NewsLetterId == n.NewsLetterId);
-
-            if (newsInDb != null)
+            if (!isSuccess)
             {
-                newsInDb.Title = n.Title;
-                newsInDb.Summary = n.Summary;
-                newsInDb.Content = n.Content;
-                newsInDb.Category = n.Category;
-                newsInDb.Status = string.IsNullOrEmpty(n.Status) ? "草稿" : n.Status;
-                newsInDb.Note = n.Note;
-
-
-                if (newsInDb.Status == "已發送" && n.PublishDate == null)
-                {
-                    newsInDb.PublishDate = DateTime.Now;
-                }
-                else
-                {
-                    newsInDb.PublishDate = n.PublishDate;
-                }
-
-
-                db.SaveChanges();
+                return Failure("NEWS_NOT_FOUND", "找不到指定的電子報，刪除失敗", 404);
             }
 
-            return RedirectToAction("List");
-        }
 
-
-
-        public ActionResult Delete(int? id)
-        {
-            if (id == null) return RedirectToAction("List");
-
-            PetDbContext db = new PetDbContext();
-            var news = db.ENewsletters.FirstOrDefault(n => n.NewsLetterId == id);
-
-            if (news != null)
-            {
-                news.Status = "已刪除";
-
-                db.SaveChanges();
-            }
-
-            return RedirectToAction("List");
+            return Success<object>(null, "電子報刪除成功", 200);
         }
     }
 }

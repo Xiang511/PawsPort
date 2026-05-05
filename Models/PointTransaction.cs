@@ -13,9 +13,9 @@ public partial class PointTransaction
 
     public string TransactionType { get; set; }
 
-    public int Gameld { get; set; }
+    public int GameId { get; set; }
 
-    public int Skinld { get; set; }
+    public int SkinId { get; set; }
 
     public int? PassportId { get; set; }
 

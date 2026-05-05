@@ -16,73 +16,81 @@ namespace PawsPort.Services
 
         public async Task<List<PlayerListDTO>> GetPlayerListAsync()
         {
-            // 由於內部包含複雜選取與子查詢，建議先將主表非同步取出，
-            // 或是直接在 IQueryable 上使用 ToListAsync()
             return await _db.PlayerProfiles
                 .Select(p => new PlayerListDTO
                 {
                     PlayerId = p.PlayerId,
-                    CurrentPoint = p.CurrentPoint,
+                    UserName = p.UserName,
+                    CurrentPoint = p.CurrentPoint ?? 0,
+
+                    // 玩家帳號建立時間：取 Inventory 中最早的那一筆 CreateTime
+                    CreateTime = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId)
+                        .OrderBy(i => i.CreateTime)
+                        .Select(i => i.CreateTime)
+                        .FirstOrDefault(),
+
+                    // 持有造型數量：計算 Inventory 中該玩家所有的造型 (包含未 Enable 的)
                     SkinCount = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId)
+                        .Count(),
+
+                    // 目前啟用的造型 ID (供前端顯示頭像使用)
+                    EnabledSkinId = _db.Inventories
                         .Where(i => i.PlayerId == p.PlayerId && i.Enable)
-                        .Join(_db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),
-                              i => i.SkinId, s => s.SkinId, (i, s) => i)
-                        .Select(i => i.SkinId).Distinct().Count(),
-                    IsDisabled = false,
-                    MaxGameId = _db.GameHistories.Where(h => h.PlayerId == p.PlayerId).OrderByDescending(h => h.GameId).Select(h => h.GameId).FirstOrDefault(),
-                    LastPlayedDate = _db.GameHistories.Where(h => h.PlayerId == p.PlayerId).OrderByDescending(h => h.LastPlayedDate).Select(h => h.LastPlayedDate).FirstOrDefault(),
-                    InventoryLogs = _db.ItemAcquisitionLogs.Where(l => l.PlayerId == p.PlayerId)
-                        .Select(l => new InventoryLogDTO
-                        {
-                            LogId = l.LogId,
-                            PlayerId = l.PlayerId,
-                            SkinId = l.SkinId,
-                            CreateTime = l.CreateTime,
-                            AcquireType = l.AcquireType,
-                            // 注意：在 Select 內部使用同步 FirstOrDefault 是 EF Core 允許的轉譯，但外層必須非同步結束
-                            SkinName = _db.SkinShops.FirstOrDefault(s => s.SkinId == l.SkinId).SkinName ?? "未知造型"
-                        }).OrderByDescending(l => l.CreateTime).ToList(),
-                    PointRecords = _db.PointTransactions.Where(pr => pr.PlayerId == p.PlayerId).OrderByDescending(pr => pr.TransactionDate).ToList()
-                }).ToListAsync();
+                        .Select(i => (int?)i.SkinId)
+                        .FirstOrDefault(),
+
+                    // 遊玩進度：取 GameHistory 中最大的 GameId
+                    MaxGameId = _db.GameHistories
+                        .Where(h => h.PlayerId == p.PlayerId)
+                        .Max(h => (int?)h.GameId) ?? 0,
+
+                    // 最後遊玩時間
+                    LastPlayedDate = _db.GameHistories
+                        .Where(h => h.PlayerId == p.PlayerId)
+                        .OrderByDescending(h => h.LastPlayedDate)
+                        .Select(h => h.LastPlayedDate)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
         }
 
         public async Task UpdatePlayerAsync(PlayerEditDTO EditDTO)
         {
+            // 1. 查找玩家主表
             var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == EditDTO.PlayerId);
-            if (player == null)
-                throw new Exception("玩家不存在");
+            if (player == null) throw new Exception("玩家不存在");
 
-            // 玩家存在
-            Log.Information("finish player");
-            //if (player != null)
-            //{
-                Log.Information("找到使用者");
-                player.CurrentPoint = EditDTO.Point;
-                Log.Information("點數已變更");
+            // 更新後台可修改的數值 (例如點數)
+            player.CurrentPoint = EditDTO.Point;
 
-                //var inventories = _db.Inventories.Where(i => i.PlayerId == playerId).ToList();
-                //foreach (var inv in inventories)
-                //{
-                //    inv.Enable = enabledSkinIds != null && enabledSkinIds.Contains(inv.InventoryId);
-                //}
-                Log.Information("SkinId: {SkinId}", EditDTO.SkinId);
-                Log.Information("playerId: {playerId}", EditDTO.PlayerId);
-                var inventory = await _db.Inventories.FirstOrDefaultAsync(i =>  i.SkinId == EditDTO.SkinId && i.PlayerId == EditDTO.PlayerId);
-                if (inventory == null) {
-                    throw new Exception("庫存不存在");
+            // 2. 查找該玩家的特定造型庫存
+            var targetInventory = await _db.Inventories
+                .FirstOrDefaultAsync(i => i.SkinId == EditDTO.SkinId && i.PlayerId == EditDTO.PlayerId);
+
+            if (targetInventory != null)
+            {
+                // 關鍵：如果後台點選了「啟用」這個造型 (Enable 為 true)
+                // 「頭像只能有一個」
+                if (EditDTO.Enable)
+                {
+                    // 先找出該玩家目前「其他」所有被啟用的造型，將它們設為 false
+                    var otherEnabledSkins = _db.Inventories
+                        .Where(i => i.PlayerId == EditDTO.PlayerId && i.SkinId != EditDTO.SkinId && i.Enable);
+
+                    foreach (var s in otherEnabledSkins)
+                    {
+                        s.Enable = false;
+                    }
                 }
 
+                // 最後設定目標造型的狀態 (無論是改為 true 還是 false)
+                targetInventory.Enable = EditDTO.Enable;
+            }
 
-                inventory.Enable = EditDTO.Enable;
-                Log.Information("PlayerService: 玩家 {PlayerId} 與庫存更新完成", EditDTO);
-                //if (inventory != null)
-                //{
-                //    Log.Information("finish");
-                //}
-                
-
-                _db.SaveChanges();
-            //}
+            await _db.SaveChangesAsync();
+            Log.Information("PlayerService: 玩家 {PlayerId} 的資料與造型 {SkinId} 狀態已更新", EditDTO.PlayerId, EditDTO.SkinId);
         }
 
         public async Task DeletePlayerAsync(int id)

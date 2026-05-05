@@ -15,6 +15,7 @@ builder.Services.AddControllersWithViews();
 // 註冊應用程式服務
 builder.Services.AddScoped<MemberProfileService>();
 builder.Services.AddScoped<MemberPermissionService>();
+builder.Services.AddScoped<MemberBlockListService>();
 // 註冊資料庫連線
 // 優先順序: User Secrets > 環境變數 > appsettings.json
 string? isLocal = builder.Configuration["IS_LOCAL"];

@@ -16,7 +16,7 @@
 
         public string City { get; set; }
 
-        public int? Point { get; set; }
+        public int? Point { get; set; } = null;   
 
         public string Note { get; set; }
 

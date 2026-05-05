@@ -36,6 +36,8 @@ builder.Services.AddScoped<FaqService>();
 
 builder.Services.AddScoped<QaService>();
 
+builder.Services.AddScoped<ENewsletterService>();
+
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)

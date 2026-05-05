@@ -14,6 +14,7 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<CommentService>();
 
 // 註冊資料庫連線
 // 優先順序: User Secrets > 環境變數 > appsettings.json

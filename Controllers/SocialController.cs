@@ -7,10 +7,7 @@ namespace PawsPort.Controllers
 {
     public class SocialController : Controller
     {
-        //public IActionResult Index()
-        //{
-        //    return View();
-        //}
+        
 
         public IActionResult SocialList(SocialListViewModel vm)
         {

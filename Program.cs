@@ -10,6 +10,18 @@ using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
+//解決CORS
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("PawsPortPolicy", policy =>
+    {
+        // 允許你的 Vue 前端網址
+        policy.WithOrigins("http://localhost:5173")
+              .AllowAnyHeader()
+              .AllowAnyMethod();
+    });
+});
+
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 builder.Services.AddScoped<ArticleService>();
@@ -152,6 +164,9 @@ builder.Services.AddOpenApi(options =>
 
 
 var app = builder.Build();
+
+//解決CORS
+app.UseCors("PawsPortPolicy");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

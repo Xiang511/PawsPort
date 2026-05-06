@@ -68,6 +68,7 @@ namespace PawsPort.Controllers
         [HttpDelete("{id}")]
         public async Task<IActionResult> Delete(int id)
         {
+            Log.Information("正在準備刪除玩家 ID: {id}", id);
             try
             {
                 await _playerService.DeletePlayerAsync(id);

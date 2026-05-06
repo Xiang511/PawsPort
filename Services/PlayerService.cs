@@ -109,21 +109,45 @@ namespace PawsPort.Services
 
         public async Task DeletePlayerAsync(int id)
         {
-            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == id);
-            if (player == null)
-                throw new Exception("玩家不存在");
+            var player = await _db.PlayerProfiles.FindAsync(id);
+            if (player == null) throw new Exception("玩家不存在");
 
-            // 移除關聯資料
-            var inventories = _db.Inventories.Where(i => i.PlayerId == id);
-            var histories = _db.GameHistories.Where(h => h.PlayerId == id);
+            using var transaction = await _db.Database.BeginTransactionAsync();
+            try
+            {
+                // 找出所有關聯資料 (加上 ToListAsync 確保資料立刻被載入記憶體)
+                var logs = await _db.ItemAcquisitionLogs.Where(l => l.PlayerId == id).ToListAsync();
+                var trans = await _db.PointTransactions.Where(t => t.PlayerId == id).ToListAsync();
+                var histories = await _db.GameHistories.Where(h => h.PlayerId == id).ToListAsync();
+                var inventories = await _db.Inventories.Where(i => i.PlayerId == id).ToListAsync();
 
-            _db.Inventories.RemoveRange(inventories);
-            _db.GameHistories.RemoveRange(histories);
-            _db.PlayerProfiles.Remove(player);
+                // 依照「由子到父」的順序標記刪除
+                if (logs.Any()) _db.ItemAcquisitionLogs.RemoveRange(logs);
+                if (trans.Any()) _db.PointTransactions.RemoveRange(trans);
+                if (histories.Any()) _db.GameHistories.RemoveRange(histories);
+                if (inventories.Any()) _db.Inventories.RemoveRange(inventories);
 
-            await _db.SaveChangesAsync();
-            Log.Information("PlayerService: 玩家 ID {id} 及其關聯資料已刪除", id);
+                // 先存檔一次，清空子表
+                await _db.SaveChangesAsync();
+
+                // 最後才標記並刪除主表
+                _db.PlayerProfiles.Remove(player);
+                await _db.SaveChangesAsync();
+
+                // 提交
+                await transaction.CommitAsync();
+
+                Log.Information("玩家 {id} 及其關聯資料已成功刪除", id);
+            }
+            catch (Exception ex)
+            {
+                await transaction.RollbackAsync();
+                var innerMsg = ex.InnerException?.Message ?? ex.Message;
+                Log.Error("刪除失敗，錯誤詳細資訊：{Message}", innerMsg);
+                throw new Exception(innerMsg);
+            }
         }
-
     }
+
+    
 }

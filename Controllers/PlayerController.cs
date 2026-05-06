@@ -112,5 +112,21 @@ namespace PawsPort.Controllers
                 return Failure("PLAYER_SEARCH_FAILED", "搜尋過程發生錯誤", 500);
             }
         }
+
+        // GET /api/Player/{id}/logs
+        [HttpGet("{id}/logs")]
+        public async Task<IActionResult> GetPlayerLogs(int id)
+        {
+            try
+            {
+                var records = await _playerService.GetPlayerRecordsAsync(id);
+                return Success(records, "取得玩家紀錄成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "取得紀錄失敗");
+                return Failure("GET_LOGS_FAILED", "伺服器錯誤", 500);
+            }
+        }
     }
 }

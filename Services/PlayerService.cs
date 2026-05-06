@@ -212,6 +212,41 @@ namespace PawsPort.Services
                 throw new Exception(innerMsg);
             }
         }
+
+        public async Task<PlayerRecordDTO> GetPlayerRecordsAsync(int playerId)
+        {
+            var result = new PlayerRecordDTO();
+
+            // 1. 取得消費紀錄 (Amount < 0 且有 SkinId)
+            result.ConsumptionLogs = await _db.PointTransactions
+                .Where(t => t.PlayerId == playerId && t.Amount < 0)
+                .Join(_db.SkinShops,
+                    t => t.SkinId,
+                    s => s.SkinId,
+                    (t, s) => new PointChangeDTO
+                    {
+                        TransactionDate = t.TransactionDate,
+                        Description = s.SkinName, // 取得造型名稱
+                        Amount = t.Amount ?? 0        // 這會是負數，例如 -750
+                    })
+                .OrderByDescending(x => x.TransactionDate)
+                .ToListAsync();
+
+            // 2. 取得獲取紀錄 (Amount > 0)
+            result.PointLogs = await _db.PointTransactions
+                .Where(t => t.PlayerId == playerId && t.Amount > 0)
+                .Select(t => new PointChangeDTO
+                {
+                    TransactionDate = t.TransactionDate,
+                    // 如果有 GameId 則顯示關卡，否則顯示交易類型 (如: 任務獎勵)
+                    Description = t.GameId > 0 ? $"遊戲第 {t.GameId} 關" : t.TransactionType,
+                    Amount = t.Amount ?? 0        // 這會是正數，例如 +500
+                })
+                .OrderByDescending(x => x.TransactionDate)
+                .ToListAsync();
+
+            return result;
+        }
     }
 
     

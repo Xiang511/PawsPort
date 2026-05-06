@@ -1,12 +1,9 @@
-﻿using Microsoft.AspNetCore.OpenApi;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
+﻿using Microsoft.EntityFrameworkCore;
 using PawsPort.Middlewares;
 using PawsPort.Models;
 using PawsPort.Services;
 using Scalar.AspNetCore;
 using Serilog;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -39,7 +36,7 @@ builder.Services.AddDbContext<PetDbContext>(options =>
 
 // 設定 Serilog - 完全從 appsettings.json 讀取
 var loggerConfig = new LoggerConfiguration()
-    .ReadFrom.Configuration(builder.Configuration) 
+    .ReadFrom.Configuration(builder.Configuration)
     .Enrich.FromLogContext();
 
 // Seq 可以保留在程式碼中動態控制

@@ -70,6 +70,23 @@ namespace PawsPort.Services
                 .ToListAsync();
         }
 
+        public async Task<List<PlayerProfile>> SearchPlayersAsync(string searchTerm)
+        {
+            var query = _db.PlayerProfiles.AsNoTracking().AsQueryable();
+
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                // 同時支援 ID 精確搜尋與名稱模糊搜尋
+                bool isId = int.TryParse(searchTerm, out int id);
+
+                query = query.Where(p =>
+                    (isId && p.PlayerId == id) ||
+                    p.UserName.Contains(searchTerm));
+            }
+
+            return await query.OrderByDescending(p => p.PlayerId).ToListAsync();
+        }
+
         public async Task UpdatePlayerAsync(PlayerEditDTO EditDTO)
         {
             // 1. 查找玩家主表

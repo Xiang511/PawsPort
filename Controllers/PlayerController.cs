@@ -83,5 +83,35 @@ namespace PawsPort.Controllers
                 return Failure("PLAYER_DELETE_FAILED", "刪除過程發生錯誤", 500);
             }
         }
+
+        // GET /api/Player/search?query=xxx&page=1
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string query, int page = 1)
+        {
+            try
+            {
+                // 1. 呼叫 Service 取得搜尋後的結果
+                var searchResults = await _playerService.SearchPlayersAsync(query);
+
+                int pageSize = 10;
+                var pagedList = searchResults
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
+
+                // 2. 使用與 List 一致的 Success 格式回傳
+                return Success(new
+                {
+                    Data = pagedList,      // 前端對應到的 players.value
+                    CurrentPage = page,
+                    TotalCount = searchResults.Count
+                }, $"搜尋「{query}」成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 搜尋玩家失敗");
+                return Failure("PLAYER_SEARCH_FAILED", "搜尋過程發生錯誤", 500);
+            }
+        }
     }
 }

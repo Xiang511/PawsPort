@@ -10,6 +10,8 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("會員管理")]
+
     public class UsersController : ApiControllerBase
     {
         private readonly MemberProfileService _memberProfileService;
@@ -28,6 +30,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功取得會員列表</response>
         [HttpGet]
         [ProducesResponseType(typeof(List<MemberUserDTO>), StatusCodes.Status200OK)]
+        [Tags("會員管理 / 會員資訊")]
         public async Task<IActionResult> Members()
         {
             Log.Information("[UsersController] Members GET - Entry");
@@ -49,6 +52,7 @@ namespace PawsPort.Controllers
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("會員管理 / 會員資訊")]
         public async Task<IActionResult> Members(int? id)
         {
             Log.Information("[UsersController] Members GET by id - Entry, UserId: {UserId}", id);
@@ -80,6 +84,7 @@ namespace PawsPort.Controllers
         [HttpPost]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("會員管理 / 會員資訊")]
         public async Task<IActionResult> Members(CreateMemberDTO user)
         {
             Log.Information("[UsersController] Members POST - Entry, 會員名稱: {Name}", user.Name);
@@ -100,6 +105,7 @@ namespace PawsPort.Controllers
 
         [HttpGet("Summary")]
         [ProducesResponseType(typeof(MemberSummaryDTO), StatusCodes.Status200OK)]
+        [Tags("會員管理 / 會員資訊")]
         public async Task<IActionResult> Summary()
         {
             Log.Information("[UsersController] Summary GET - Entry");
@@ -132,6 +138,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("會員管理 / 會員資訊")]
         public async Task<IActionResult> UpdateMembers(int? id, MemberUserDTO userDto)
         {
             Log.Information("[UsersController] UpdateMembers PUT - Entry, UserId: {UserId}, 會員名稱: {Name}", id, userDto.Name);
@@ -166,10 +173,12 @@ namespace PawsPort.Controllers
         /// <returns>無內容（204）或錯誤訊息</returns>
         /// <response code="204">成功刪除會員（軟刪除）</response>
         /// <response code="404">找不到指定會員</response>
+        /// 
        
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("會員管理 / 會員資訊")]
         public async Task<IActionResult> DeleteMember(int? id)
         {
             Log.Information("[UsersController] DeleteMember DELETE - Entry, UserId: {UserId}", id);
@@ -199,6 +208,7 @@ namespace PawsPort.Controllers
         [HttpGet("/api/users/{id}/roles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("會員管理 / 會員權限")]
         public async Task<IActionResult> QueryRoleById(int? id)
         {
             Log.Information("[UsersController] QueryRoleById GET - Entry, UserId: {UserId}", id);
@@ -230,6 +240,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Tags("會員管理 / 會員權限")]
         public async Task<IActionResult> CreateRole(MemberUserSystemRoleDTO US)
         {
             Log.Information("[UsersController] CreateRole POST - Entry, UserId: {UserId}, SystemId: {SystemId}, RoleId: {RoleId}", US.UserId, US.SystemId, US.RoleId);
@@ -270,6 +281,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [Tags("會員管理 / 會員權限")]
 
         public async Task<IActionResult> EditRole(int? mappingId, MemberPermissionUpdateRoleDTO user)
         {
@@ -319,6 +331,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("會員管理 / 會員權限")]
         public async Task<IActionResult> DeleteRole(int? mappingId)
         {
             Log.Information("[UsersController] DeleteRole DELETE - Entry, MappingId: {MappingId}", mappingId);

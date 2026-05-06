@@ -9,6 +9,8 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("封鎖管理")]
+
     public class BlocklistController : ApiControllerBase
     {
         private readonly MemberBlockListService _memberBlockListService;

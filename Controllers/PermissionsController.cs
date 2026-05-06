@@ -11,6 +11,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("權限管理")]
     public class PermissionsController : ApiControllerBase
     {
         private readonly MemberPermissionService _memberPermissionService;

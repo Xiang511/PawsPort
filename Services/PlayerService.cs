@@ -70,21 +70,69 @@ namespace PawsPort.Services
                 .ToListAsync();
         }
 
-        public async Task<List<PlayerProfile>> SearchPlayersAsync(string searchTerm)
+        public async Task<List<PlayerListDTO>> SearchPlayersAsync(string searchTerm)
         {
+            // 1. 先建立基礎查詢 (Queryable)
             var query = _db.PlayerProfiles.AsNoTracking().AsQueryable();
 
+            // 2. 套用搜尋過濾條件
             if (!string.IsNullOrWhiteSpace(searchTerm))
             {
-                // 同時支援 ID 精確搜尋與名稱模糊搜尋
                 bool isId = int.TryParse(searchTerm, out int id);
-
                 query = query.Where(p =>
                     (isId && p.PlayerId == id) ||
                     p.UserName.Contains(searchTerm));
             }
 
-            return await query.OrderByDescending(p => p.PlayerId).ToListAsync();
+            // 3. 關鍵：直接套用與 GetPlayerListAsync 一模一樣的 Select 邏輯
+            // 這樣能保證搜尋出來的人，其「造型數量」、「最後遊玩時間」都是正確計算過的
+            return await query
+                .OrderByDescending(p => p.PlayerId)
+                .Select(p => new PlayerListDTO
+                {
+                    PlayerId = p.PlayerId,
+                    UserName = p.UserName,
+                    CurrentPoint = p.CurrentPoint ?? 0,
+
+                    OwnedSkins = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId)
+                        .Join(_db.SkinShops,
+                            i => i.SkinId,
+                            s => s.SkinId,
+                            (i, s) => new PlayerSkinDTO
+                            {
+                                SkinId = s.SkinId,
+                                SkinName = s.SkinName,
+                                SkinImage = s.SkinImage,
+                                Enable = i.Enable
+                            }).ToList(),
+
+                    CreateTime = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId)
+                        .OrderBy(i => i.CreateTime)
+                        .Select(i => i.CreateTime)
+                        .FirstOrDefault(),
+
+                    SkinCount = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId)
+                        .Count(),
+
+                    EnabledSkinId = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId && i.Enable)
+                        .Select(i => (int?)i.SkinId)
+                        .FirstOrDefault(),
+
+                    MaxGameId = _db.GameHistories
+                        .Where(h => h.PlayerId == p.PlayerId)
+                        .Max(h => (int?)h.GameId) ?? 0,
+
+                    LastPlayedDate = _db.GameHistories
+                        .Where(h => h.PlayerId == p.PlayerId)
+                        .OrderByDescending(h => h.LastPlayedDate)
+                        .Select(h => h.LastPlayedDate)
+                        .FirstOrDefault()
+                })
+                .ToListAsync();
         }
 
         public async Task UpdatePlayerAsync(PlayerEditDTO EditDTO)

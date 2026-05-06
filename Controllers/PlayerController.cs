@@ -90,7 +90,7 @@ namespace PawsPort.Controllers
         {
             try
             {
-                // 1. 呼叫 Service 取得搜尋後的結果
+                // 1. 呼叫 Service 取得搜尋後的結果，此時 searchResults 已經是 List<PlayerListDTO>
                 var searchResults = await _playerService.SearchPlayersAsync(query);
 
                 int pageSize = 10;
@@ -99,10 +99,9 @@ namespace PawsPort.Controllers
                     .Take(pageSize)
                     .ToList();
 
-                // 2. 使用與 List 一致的 Success 格式回傳
                 return Success(new
                 {
-                    Data = pagedList,      // 前端對應到的 players.value
+                    Data = pagedList,      
                     CurrentPage = page,
                     TotalCount = searchResults.Count
                 }, $"搜尋「{query}」成功", 200);

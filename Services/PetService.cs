@@ -1,5 +1,6 @@
 ﻿using PawsPort.Models;
 using PawsPort.Dtos;
+using Microsoft.EntityFrameworkCore;
 
 namespace PawsPort.Services
 {
@@ -11,20 +12,20 @@ namespace PawsPort.Services
             _db = db;
         }
         // 1. 取得寵物列表 (含搜尋與軟刪除過濾)
-        public List<PetListDto> GetPets(string? keyword)
+        public async Task<List<PetListDto>> GetPetsAsync(string? keyword)
         {
-
-
-            // 基礎查詢：只抓沒被刪除的
+            // 1. 這裡只是在「建立查詢語法」，還沒去資料庫，所以不可以加 await
             var query = _db.Pets.Where(p => p.DeletedAt == null);
 
-            // 加上關鍵字搜尋
+            // 2. 繼續組合查詢條件 (一樣不加 await)
             if (!string.IsNullOrEmpty(keyword))
             {
                 query = query.Where(p => p.Name.Contains(keyword) || p.CoatColor.Contains(keyword));
             }
 
-            return query.Select(p => new PetListDto
+            // 3. 執行階段：這才是真正去資料庫拿資料的時候
+            // 必須在最前面加 await，最後面用 ToListAsync()
+            return await query.Select(p => new PetListDto
             {
                 PetId = p.PetId,
                 Name = p.Name,
@@ -33,11 +34,11 @@ namespace PawsPort.Services
                 Size = p.Size,
                 CurrentStatus = p.CurrentStatus,
                 CreatedAt = p.CreatedAt
-            }).ToList();
+            }).ToListAsync();
         }
 
         // 2. 新增寵物
-        public void CreatePet(PetCreateDto dto)
+        public async Task CreatePetAsync(PetCreateDto dto)
         {
             Pet pet = new Pet
             {
@@ -55,25 +56,25 @@ namespace PawsPort.Services
             };
 
             _db.Pets.Add(pet);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         // 3. 軟刪除邏輯 (不移除資料，僅標記時間)
-        public void SoftDeletePet(int id)
+        public async Task SoftDeletePetAsync(int id)
         {
-            var pet = _db.Pets.FirstOrDefault(p => p.PetId == id);
+            var pet = await _db.Pets.FirstOrDefaultAsync(p => p.PetId == id);
 
             if (pet != null)
             {
                 pet.DeletedAt = DateTime.Now;
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
 
         // 4. 取得單筆資料供編輯
-        public PetEditDto? GetPetForEdit(int id)
+        public async Task<PetEditDto?> GetPetForEditAsync(int id)
         {
-            var p = _db.Pets.FirstOrDefault(x => x.PetId == id && x.DeletedAt == null);
+            var p = await _db.Pets.FirstOrDefaultAsync(x => x.PetId == id && x.DeletedAt == null);
 
             if (p == null) return null;
 
@@ -94,9 +95,9 @@ namespace PawsPort.Services
         }
 
         // 5. 更新寵物資料
-        public void UpdatePet(PetEditDto dto)
+        public async Task UpdatePetAsync(PetEditDto dto)
         {
-            var dbPet = _db.Pets.FirstOrDefault(p => p.PetId == dto.PetId);
+            var dbPet = await _db.Pets.FirstOrDefaultAsync(p => p.PetId == dto.PetId);
 
             if (dbPet != null)
             {

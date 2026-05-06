@@ -23,9 +23,9 @@ namespace PawsPort.Controllers
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<MissingReportListDto>), StatusCodes.Status200OK)]
-        public IActionResult List([FromQuery] string? keyword)
+        public async Task<IActionResult> List([FromQuery] string? keyword)
         {
-            var dtoList = _service.GetReports(keyword);
+            var dtoList = await _service.GetReportsAsync(keyword);
 
             if (dtoList == null || !dtoList.Any())
             {
@@ -38,10 +38,10 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 取得供編輯用的單筆報案資料
         /// </summary>
-        [HttpGet("{id}/edit")]
-        public IActionResult GetEditData(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEditData(int id)
         {
-            var dto = _service.GetReportForEdit(id);
+            var dto = await _service.GetReportForEditAsync(id);
             if (dto == null)
                 return Failure("REPORT_NOT_FOUND", "找不到指定的報案資料", 404);
 
@@ -53,9 +53,9 @@ namespace PawsPort.Controllers
         /// </summary>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult Create([FromBody] MissingReportCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] MissingReportCreateDto dto)
         {
-            _service.CreateReport(dto);
+            await _service.CreateReportAsync(dto);
             Log.Information("創建失蹤報案成功 PetId:{PetId}", dto.PetId);
 
             return Success(dto, "新增報案成功！", 200);
@@ -67,14 +67,14 @@ namespace PawsPort.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Edit(int id, [FromBody] MissingReportEditDto dto)
+        public async Task<IActionResult> Edit(int id, [FromBody] MissingReportEditDto dto)
         {
             if (id != dto.ReportId)
             {
                 return Failure("ID_MISMATCH", "報案ID不一致", 400);
             }
 
-            _service.UpdateReport(dto);
+            await _service.UpdateReportAsync(dto);
             Log.Information("更新報案成功 ReportId:{ReportId}", id);
 
             return NoContent();
@@ -85,9 +85,9 @@ namespace PawsPort.Controllers
         /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
-            _service.DeleteReport(id);
+            await _service.DeleteReportAsync(id);
             Log.Information("刪除報案成功 ReportId:{ReportId}", id);
 
             return NoContent();

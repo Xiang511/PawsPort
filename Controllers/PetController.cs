@@ -23,9 +23,9 @@ namespace PawsPort.Controllers
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<PetListDto>), StatusCodes.Status200OK)]
-        public IActionResult List([FromQuery] string? keyword)
+        public async Task<IActionResult> List([FromQuery] string? keyword)
         {
-            var dtoList = _service.GetPets(keyword);
+            var dtoList = await _service.GetPetsAsync(keyword);
 
             if (dtoList == null || !dtoList.Any())
             {
@@ -38,10 +38,10 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 取得供編輯用的單筆寵物資料
         /// </summary>
-        [HttpGet("{id}/edit")]
-        public IActionResult GetEditData(int id)
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEditData(int id)
         {
-            var dto = _service.GetPetForEdit(id);
+            var dto = await _service.GetPetForEditAsync(id);
             if (dto == null)
                 return Failure("PET_NOT_FOUND", "找不到指定的寵物資料", 404);
 
@@ -53,9 +53,9 @@ namespace PawsPort.Controllers
         /// </summary>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        public IActionResult Create([FromBody] PetCreateDto dto)
+        public async Task<IActionResult> Create([FromBody] PetCreateDto dto)
         {
-            _service.CreatePet(dto);
+            await _service.CreatePetAsync(dto);
             Log.Information("創建寵物資料成功 Name:{Name}", dto.Name);
 
             return Success(dto, "新增寵物資料成功！", 200);
@@ -67,14 +67,14 @@ namespace PawsPort.Controllers
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        public IActionResult Edit(int id, [FromBody] PetEditDto dto)
+        public async Task<IActionResult> Edit(int id, [FromBody] PetEditDto dto)
         {
             if (id != dto.PetId)
             {
                 return Failure("ID_MISMATCH", "寵物ID不一致", 400);
             }
 
-            _service.UpdatePet(dto);
+            await _service.UpdatePetAsync(dto);
             Log.Information("更新寵物資料成功 PetId:{PetId}", id);
 
             return NoContent();
@@ -85,10 +85,10 @@ namespace PawsPort.Controllers
         /// </summary>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public IActionResult Delete(int id)
+        public async Task<IActionResult> Delete(int id)
         {
             // 注意這裡對應的是你 Service 裡的 SoftDeletePet
-            _service.SoftDeletePet(id);
+            await _service.SoftDeletePetAsync(id);
             Log.Information("軟刪除寵物資料成功 PetId:{PetId}", id);
 
             return NoContent();

@@ -3,23 +3,23 @@ using PawsPort.Dtos;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
+using Microsoft.EntityFrameworkCore;
 
 namespace PawsPort.Services
 {
     public class PassPortService
     {
-        // 1. 定義一個私有的唯讀欄位來存資料庫實體
         private readonly PetDbContext _db;
 
-        // 2. 透過建構子注入：當系統建立這個 Service 時，會自動把已經註冊好的 DbContext 丟進來
         public PassPortService(PetDbContext db)
         {
             _db = db;
         }
-        // 1. 取得列表
-        public List<HealthPassportListDto> GetPassports(string? keyword)
-        {
 
+        // 1. 取得列表 (非同步)
+        public async Task<List<HealthPassportListDto>> GetPassportsAsync(string? keyword)
+        {
             var query = from h in _db.HealthPassports
                         join p in _db.Pets on h.PetId equals p.PetId
                         where p.DeletedAt == null
@@ -41,13 +41,13 @@ namespace PawsPort.Services
                 query = query.Where(v => v.Name.Contains(keyword));
             }
 
-            return query.ToList();
+            // 使用 await 與 ToListAsync()
+            return await query.ToListAsync();
         }
 
-        // 2. 新增護照 (包含病歷與疫苗)
-        public void CreatePassport(HealthPassportCreateDto dto)
+        // 2. 新增護照 (非同步)
+        public async Task CreatePassportAsync(HealthPassportCreateDto dto)
         {
-
             // 步驟 1：主表
             HealthPassport passport = new HealthPassport
             {
@@ -59,7 +59,9 @@ namespace PawsPort.Services
                 CreatedAt = DateTime.Now
             };
             _db.HealthPassports.Add(passport);
-            _db.SaveChanges(); // 取得新的 PassportId
+
+            // 使用 await 與 SaveChangesAsync()
+            await _db.SaveChangesAsync();
 
             // 步驟 2：病歷表
             if (!string.IsNullOrEmpty(dto.Disease))
@@ -91,27 +93,27 @@ namespace PawsPort.Services
                 _db.VaccinationStatuses.Add(vaccine);
             }
 
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
-        // 3. 刪除護照
-        public void DeletePassport(int id)
+        // 3. 刪除護照 (非同步)
+        public async Task DeletePassportAsync(int id)
         {
-            
-            var passport = _db.HealthPassports.FirstOrDefault(p => p.PassportId == id);
+            // 使用 FirstOrDefaultAsync
+            var passport = await _db.HealthPassports.FirstOrDefaultAsync(p => p.PassportId == id);
 
             if (passport != null)
             {
                 passport.DeletedAt = DateTime.Now;
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
 
-        // 4. 取得修改畫面需要的單筆資料
-        public HealthPassportEditDto? GetPassportForEdit(int id)
+        // 4. 取得修改畫面需要的單筆資料 (非同步)
+        public async Task<HealthPassportEditDto?> GetPassportForEditAsync(int id)
         {
-            
-            HealthPassport x = _db.HealthPassports.FirstOrDefault(p => p.PassportId == id);
+            // 使用 FirstOrDefaultAsync
+            HealthPassport? x = await _db.HealthPassports.FirstOrDefaultAsync(p => p.PassportId == id);
 
             if (x == null) return null;
 
@@ -124,11 +126,10 @@ namespace PawsPort.Services
             };
         }
 
-        // 5. 儲存修改
-        public void UpdatePassport(HealthPassportEditDto dto)
+        // 5. 儲存修改 (非同步)
+        public async Task UpdatePassportAsync(HealthPassportEditDto dto)
         {
-            
-            HealthPassport dbPassport = _db.HealthPassports.FirstOrDefault(p => p.PassportId == dto.PassportId);
+            var dbPassport = await _db.HealthPassports.FirstOrDefaultAsync(p => p.PassportId == dto.PassportId);
 
             if (dbPassport != null)
             {
@@ -137,19 +138,18 @@ namespace PawsPort.Services
                 dbPassport.RecordType = dto.RecordType;
                 dbPassport.UpdatedAt = DateTime.Now;
 
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
 
-        // 6. 取得詳細資料 (包含組裝防呆邏輯)
-        public HealthPassportDetailsDto? GetPassportDetails(int id)
+        // 6. 取得詳細資料 (非同步)
+        public async Task<HealthPassportDetailsDto?> GetPassportDetailsAsync(int id)
         {
-            
+            // 這裡可以嘗試同時發出兩個查詢來優化效能
+            // 正確寫法：依序等待 (Sequential Await)
+            var m = await _db.MedicalHistories.FirstOrDefaultAsync(x => x.PassportId == id);
+            var v = await _db.VaccinationStatuses.FirstOrDefaultAsync(x => x.PassportId == id);
 
-            var m = _db.MedicalHistories.FirstOrDefault(x => x.PassportId == id);
-            var v = _db.VaccinationStatuses.FirstOrDefault(x => x.PassportId == id);
-
-            // 如果兩邊都沒資料，回傳 null 讓 Controller 決定怎麼處理 (例如發送錯誤訊息)
             if (m == null && v == null) return null;
 
             return new HealthPassportDetailsDto

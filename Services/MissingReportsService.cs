@@ -1,5 +1,6 @@
 ﻿using PawsPort.Models;
 using PawsPort.Dtos;
+using Microsoft.EntityFrameworkCore;
 
 namespace PawsPort.Services
 {
@@ -11,7 +12,7 @@ namespace PawsPort.Services
             _db = db;
         }
         // 1. 取得搜尋列表
-        public List<MissingReportListDto> GetReports(string? keyword)
+        public async Task<List<MissingReportListDto>> GetReportsAsync(string? keyword)
         {
 
             var query = from h in _db.MissingReports
@@ -37,11 +38,11 @@ namespace PawsPort.Services
                 query = query.Where(v => v.Name.Contains(keyword));
             }
 
-            return query.ToList();
+            return await query.ToListAsync();
         }
 
         // 2. 新增報案
-        public void CreateReport(MissingReportCreateDto dto)
+        public async Task CreateReportAsync(MissingReportCreateDto dto)
         {
             MissingReport report = new MissingReport
             {
@@ -56,26 +57,26 @@ namespace PawsPort.Services
             };
 
             _db.MissingReports.Add(report);
-            _db.SaveChanges();
+            await _db.SaveChangesAsync();
         }
 
         // 3. 刪除報案
-        public void DeleteReport(int id)
+        public async Task DeleteReportAsync(int id)
         {
             
-            var MissingReport = _db.MissingReports.FirstOrDefault(p => p.ReportId == id);
+            var MissingReport = await _db.MissingReports.FirstOrDefaultAsync(p => p.ReportId == id);
             if (MissingReport != null)
             {
                 MissingReport.DeletedAt = DateTime.Now;
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
 
         // 4. 取得單筆資料供編輯
-        public MissingReportEditDto? GetReportForEdit(int id)
+        public async Task<MissingReportEditDto?> GetReportForEditAsync(int id)
         {
             
-            var x = _db.MissingReports.FirstOrDefault(p => p.ReportId == id);
+            var x = await _db.MissingReports.FirstOrDefaultAsync(p => p.ReportId == id);
             if (x == null) return null;
 
             return new MissingReportEditDto
@@ -90,9 +91,9 @@ namespace PawsPort.Services
         }
 
         // 5. 更新報案資料
-        public void UpdateReport(MissingReportEditDto dto)
+        public async Task UpdateReportAsync(MissingReportEditDto dto)
         {
-            var dbReport = _db.MissingReports.FirstOrDefault(p => p.ReportId == dto.ReportId);
+            var dbReport = await _db.MissingReports.FirstOrDefaultAsync(p => p.ReportId == dto.ReportId);
 
             if (dbReport != null)
             {
@@ -103,7 +104,7 @@ namespace PawsPort.Services
                 dbReport.LostLocation = dto.LostLocation;
                 dbReport.UpdatedAt = DateTime.Now;
 
-                _db.SaveChanges();
+                await _db.SaveChangesAsync();
             }
         }
     }

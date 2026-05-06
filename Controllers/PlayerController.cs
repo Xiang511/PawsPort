@@ -46,6 +46,7 @@ namespace PawsPort.Controllers
         [HttpPut("{id}")]
         public async Task<IActionResult> Edit(int id, [FromBody] PlayerEditDTO EditDTO)
         {
+            if (EditDTO == null) return Failure("BAD_REQUEST", "收到的資料為空", 400);
             if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "網址 ID 與資料 ID 不符", 400);
 
             try

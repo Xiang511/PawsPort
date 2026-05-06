@@ -23,6 +23,20 @@ namespace PawsPort.Services
                     UserName = p.UserName,
                     CurrentPoint = p.CurrentPoint ?? 0,
 
+                    // 取得該玩家擁有的所有造型詳細資訊
+                    OwnedSkins = _db.Inventories
+                        .Where(i => i.PlayerId == p.PlayerId)
+                        .Join(_db.SkinShops, // 這裡主動與 SkinShop 表做 Join
+                            i => i.SkinId,   // Inventory 的外鍵
+                            s => s.SkinId,   // SkinShop 的主鍵
+                            (i, s) => new PlayerSkinDTO // 組合成 DTO
+                        {
+                            SkinId = s.SkinId,
+                            SkinName = s.SkinName,
+                            SkinImage = s.SkinImage,
+                            Enable = i.Enable
+                        }).ToList(),
+
                     // 玩家帳號建立時間：取 Inventory 中最早的那一筆 CreateTime
                     CreateTime = _db.Inventories
                         .Where(i => i.PlayerId == p.PlayerId)

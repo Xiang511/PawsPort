@@ -12,6 +12,14 @@ namespace PawsPort.Dtos
         public int? EnabledSkinId { get; set; }
         public int MaxGameId { get; set; }
         public DateTime? LastPlayedDate { get; set; }
+        public List<PlayerSkinDTO> OwnedSkins { get; set; } = new();
 
     }
+    public class PlayerSkinDTO
+    {
+        public int SkinId { get; set; }
+        public string? SkinName { get; set; }
+        public string? SkinImage { get; set; }
+        public bool Enable { get; set; }
     }
+}

@@ -1,191 +1,93 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PawsPort.Dtos;
 using PawsPort.Models;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class ShopController : Controller
+    [Route("api/[controller]")]
+    public class ShopController : ApiControllerBase
     {
-        public IActionResult List()
+        private readonly ShopService _shopService;
+
+        public ShopController(ShopService shopService)
         {
-            PetDbContext db = new PetDbContext();
-            var skinList = db.SkinShops.Where(s => s.IsDel != true).ToList();
-            return View(skinList);
-        }
-        public IActionResult Create()
-        {
-            return View();
+            _shopService = shopService;
         }
 
-        [HttpPost]
-        public IActionResult Create(SkinShop S, IFormFile imageFile)
+        // GET /api/Shop
+        [HttpGet]
+        public async Task<IActionResult> List()
         {
             try
             {
-                // 驗證圖片
-                if (imageFile != null && imageFile.Length > 0)
-                {
-                    // 檢查文件格式
-                    var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-                    var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
-
-                    if (!allowedExtensions.Contains(fileExtension))
-                    {
-                        ModelState.AddModelError("imageFile", "只允許上傳 JPG 或 PNG 格式的圖片");
-                        return View(S);
-                    }
-
-                    // 生成唯一的文件名
-                    var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                    var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "skins");
-
-                    // 確保資料夾存在
-                    if (!Directory.Exists(uploadPath))
-                    {
-                        Directory.CreateDirectory(uploadPath);
-                    }
-
-                    var filePath = Path.Combine(uploadPath, fileName);
-
-                    // 保存文件
-                    using (var stream = new FileStream(filePath, FileMode.Create))
-                    {
-                        imageFile.CopyTo(stream);
-                    }
-
-                    // 設置完整的 URL 路徑
-                    S.SkinImage = $"/images/skins/{fileName}";
-                }
-
-                S.IsDel = false;
-
-                PetDbContext db = new PetDbContext();
-                db.SkinShops.Add(S);
-                db.SaveChanges();
-
-                return RedirectToAction("List");
+                var data = await _shopService.GetShopListAsync();
+                return Success(data, "取得商品列表成功", 200);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"保存失敗: {ex.Message}");
-                return View(S);
+                Log.Error(ex, "ShopController: 取得商品列表時發生異常");
+                return Failure("SHOP_LIST_ERROR", "伺服器目前無法讀取商品資料，請稍後再試", 500);
             }
         }
-        public IActionResult Edit(int? id)
+
+        // POST /api/Shop
+        [HttpPost]
+        public async Task<IActionResult> Create(ShopCreateDTO dto)
         {
-            PetDbContext db = new PetDbContext();
-            SkinShop shop = db.SkinShops.FirstOrDefault(shop => shop.SkinId == id);
-            if (shop == null)
-                return RedirectToAction("List");
-            return View(shop);
+            Log.Information("ShopController: 收到 JSON 新增商品請求: {SkinName}", dto.SkinName);
+
+            try
+            {
+                await _shopService.CreateAsync(dto);
+                return Success<object>(dto, "建立成功", 201);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "ShopController: 新增商品失敗");
+                return Failure("SHOP_CREATE_FAILED", "伺服器儲存資料失敗", 500);
+            }
         }
 
-        [HttpPost]
-        public IActionResult Edit(SkinShop S, IFormFile imageFile)
+        // PUT /api/Shop/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit(int id, ShopEditDTO dto)
+        {
+            if (id != dto.SkinId) return Failure("SHOP_ID_MISMATCH", "網址 ID 與資料 ID 不符", 400);
+
+            try
+            {
+                await _shopService.UpdateAsync(dto);
+                return Success<object>(dto, "更新成功", 200);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message == "商品不存在")
+                    return Failure("SHOP_NOT_FOUND", "找不到指定的商品", 404);
+
+                Log.Error(ex, "ShopController: 更新商品 ID {id} 失敗", id);
+                return Failure("SHOP_UPDATE_FAILED", "更新過程發生錯誤", 500);
+            }
+        }
+
+        // DELETE /api/Shop/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
             try
             {
-                PetDbContext db = new PetDbContext();
-                SkinShop ExistingSkin = db.SkinShops.FirstOrDefault(s => s.SkinId == S.SkinId);
-
-                if (ExistingSkin != null)
-                {
-                    ExistingSkin.SkinName = S.SkinName;
-                    ExistingSkin.Description = S.Description;
-                    ExistingSkin.Price = S.Price;
-                    ExistingSkin.IsAvailable = S.IsAvailable;
-
-                    // 如果上傳了新圖片
-                    if (imageFile != null && imageFile.Length > 0)
-                    {
-                        // 檢查文件格式
-                        var allowedExtensions = new[] { ".jpg", ".jpeg", ".png" };
-                        var fileExtension = Path.GetExtension(imageFile.FileName).ToLower();
-
-                        if (!allowedExtensions.Contains(fileExtension))
-                        {
-                            ModelState.AddModelError("imageFile", "只允許上傳 JPG 或 PNG 格式的圖片");
-                            return View(S);
-                        }
-
-                        // 刪除舊圖片
-                        if (!string.IsNullOrEmpty(ExistingSkin.SkinImage))
-                        {
-                            var oldImagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", ExistingSkin.SkinImage.TrimStart('/'));
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
-
-                        // 生成唯一的文件名
-                        var fileName = $"{Guid.NewGuid()}{fileExtension}";
-                        var uploadPath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "skins");
-
-                        if (!Directory.Exists(uploadPath))
-                        {
-                            Directory.CreateDirectory(uploadPath);
-                        }
-
-                        var filePath = Path.Combine(uploadPath, fileName);
-
-                        // 保存文件
-                        using (var stream = new FileStream(filePath, FileMode.Create))
-                        {
-                            imageFile.CopyTo(stream);
-                        }
-
-                        // 設置完整的 URL 路徑
-                        ExistingSkin.SkinImage = $"/images/skins/{fileName}";
-                    }
-
-                    db.SaveChanges();
-                }
-
-                return RedirectToAction("List");
+                await _shopService.DeleteAsync(id);
+                return Success<object>(id, "刪除成功", 200);
             }
             catch (Exception ex)
             {
-                ModelState.AddModelError("", $"保存失敗: {ex.Message}");
-                return View(S);
+                if (ex.Message == "商品不存在")
+                    return Failure("SHOP_NOT_FOUND", "找不到指定的商品", 404);
+
+                Log.Error(ex, "ShopController: 刪除商品 ID {id} 失敗", id);
+                return Failure("SHOP_DELETE_FAILED", "刪除過程發生錯誤", 500);
             }
         }
-
-
-        [HttpPost]
-        public IActionResult Delete(int id)
-        {
-            try
-            {
-                PetDbContext db = new PetDbContext();
-                SkinShop skin = db.SkinShops.FirstOrDefault(s => s.SkinId == id && s.IsDel != true);
-
-                if (skin != null)
-                {
-                    // 刪除圖片文件
-                    if (!string.IsNullOrEmpty(skin.SkinImage))
-                    {
-                        var imagePath = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", skin.SkinImage.TrimStart('/'));
-                        if (System.IO.File.Exists(imagePath))
-                        {
-                            System.IO.File.Delete(imagePath);
-                        }
-                    }
-
-                    // 軟刪除
-                    skin.IsDel = true;
-                    db.SaveChanges();
-                }
-
-                return RedirectToAction("List");
-            }
-            catch (Exception ex)
-            {
-                TempData["Error"] = $"刪除失敗: {ex.Message}";
-                return RedirectToAction("List");
-            }
-        }
-
-
-
     }
 }

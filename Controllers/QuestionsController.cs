@@ -1,94 +1,106 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
+using PawsPort.Dtos;
 using PawsPort.Models;
-using System.Diagnostics;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class QuestionsController : Controller
+    [Route("api/[controller]")]
+    public class QuestionsController : ApiControllerBase
     {
-        // 題庫列表
-        public IActionResult List(string category = "")
-        {
-            PetDbContext db = new PetDbContext();
-            var GameList = db.GameContents.ToList();
-            if (!string.IsNullOrEmpty(category))
-            {
-                GameList = GameList.Where(g => g.GameName == category).ToList();
-            }
-            var categories = db.GameContents
-               .Select(g => g.GameName)
-               .Distinct()
-               .OrderBy(g => g)
-               .ToList();
+        private readonly QuestionsService _questionsService;
 
-            ViewBag.Categories = categories;
-            ViewBag.SelectedCategory = category;
-            return View(GameList);
-        }
-        public IActionResult Create()
+        public QuestionsController(QuestionsService questionsService)
         {
-            return View();
+            _questionsService = questionsService;
         }
+
+        // GET: api/Questions
+        [HttpGet]
+        public async Task<IActionResult> List(string category = "")
+        {
+            try
+            {
+                var data = await _questionsService.GetQuestionsListAsync(category);
+                var categories = await _questionsService.GetCategoriesAsync();
+
+                return Success(new
+                {
+                    QuestionContent = data,
+                    Categories = categories,
+                    SelectedCategory = category
+                }, "取得成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "QuestionsController: 取得題庫列表失敗");
+                return Failure("QUESTIONS_LIST_FAILED", "伺服器取得資料失敗", 500);
+            }
+        }
+
+        // POST: api/Questions
         [HttpPost]
-        public IActionResult Create(GameContent G)
+        public async Task<IActionResult> Create(QuestionsCreateDTO createDto)
         {
-            PetDbContext db = new PetDbContext();
-            db.GameContents.Add(G);
-            db.SaveChanges();
-            return RedirectToAction("List");
-        }
-
-
-        // 編輯題目 - GET 方法
-        public IActionResult Edit(int? id)
-        {
-            PetDbContext db = new PetDbContext();
-            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == id);
-            if (game == null)
-                return RedirectToAction("List");
-            return View(game);
-        }
-
-        // 編輯題目 - POST 方法
-        [HttpPost]
-        public IActionResult Edit(GameContent G, string category = "")
-        {
-            PetDbContext db = new PetDbContext();
-            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == G.GameId);
-            if (game != null)
+            try
             {
-                game.GameName = G.GameName;
-                game.Questions = G.Questions;
-                game.AnswersDetail = G.AnswersDetail;
-                game.Answers = G.Answers;
-                game.IsActive = G.IsActive;
-                game.Rewards = G.Rewards;
-                game.Type = G.Type;
-                db.SaveChanges();
+                Log.Information("GameName: {GameName}", createDto.GameName);
+                Log.Information("Questions: {Questions}", createDto.Questions);
+                Log.Information("AnswersDetail: {AnswersDetail}", createDto.AnswersDetail);
+                Log.Information("Answers: {Answers}", createDto.Answers);
+                Log.Information("IsActive: {IsActive}", createDto.IsActive);
+                Log.Information("Rewards: {Rewards}", createDto.Rewards);
+                Log.Information("Type: {Type}", createDto.Type);
+                await _questionsService.CreateQuestionAsync(createDto);
+                return Success(createDto, "新增成功", 200);
             }
-            if (string.IsNullOrEmpty(category))
+            catch (Exception ex)
             {
-                category = G.GameName;
+                Log.Error(ex, "QuestionsController: 新增失敗");
+                return Failure("QUESTION_CREATE_FAILED", "儲存題目時發生錯誤", 500);
             }
-            return RedirectToAction("List", new { category = category });
         }
 
-        // 刪除題目 - POST 方法
-        [HttpPost]
-        public IActionResult Delete(int id, string category = "")
+        // PUT: api/Questions/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit(int id, QuestionsEditDTO editDto)
         {
-            PetDbContext db = new PetDbContext();
-            GameContent game = db.GameContents.FirstOrDefault(game => game.GameId == id);
+            if (id != editDto.GameId)
+                return Failure("QUESTION_ID_MISMATCH", "網址 ID 與資料內容不符", 400);
 
-            if (game != null)
+            try
             {
-                db.GameContents.Remove(game);
-                db.SaveChanges();
+                await _questionsService.UpdateQuestionAsync(editDto);
+                return Success(editDto, "更新成功", 200);
             }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("找不到"))
+                    return Failure("QUESTION_NOT_FOUND", "找不到該題目", 404);
 
-            return RedirectToAction("List", new { category = category });
+                Log.Error(ex, "QuestionsController: 更新 ID {id} 失敗", id);
+                return Failure("QUESTION_UPDATE_FAILED", "更新過程發生錯誤", 500);
+            }
         }
 
+        // DELETE: api/Questions/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            try
+            {
+                await _questionsService.DeleteQuestionAsync(id);
+                return Success(id, "刪除成功", 200);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("找不到"))
+                    return Failure("QUESTION_NOT_FOUND", "找不到欲刪除的題目", 404);
+
+                Log.Error(ex, "QuestionsController: 刪除 ID {id} 失敗", id);
+                return Failure("QUESTION_DELETE_FAILED", "刪除過程發生錯誤", 500);
+            }
+        }
     }
 }

@@ -1,208 +1,132 @@
 ﻿using Azure;
 using Microsoft.AspNetCore.Mvc;
+using PawsPort.Dtos;
 using PawsPort.Models;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class PlayerController : Controller
+    [Route("api/[controller]")]
+    public class PlayerController : ApiControllerBase
     {
-        public IActionResult List(int page = 1)
+        private readonly PlayerService _playerService;
+
+        public PlayerController(PlayerService playerService)
         {
-            PetDbContext db = new PetDbContext();
-            int pageSize = 10; //每頁10筆
-            var playerList = db.PlayerProfiles
-                .Select(p => new
+            _playerService = playerService;
+        }
+
+        // GET /api/Player
+        [HttpGet]
+        public async Task<IActionResult> List(int page = 1)
+        {
+            try
+            {
+                var allPlayers = await _playerService.GetPlayerListAsync();
+
+                int pageSize = 10;
+                var pagedList = allPlayers.Skip((page - 1) * pageSize).Take(pageSize).ToList();
+
+                return Success(new
                 {
-                    p.PlayerId,
-                    p.Point,
-                    SkinCount = db.Inventories
-                        .Where(i => i.PlayerId == p.PlayerId && i.Enable)
-                        .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),  // ← 加入商店的資料表
-                              i => i.SkinId,
-                              s => s.SkinId,
-                              (i, s) => i)
-                        .Select(i => i.SkinId)
-                        .Distinct()
-                        .Count(),
-                    IsDisabled = false,
-                    MaxGameId = db.GameHistories
-                        .Where(h => h.PlayerId == p.PlayerId)
-                        .OrderByDescending(h => h.GameId)
-                        .Select(h => h.GameId)
-                        .FirstOrDefault(),
-                    LastPlayedDate = db.GameHistories
-                        .Where(h => h.PlayerId == p.PlayerId)
-                        .OrderByDescending(h => h.LastPlayedDate)
-                        .Select(h => h.LastPlayedDate)
-                        .FirstOrDefault(),
-                    InventoryLogs = db.InventoryLogs
-                        .Where(l => l.PlayerId == p.PlayerId)
-                        .Select(l => new
-                        {
-                            l.LogId,
-                            l.PlayerId,
-                            l.SkinId,
-                            l.Price,
-                            l.CreateTime,
-                            l.Point,
-                            SkinName = db.SkinShops.FirstOrDefault(s => s.SkinId == l.SkinId).SkinName ?? "未知造型"
-                        })
-                        .OrderByDescending(l => l.CreateTime)
-                        .ToList(),
-                    PointRecords = db.PointRecords  
-                        .Where(pr => pr.PlayerId == p.PlayerId)
-                        .OrderByDescending(pr => pr.CreateTime)
-                        .ToList()
-                })
-                .ToList();
-            // 計算總頁數
-            int totalCount = playerList.Count;
-            int totalPages = (int)Math.Ceiling((double)totalCount / pageSize);
-
-            // 確保頁碼有效
-            if (page < 1) page = 1;
-            if (page > totalPages && totalPages > 0) page = totalPages;
-
-            // 進行分頁
-            var pagedList = playerList
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
-
-            // 傳遞分頁信息到 View
-            ViewBag.CurrentPage = page;
-            ViewBag.TotalPages = totalPages;
-            ViewBag.TotalCount = totalCount;
-            return View(pagedList);
+                    Data = pagedList,
+                    CurrentPage = page,
+                    TotalCount = allPlayers.Count
+                }, "取得玩家列表成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 取得列表失敗");
+                return Failure("PLAYER_LIST_FAILED", "伺服器讀取玩家資料失敗", 500);
+            }
         }
 
-        // 編輯玩家 - GET 方法（用於載入 Modal 中的詳細資訊）
-        public IActionResult GetPlayerDetails(int playerId)
+        // PUT /api/Player/{id}
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Edit(int id, [FromBody] PlayerEditDTO EditDTO)
         {
-            PetDbContext db = new PetDbContext();
+            if (EditDTO == null) return Failure("BAD_REQUEST", "收到的資料為空", 400);
+            if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "網址 ID 與資料 ID 不符", 400);
 
-            var player = db.PlayerProfiles.FirstOrDefault(p => p.PlayerId == playerId);
-            if (player == null)
-                return NotFound();
-
-            var skins = db.Inventories
-                .Where(i => i.PlayerId == playerId)
-                .Join(db.SkinShops.Where(s => s.IsAvailable && s.IsDel != true),
-                i => i.SkinId,
-              s => s.SkinId,
-              (i, s) => new
-              {
-                    i.InventoryId,
-                    i.SkinId,
-                    i.Enable,
-                    s.SkinName,
-                    s.SkinImage
-                })
-                .ToList();
-
-            var gameHistory = db.GameHistories
-                .Where(h => h.PlayerId == playerId)
-                .OrderByDescending(h => h.GameId)
-                .FirstOrDefault();
-
-            string lastPlayedDateStr = "未遊玩";
-            if (gameHistory?.LastPlayedDate != null)
+            try
             {
-                lastPlayedDateStr = gameHistory.LastPlayedDate.Value.ToString("yyyy-MM-dd HH:mm");
+                await _playerService.UpdatePlayerAsync(EditDTO);
+                return Success(EditDTO, "更新成功", 200);
             }
-
-            return Json(new
+            catch (Exception ex)
             {
-                playerId = player.PlayerId,
-                point = player.Point,
-                skins = skins,
-                maxGameId = gameHistory?.GameId ?? 0,
-                lastPlayedDate = lastPlayedDateStr
-            });
+                if (ex.Message == "玩家不存在" || ex.Message == "庫存不存在")
+                    return Failure("PLAYER_NOT_FOUND", ex.Message, 404);
+
+                Log.Error(ex, "PlayerController: 更新玩家 {id} 失敗", id);
+                return Failure("PLAYER_UPDATE_FAILED", "更新過程發生錯誤", 500);
+            }
         }
 
-        // 編輯玩家 - POST 方法
-        [HttpPost]
-        public IActionResult Edit(int PlayerId, int Point, int[] EnabledSkinIds, int page = 1)
+        // DELETE /api/Player/{id}
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
-
-            // 更新玩家點數
-            PlayerProfile player = db.PlayerProfiles.FirstOrDefault(p => p.PlayerId == PlayerId);
-            if (player != null)
+            Log.Information("正在準備刪除玩家 ID: {id}", id);
+            try
             {
-                player.Point = Point;
-                db.SaveChanges();
+                await _playerService.DeletePlayerAsync(id);
+                return Success(id, "刪除成功", 200);
             }
-
-            // 更新造型的啟用/禁用狀態
-            var inventories = db.Inventories.Where(i => i.PlayerId == PlayerId).ToList();
-            foreach (var inventory in inventories)
+            catch (Exception ex)
             {
-                // 如果 EnabledSkinIds 中包含該造型的 InventoryId，則設為 true，否則設為 false
-                inventory.Enable = EnabledSkinIds != null && EnabledSkinIds.Contains(inventory.InventoryId);
-            }
-            db.SaveChanges();
+                if (ex.Message == "玩家不存在")
+                    return Failure("PLAYER_NOT_FOUND", "找不到玩家", 404);
 
-            return RedirectToAction("List", new { page = page });
+                Log.Error(ex, "PlayerController: 刪除玩家 {id} 失敗", id);
+                return Failure("PLAYER_DELETE_FAILED", "刪除過程發生錯誤", 500);
+            }
         }
 
-        // 刪除玩家 - POST 方法
-        [HttpPost]
-        public IActionResult Delete(int id)
+        // GET /api/Player/search?query=xxx&page=1
+        [HttpGet("search")]
+        public async Task<IActionResult> Search([FromQuery] string query, int page = 1)
         {
-            PetDbContext db = new PetDbContext();
-            PlayerProfile player = db.PlayerProfiles.FirstOrDefault(p => p.PlayerId == id);
-
-            if (player != null)
+            try
             {
-                var inventories = db.Inventories.Where(i => i.PlayerId == id).ToList();
-                var histories = db.GameHistories.Where(h => h.PlayerId == id).ToList();
+                // 1. 呼叫 Service 取得搜尋後的結果，此時 searchResults 已經是 List<PlayerListDTO>
+                var searchResults = await _playerService.SearchPlayersAsync(query);
 
-                db.Inventories.RemoveRange(inventories);
-                db.GameHistories.RemoveRange(histories);
-                db.PlayerProfiles.Remove(player);
+                int pageSize = 10;
+                var pagedList = searchResults
+                    .Skip((page - 1) * pageSize)
+                    .Take(pageSize)
+                    .ToList();
 
-                db.SaveChanges();
-            }
-
-            return RedirectToAction("List");
-        }
-
-        public IActionResult GetUserProfile(int userId)
-        {
-            PetDbContext db = new PetDbContext();
-
-            // 直接用 userId 查詢 UserTable
-            var user = db.UserTables.FirstOrDefault(u => u.UserId == userId);
-
-            if (user == null)
-                return Json(new { success = false, message = "找不到會員資料" });
-
-            return Json(new
-            {
-                success = true,
-                data = new
+                return Success(new
                 {
-                    user.UserId,
-                    user.Name,
-                    user.Photo,
-                    user.Job,
-                    user.Phone,
-                    user.Birthday,
-                    user.City,
-                    user.Point,
-                    user.Note,
-                    user.HasPriorExp,
-                    user.Status,
-                    user.IsSubscribe,
-                    user.IsVerify,
-                    user.CreatedAt,
-                    user.UpdatedAt,
-                    user.DeleteDay
-                }
-            });
+                    Data = pagedList,      
+                    CurrentPage = page,
+                    TotalCount = searchResults.Count
+                }, $"搜尋「{query}」成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 搜尋玩家失敗");
+                return Failure("PLAYER_SEARCH_FAILED", "搜尋過程發生錯誤", 500);
+            }
         }
 
+        // GET /api/Player/{id}/logs
+        [HttpGet("{id}/logs")]
+        public async Task<IActionResult> GetPlayerLogs(int id)
+        {
+            try
+            {
+                var records = await _playerService.GetPlayerRecordsAsync(id);
+                return Success(records, "取得玩家紀錄成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "取得紀錄失敗");
+                return Failure("GET_LOGS_FAILED", "伺服器錯誤", 500);
+            }
+        }
     }
 }

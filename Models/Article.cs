@@ -36,4 +36,8 @@ public partial class Article
     public int UserId { get; set; }
 
     public int CategoryId { get; set; }
+
+    public int? DeleteTypeId { get; set; }
+
+    public string DeleteNote { get; set; }
 }

@@ -15,7 +15,7 @@ public partial class GameContent
 
     public string AnswersDetail { get; set; }
 
-    public bool Answers { get; set; }
+    public int Answers { get; set; }
 
     public bool IsActive { get; set; }
 

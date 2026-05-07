@@ -1,6 +1,4 @@
-﻿using Microsoft.AspNetCore.OpenApi;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.OpenApi;
+﻿using Microsoft.EntityFrameworkCore;
 using PawsPort.Middlewares;
 using PawsPort.Models;
 using PawsPort.Services;
@@ -24,6 +22,7 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CommentService>();
@@ -31,6 +30,8 @@ builder.Services.AddScoped<CommentService>();
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<QuestionsService>();
 builder.Services.AddScoped<ShopService>();
+
+
 
 
 // 註冊資料庫連線
@@ -52,6 +53,14 @@ else
 
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
+
+builder.Services.AddScoped<FaqService>();
+
+builder.Services.AddScoped<QaService>();
+
+builder.Services.AddScoped<ENewsletterService>();
+
+builder.Services.AddScoped<LineBotService>();
 
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()

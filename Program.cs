@@ -4,11 +4,10 @@ using PawsPort.Models;
 using PawsPort.Services;
 using Scalar.AspNetCore;
 using Serilog;
-using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-//解決CORS
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PawsPortPolicy", policy =>
@@ -23,27 +22,31 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+// member
+builder.Services.AddScoped<MemberProfileService>();
+builder.Services.AddScoped<MemberPermissionService>();
+builder.Services.AddScoped<MemberBlockListService>();
 
-
+// community
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CommentService>();
 
+// game
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<QuestionsService>();
 builder.Services.AddScoped<ShopService>();
 
+// pet
 builder.Services.AddScoped<PassPortService>();
 builder.Services.AddScoped<PetService>();
 builder.Services.AddScoped<AdoptionRecordService>();
 builder.Services.AddScoped<MissingReportsService>();
 
+// support
 builder.Services.AddScoped<FaqService>();
-
 builder.Services.AddScoped<QaService>();
-
 builder.Services.AddScoped<ENewsletterService>();
-
 builder.Services.AddScoped<LineBotService>();
 
 
@@ -67,56 +70,26 @@ else
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
+
+// 設定 Serilog - 完全從 appsettings.json 讀取
 // Service DI
 
 
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()
     .ReadFrom.Configuration(builder.Configuration)
-    .MinimumLevel.Information()
-    .Enrich.FromLogContext()
+    .Enrich.FromLogContext();
 
-    // 1. Console 輸出（開發環境用）
-    .WriteTo.Console()
-
-    // 2. 一般日誌：每天分檔 + 大小限制 (10MB)
-    .WriteTo.File(
-        path: "logs/all-log-.txt",
-        rollingInterval: RollingInterval.Day,
-        rollOnFileSizeLimit: true,          // 開啟大小限制分檔
-        fileSizeLimitBytes: 10 * 1024 * 1024, // 10MB
-        retainedFileCountLimit: 31,         // 保留最近 31 個檔案
-        shared: true                        // 若有多個程序讀取建議加上
-    )
-
-    // 3. 錯誤日誌：篩選 Error 以上 + 大小限制 (5MB)
-    .WriteTo.Logger(lc => lc
-        .Filter.ByIncludingOnly(e => e.Level >= LogEventLevel.Error)
-        .WriteTo.File(
-            path: "logs/only-errors-.txt",
-            rollingInterval: RollingInterval.Day,
-            rollOnFileSizeLimit: true,
-            fileSizeLimitBytes: 5 * 1024 * 1024, // 錯誤日誌通常較小，設 5MB
-            retainedFileCountLimit: null         // 不限制數量，確保錯誤記錄不丟失
-        )
-    );
-
-// 4. Seq 伺服器（根據環境變數決定是否啟用）
+// Seq 可以保留在程式碼中動態控制
 string? seqEnabled = builder.Configuration["SEQ_ENABLED"];
 if (seqEnabled?.ToLower() == "true")
 {
-    string seqUrl = "http://localhost:5341";
-    loggerConfig.WriteTo.Seq(seqUrl);
-    Console.WriteLine($" Seq 日誌已啟用: {seqUrl}");
-}
-else
-{
-    Console.WriteLine(" Seq 日誌未啟用");
+    loggerConfig.WriteTo.Seq("http://localhost:5341");
 }
 
 Log.Logger = loggerConfig.CreateLogger();
-
 builder.Host.UseSerilog();
+
 
 
 builder.Services.AddOpenApi(options =>
@@ -129,40 +102,8 @@ builder.Services.AddOpenApi(options =>
             Title = " PawsPort API",
             Version = "v1.0.0",
             Description = """
-                ## PawsPort 寵物管理平台 API
-
-                ###  概述
-                PawsPort 是一個全方位的寵物管理平台，提供會員管理、寵物資料、領養紀錄、文章發布、商城服務等完整功能。
-
-                ### 🚀 主要功能
-                - **會員系統**：完整的會員註冊、登入、資料管理
-                - **寵物管理**：寵物資料建檔、健康紀錄追蹤
-                - **領養服務**：寵物領養流程管理
-                - **內容管理**：文章發布與分類系統
-                - **電商功能**：商品、訂單、購物車管理
-                - **社群互動**：評論、聊天、社群功能
-
-                ###  認證方式
-                本 API 使用 JWT Bearer Token 進行身份驗證。請在請求 Header 中加入：
-                ```
-                Authorization: Bearer {your_token}
-                ```
-
-                ###  回應格式
-                所有 API 回應皆採用統一的 JSON 格式：
-                ```json
-                {
-                  "success": true,
-                  "message": "操作成功",
-                  "data": { ... },
-                  "statusCode": 200
-                }
-                ```
-
-                ###  更多文件
-                - [GitHub Repository](https://github.com/Xiang511/PawsPort)
-                - [Wiki 文件](https://github.com/Xiang511/PawsPort/wiki)
-                - [問題回報](https://github.com/Xiang511/PawsPort/issues)
+                
+                
                 """,
             Contact = new()
             {
@@ -187,8 +128,6 @@ builder.Services.AddOpenApi(options =>
 
 var app = builder.Build();
 
-//解決CORS
-app.UseCors("PawsPortPolicy");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

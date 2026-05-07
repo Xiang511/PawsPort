@@ -1,219 +1,120 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using PawsPort.Dtos;
 using PawsPort.Models;
+using PawsPort.Services;
 using PawsPort.ViewModels;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class PermissionsController : Controller
+
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    [Tags("權限管理")]
+    public class PermissionsController : ApiControllerBase
     {
-        private readonly PetDbContext _context;
+        private readonly MemberPermissionService _memberPermissionService;
+        private readonly MemberBlockListService _memberBlockListService;
 
-        public PermissionsController(PetDbContext context)
+        public PermissionsController(PetDbContext context, MemberPermissionService memberPermissionService, MemberBlockListService memberBlockListService)
         {
-            _context = context;
+            _memberPermissionService = memberPermissionService;
+            _memberBlockListService = memberBlockListService;
         }
 
-        public IActionResult List()
+        /// <summary>
+        /// 取得所有使用者的權限列表
+        /// </summary>
+        /// <returns>使用者權限列表 JSON</returns>
+        /// <response code="200">成功取得使用者權限列表</response>
+
+        [HttpGet("users")]
+        [ProducesResponseType(typeof(IEnumerable<MemberPermissionUserDTO>), StatusCodes.Status200OK)]
+
+        public async Task<IActionResult> UserPermission()
         {
-            var userPermissions = from u in _context.UserTables
-                                  join usr in _context.UserSystemRoles on u.UserId equals usr.UserId
-                                  join s in _context.SystemTables on usr.SystemId equals s.SystemId
-                                  join r in _context.RoleTables on usr.RoleId equals r.RoleId
-                                  where u.DeleteDay == null 
-                                  select new UserPermissionViewModel
-                                  {
-                                      UserId = u.UserId,
-                                      UserName = u.Name,
-                                      SystemName = s.SystemName,
-                                      RoleId = r.RoleId,
-                                      RoleName = r.RoleName,
-                                      UpdatedAt = usr.UpdatedAt,
-                                      MappingId = usr.MappingId
-                                  };
-            return View(userPermissions);
+
+            var userPermissions = await _memberPermissionService.GetAllUserPermissionAsync();
+            Log.Debug("取得使用者權限列表成功，總數: {Count}", userPermissions.Count());
+            return Success(userPermissions, "Success", 200);
+        }
+        /// <summary>
+        /// 取得所有系統列表
+        /// </summary>
+        /// <returns>系統列表 JSON</returns>
+        /// <response code="200">成功取得系統列表</response>
+        [HttpGet("systems")]
+        [ProducesResponseType(typeof(MemberPermissionSystemDTO), StatusCodes.Status200OK)]
+ 
+        public async Task<IActionResult> System()
+        {
+
+            var result = await _memberPermissionService.GetMemberPermissionSystemAsync();
+
+            Log.Debug("取得系統列表成功，總數: {Count}", result.Systems.Count());
+            return Success(result, "Success", 200);
         }
 
-        public IActionResult Create()
-        {
-            var viewModel = new PermissionCreateViewModel
-            {
-                Users = _context.UserTables.Where(u => u.Status == true).ToList(),
-                Systems = _context.SystemTables.ToList(),
-                Roles = _context.RoleTables.ToList()
-            };
+        /// <summary>
+        /// 取得所有角色列表
+        /// </summary>
+        /// <returns>角色列表 JSON</returns>
+        /// <response code="200">成功取得角色列表</response>
 
-            return View(viewModel);
+        [HttpGet("roles")]
+        [ProducesResponseType(typeof(MemberPermissionRoleDTO), StatusCodes.Status200OK)]
+
+        public async Task<IActionResult> Roles()
+        {
+
+            var result = await _memberPermissionService.GetMemberPermissionRoleAsync();
+
+
+            Log.Debug("取得角色列表成功，總數: {Count}", result.Roles.Count());
+            return Success(result, "Success", 200);
+        }
+        /// <summary>
+        /// 取得所有被封鎖的會員列表
+        /// </summary>
+        /// <returns>被封鎖的會員列表</returns>
+        /// <response code="200">成功取得被封鎖的會員列表</response>
+        [HttpGet("block/users")]
+        [ProducesResponseType(typeof(List<MemberBlockListDTO>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> BlockList()
+        {
+            Log.Debug("[BlacklistController] BlockList GET - Entry");
+
+            Log.Debug("[BlacklistController] 調用 MemberBlockListService.GetBannedUsersAsync");
+            var bannedUsers = await _memberBlockListService.GetBannedUsersAsync();
+
+            Log.Debug("[BlacklistController] 成功取得被封鎖的會員列表, 共 {Count} 筆", bannedUsers.Count);
+            return Success(bannedUsers, "Success", 200);
+
         }
 
-        [HttpPost]
-        public IActionResult Create(UserSystemRole US)
+        /// <summary>
+        /// 封鎖/解封指定會員
+        /// </summary>
+        /// <param name="id">會員 ID</param>
+        /// <param name="user">封鎖資料（包含封鎖原因等資訊）</param>
+        /// <returns>封鎖成功的會員資料</returns>
+        /// <response code="200">成功封鎖會員</response>
+        /// <response code="400">請求資料格式錯誤</response>
+        /// <response code="404">找不到指定的會員</response>
+        [HttpPatch("block/users/{id}")]
+        [ProducesResponseType(typeof(MemberBlockListDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> BlockListCreate(int? id, MemberBlockListEditDTO user)
         {
-            _context.UserSystemRoles.Add(US);
-            _context.SaveChanges();
-            return RedirectToAction("List");
-        }
+            Log.Debug("[BlacklistController] BlockListCreate POST - Entry, UserId: {UserId}", id);
 
+            Log.Debug("[BlacklistController] 調用 MemberBlockListService.CreateBannedUsersAsync, UserId: {UserId}", id);
+            var result = await _memberBlockListService.CreateBannedUsersAsync(id, user);
 
-        public IActionResult Edit(int? id)
-        {
-            if (id == null)
-                return RedirectToAction("List");
-
-            var userSystemRole = _context.UserSystemRoles.Where(m => m.MappingId == id).FirstOrDefault();
-
-            if (userSystemRole == null)
-                return RedirectToAction("List");
-
-            // 取得使用者名稱
-            var user = _context.UserTables.Where(u => u.UserId == userSystemRole.UserId).FirstOrDefault();
-
-            // 建立 ViewModel
-            var viewModel = new PermissionEditViewModel
-            {
-                MappingId = userSystemRole.MappingId,
-                UserId = userSystemRole.UserId,
-                UserName = user?.Name ?? "未知使用者",
-                SystemId = userSystemRole.SystemId,
-                RoleId = userSystemRole.RoleId,
-                UpdatedAt = userSystemRole.UpdatedAt,
-                Systems = _context.SystemTables.ToList(),
-                Roles = _context.RoleTables.ToList()
-            };
-
-            return View(viewModel);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(PermissionEditViewModel viewModel)
-        {
-            UserSystemRole dbUserSystemRole = _context.UserSystemRoles.Where(m => m.MappingId == viewModel.MappingId).FirstOrDefault();
-
-            if (dbUserSystemRole != null)
-            {
-                dbUserSystemRole.UserId = viewModel.UserId;
-                dbUserSystemRole.SystemId = viewModel.SystemId;
-                dbUserSystemRole.RoleId = viewModel.RoleId;
-                dbUserSystemRole.UpdatedAt = DateTime.Now;
-
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("List");
-        }
-
-        public IActionResult Delete(int? id)
-        {
-            if (id == null)
-                return RedirectToAction("List");
-
-            UserSystemRole x = _context.UserSystemRoles.Where(m => m.MappingId == id).FirstOrDefault();
-
-            if (x != null)
-            {
-                _context.UserSystemRoles.Remove(x);
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("List");
-        }
-
-
-
-        public IActionResult BlockList()
-        {
-            var bannedUsers = _context.UserTables
-                                .Where(u => u.Status == false && u.DeleteDay == null)
-                                .ToList();
-            return View(bannedUsers);
-        }
-
-
-        public IActionResult BlockListCreate()
-        {   
-            List<BlockListViewModel> userList = _context.UserTables.Where(m=>m.Status == true).Select(u => new BlockListViewModel()
-            {
-                UserId = u.UserId,
-                Name = u.Name,
-                Status = u.Status,
-                Note = u.Note,
-                UpdatedAt = u.UpdatedAt
-            }).ToList();
-
-
-            return View(userList);
-        }
-
-        [HttpPost]
-        public IActionResult BlockListCreate(BlockListViewModel vm)
-        {
-            UserTable x = _context.UserTables.Where(m => m.UserId == vm.UserId).FirstOrDefault();
-            if(vm.Status == false && vm.Note!=null)
-            {
-                if (x != null )
-                {
-                    x.Status = vm.Status;
-                    x.UpdatedAt = DateTime.Now;
-                    x.Note = vm.Note;
-                    _context.SaveChanges();
-                }
-
-            }
-            return RedirectToAction("BlockList");
-        }
-
-
-
-        public IActionResult BlockListEdit(int? id)
-        {
-            if (id == null)
-                return RedirectToAction("BlockList");
-
-            var user = _context.UserTables.Where(m => m.UserId == id).Select(u => new BlockListViewModel()
-            {
-                UserId = u.UserId,
-                Name = u.Name,
-                Status = u.Status,
-                Note = u.Note,
-                UpdatedAt = u.UpdatedAt
-            }).FirstOrDefault();
-
-            if (user == null)
-                return RedirectToAction("BlockList");
-
-            return View(user);
-        }
-
-        [HttpPost]
-        public IActionResult BlockListEdit(BlockListViewModel vm)
-        {
-            UserTable dbUserTable = _context.UserTables.Where(m => m.UserId == vm.UserId).FirstOrDefault();
-
-            if (dbUserTable != null)
-            {
-                dbUserTable.Name = vm.Name;
-                dbUserTable.Status = vm.Status;
-                dbUserTable.UpdatedAt = DateTime.Now;
-                dbUserTable.Note = vm.Note;
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("BlockList");
-        }
-
-        public IActionResult BlockListDelete(int? id)
-        {
-            if (id == null)
-                return RedirectToAction("BlockList");
-
-            UserTable dbUserTable = _context.UserTables.Where(m => m.UserId == id).FirstOrDefault();
-            if (dbUserTable != null)
-            {
-                dbUserTable.Status = true;
-                dbUserTable.UpdatedAt = DateTime.Now;
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("BlockList");
+            Log.Debug("[BlacklistController] 封鎖會員成功, UserId: {UserId}, 名稱: {Name}", id, result.Name);
+            return Success(result, "Success", 200);
         }
     }
 }

@@ -10,18 +10,23 @@ using Serilog.Events;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-builder.Services.AddControllersWithViews();
-// 處理CORS
+//解決CORS
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowVueApp", policy =>
+    options.AddPolicy("PawsPortPolicy", policy =>
     {
-        policy.WithOrigins("http://localhost:5173") // 這是你的 Vue 預設埠號
+        // 允許你的 Vue 前端網址
+        policy.WithOrigins("http://localhost:5173")
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
 });
+
+// Add services to the container.
+builder.Services.AddControllersWithViews();
+builder.Services.AddScoped<ArticleService>();
+builder.Services.AddScoped<CategoryService>();
+builder.Services.AddScoped<CommentService>();
 
 builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<QuestionsService>();
@@ -164,6 +169,9 @@ builder.Services.AddOpenApi(options =>
 
 
 var app = builder.Build();
+
+//解決CORS
+app.UseCors("PawsPortPolicy");
 
 app.UseMiddleware<ExceptionHandlingMiddleware>();
 

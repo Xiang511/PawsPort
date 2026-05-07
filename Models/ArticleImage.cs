@@ -20,4 +20,6 @@ public partial class ArticleImage
     public int ArticleId { get; set; }
 
     public bool IsExist { get; set; }
+
+    public bool IsActive { get; set; }
 }

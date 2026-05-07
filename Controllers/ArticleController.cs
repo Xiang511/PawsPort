@@ -1,249 +1,144 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
+using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
 using PawsPort.ViewModels;
+using Serilog;
+using Serilog.Events;
 
 
 namespace PawsPort.Controllers
 {
-    public class ArticleController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class ArticleController : ApiControllerBase
     {
+        //注入資料庫和service
+        private readonly PetDbContext _context;
+        private readonly ArticleService _articleService;
 
-        IWebHostEnvironment _Env = null;
+        private readonly IWebHostEnvironment _Env = null;
 
-        public ArticleController(IWebHostEnvironment p)
+        public ArticleController(IWebHostEnvironment p, PetDbContext context, ArticleService articleService)
         {
             _Env = p;
+            _context = context;
+            _articleService = articleService;
         }
 
-
-
-        public IActionResult ArticleList(ArticleListViewModel vm) //貼文管理頁面
+        //取得所有文章
+        /// <summary>
+        /// 按照篩選條件取得所有文章
+        /// </summary>
+        /// <param name="queryDto">篩選條件</param>
+        /// <returns></returns>
+        /// <response code="200">取得所有文章成功</response>
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
         {
+            var result = await _articleService.GetAllArticlesAsync(
+                status: queryDto.Status,
+                isActive: queryDto.IsActive,
+                userId: queryDto.UserId
+                );
+            return Success(result, "取得所有文章成功", 200);
 
-            using (PetDbContext db = new PetDbContext())
-            {
-                // 1. 基本查詢：只抓存在的文章，並包含 User 與 Category 資料
-                var query = db.Articles.Where(p => p.IsExist);
-
-                // 2. 關鍵字篩選 (標題、內容、作者)
-                if (!string.IsNullOrEmpty(vm.TxtKeyword))
-                {
-                    var MatchUserIDs = db.UserTables.Where(u => u.Name.Contains(vm.TxtKeyword))
-                        .Select(u => u.UserId).ToList();
-
-                    query = query.Where(p => p.Title.Contains(vm.TxtKeyword)
-                                          || p.Content.Contains(vm.TxtKeyword)
-                                          || MatchUserIDs.Contains(p.UserId));
-                }
-
-                // 3. 計算總筆數
-                vm.TotalCount = query.Count();
-
-                // 4. 在 Select 時「現場去別張表抓資料」
-                vm.ArticleItem = query
-                    .OrderByDescending(p => p.CreateAt)
-                    .Skip((vm.CurrentPage - 1) * vm.PageSize)
-                    .Take(vm.PageSize)
-                    .Select(p => new ArticleItemViewModel
-                    {
-                        ArticleId = p.ArticleId,
-                        UserId = p.UserId,
-                        Title = p.Title,
-                        CreateAt = p.CreateAt,
-                        ViewCount = p.ViewCount,
-                        IsExist = p.IsExist,
-
-                        // 【抓作者名稱】去 UserTable 找 ID 一樣的那個人，取其 Name
-                        AuthorName = db.UserTables
-                            .Where(u => u.UserId == p.UserId)
-                            .Select(u => u.Name)
-                            .FirstOrDefault() ?? "未知作者",
-
-                        // 【抓分類名稱】去 Categories 找 ID 一樣的那組，取其 Name
-                        CategoryName = db.Categories
-                            .Where(c => c.CategoryId == p.CategoryId)
-                            .Select(c => c.CategoryName)
-                            .FirstOrDefault() ?? "未分類",
-
-                        // 【算留言數】去 Comments 找這篇文章的留言數量
-                        CommentCount = db.Comments.Count(c => c.ArticleId == p.ArticleId && c.IsExist),
-
-                        // 【算書籤數】去 Bookmarks 找這篇文章的收藏數量
-                        BookmarkCount = db.Bookmarks.Count(b => b.ArticleId == p.ArticleId)
-                    })
-                    .ToList();
-
-                return View(vm);
-            }
         }
 
-       
-
-
-        public IActionResult CreateArticle()
-        {
-            return View();
-        }
-
+        //新增文章
+        /// <summary>
+        /// 新增文章
+        /// </summary>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
+        /// <response code="400">資料驗證失敗</response>
+        /// <response code="200">文章建立成功</response>
+        /// <response code="500">伺服器內部錯誤</response>
         [HttpPost]
-        public IActionResult CreateArticle(ArticleWrap p)
+        public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
-            FileService F = new FileService(_Env);
-            if (p.ImageFiles != null && p.ImageFiles.Count > 0)
+            if (!ModelState.IsValid)
             {
-                List<string> ErrorFile = new List<string>();
-
-                foreach (IFormFile File in p.ImageFiles)
-                {
-                    if (!F.IsValidImage(File))
-
-                        ErrorFile.Add(File.FileName);
-                }
-                if (ErrorFile.Count > 0)
-                {
-                    string AllErrorFiles = string.Join(", ", ErrorFile);
-                    ModelState.AddModelError("ImageFiles", $"檔案 {AllErrorFiles} 格式錯誤");
-                    TempData["ErrorMsg"] = $"圖片格式不符：{AllErrorFiles}，上傳已取消。";
-
-                    return View(p);
-                }
+                return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
             }
-            using (PetDbContext db = new PetDbContext())
+            try
             {
-                p.article.IsExist = true; //設定文章為存在狀態
-                p.article.CreateAt = DateTime.Now; //設定文章的建立時間為目前時間
-                db.Articles.Add(p.article);
-                db.SaveChanges(); //建立文章並存到資料庫
-
-                if (p.ImageFiles != null && p.ImageFiles.Count > 0)
-                {
-                    foreach (IFormFile File in p.ImageFiles)
-                    {
-                        string ImageName = F.SaveImage(File); //將圖片保存到伺服器並獲取圖片名稱
-                        if (ImageName != null)
-                        {
-                            ArticleImage Img = new ArticleImage();
-                            Img.ArticleId = p.article.ArticleId; //將圖片與文章關聯
-                            Img.ImageUrl = "/Image/" + ImageName; //存入路徑
-                            db.ArticleImages.Add(Img); //圖片資訊存入資料庫
-                        }
-                    }
-                    db.SaveChanges(); //保存更改到資料庫
-                }
+                var result = await _articleService.CreateArticleAsync(articleDto);
+                return Success(result, "文章建立成功", 200);
+                //**跳轉到文章詳細頁面
             }
-            return RedirectToAction("ArticleList");
-        }
-
-
-        public IActionResult EditArticle(int? id)
-        {
-            if (id == null) return RedirectToAction("ArticleList");
-            using (PetDbContext db = new PetDbContext())
+            catch (Exception ex)
             {
-                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-                if (x == null)
-                    return RedirectToAction("ArticleList");
-                
-                // 準備分類下拉選單 (供編輯時切換)
-                ViewBag.CategoryList = db.Categories
-                    .Where(c => c.IsExist)
-                    .OrderBy(c => c.Level).ThenBy(c => c.SortOrder)
-                    .ToList();
-
-                ArticleWrap p = new ArticleWrap(); //創建一個ArticleWrap物件
-                p.article = x;  //將從資料庫中查找到的文章賦值給ArticleWrap物件的article屬性
-
-                return View(p);
+                return Failure("INTERNAL_ERROR", "伺服器內部錯誤", 500);
             }
         }
 
-        [HttpPost]
-        public IActionResult EditArticle(ArticleWrap UiArticle)
+        //編輯文章
+        /// <summary>
+        /// 編輯文章
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
+        /// <response code="400">無效的文章編號</response>
+        /// <response code="404">找不到該文章</response>
+        /// <response code="200">文章更新成功</response>
+        [HttpPut("{id}")]
+        public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
         {
-            using (PetDbContext db = new PetDbContext())
+            if (id <= 0)
             {
-                var id = UiArticle.article.ArticleId;
-                Article dbArticle = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-                //從資料庫中查找要編輯的文章
-
-
-                if (dbArticle != null && dbArticle.IsExist == true)
-                {
-                    dbArticle.Title = UiArticle.Title; //更新文章標題
-                    dbArticle.Content = UiArticle.Content; //更新文章內容
-                    dbArticle.CategoryId = UiArticle.CategoryId;
-                    dbArticle.IsExist = UiArticle.IsExist;
-
-                    dbArticle.LastEditTime = DateTime.Now; //更新最後編輯時間
-                    db.SaveChanges(); //保存更改到資料庫
-
-                }
-                return RedirectToAction("ArticleList");
+                return Failure("INVALID_ID", "無效的文章編號", 400);
             }
 
-        }
-
-        //[HttpPost] //刪除文章的動作通常使用POST方法來執行，以確保安全性和防止CSRF攻擊
-        public IActionResult DeleteArticle(int? id)
-        {
-            if (id == null)
-                return RedirectToAction("ArticleList");
-
-            using (PetDbContext db = new PetDbContext())
+            //如果一致，呼叫service更新文章
+            var result = await _articleService.UpdateArticleAsync(id, articleDto);
+            if (result == null)
             {
-                Article x = db.Articles.FirstOrDefault(p => p.ArticleId == id);
-                if (x != null)
-                {
-                    x.IsExist = false;
-                    var ImageList =db.ArticleImages.Where(p => p.ArticleId == id).ToList();
-                    foreach (var img in ImageList)
-                    {
-                        img.IsExist = false; //將與該文章相關的圖片標記為不存在
-                    }
-                    db.SaveChanges();
-                }
-            }
-            return RedirectToAction("ArticleList");
-        }
-
-
-        public IActionResult ArticleImageList(KeywordViewModel vm)
-        {
-            PetDbContext db = new PetDbContext();
-
-            IEnumerable<ArticleImage> Datas = null; //宣告一個變數來存放查詢結果
-            if (string.IsNullOrEmpty(vm.TxtArticleId.ToString()))
-            {
-                Datas = db.ArticleImages.Where(p => p.IsExist).ToList(); //查詢所有存在的文章圖片
+                //回傳找不到該編號文章
+                return Failure("ARTICLE_NOT_FOUND", "找不到該文章", 404);
             }
             else
             {
-                Datas = db.ArticleImages.Where(p => p.IsExist
-                && (p.ArticleId == vm.TxtArticleId
-                )).ToList(); //根據搜尋條件查詢文章圖片
+                return Success(result, "文章更新成功", 200);
+                //**跳轉到文章詳細頁面
             }
-            return View(Datas);
+
         }
 
 
-        public IActionResult EventList(KeywordViewModel vm) //活動管理頁面
+
+        //軟刪除文章
+        /// <summary>
+        /// 軟刪除文章
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="400">無效的文章編號</response>
+        /// <response code="404">找不到該文章</response>
+        /// <response code="200">文章刪除成功</response>
+        [HttpDelete("{id}")]
+        public async Task<IActionResult> Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
-            vm.TxtCategoryId = 1; //假設活動的CategoryId為1
+            //檢查id是否有效
+            if (id <= 0) return Failure("INVALID_ID", "無效的文章編號", 400);
 
-            IEnumerable<Article> datas = null; //宣告一個變數來存放查詢結果
-
-            datas = db.Articles.Where(p => p.IsExist
-            && (p.CategoryId == vm.TxtCategoryId) //篩選出活動類別的文章
-            || (p.Title.Contains(vm.TxtKeyword)
-            || p.Content.Contains(vm.TxtKeyword))
-            || p.EventLocation.Contains(vm.TxtKeyword)
-                 ); //根據搜尋條件查詢文章
-
-            return View(datas);
-
+            //有效的話呼叫service
+            var result = await _articleService.DeleteArticleAsync(id);
+            //若service回傳false，代表找不到該文章
+            //若service回傳true，代表刪除成功
+            if (result == false)
+            {
+                //回傳找不到該編號文章
+                return Failure("ARTICLE_NOT_FOUND", "找不到該文章", 404);
+            }
+            else
+            {
+                return Success(result, "文章刪除成功", 200);
+            }
         }
 
     }

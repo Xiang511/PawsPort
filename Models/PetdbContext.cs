@@ -113,6 +113,9 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.EventEndDate).HasColumnType("datetime");
             entity.Property(e => e.EventLocation).HasMaxLength(1000);
             entity.Property(e => e.EventStartDate).HasColumnType("datetime");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.LastEditTime).HasColumnType("datetime");
             entity.Property(e => e.LastReported).HasColumnType("datetime");
@@ -141,6 +144,9 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.ImageUrl)
                 .IsRequired()
                 .HasMaxLength(500);
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.LastEditTime).HasColumnType("datetime");
             entity.Property(e => e.SortOrder).HasDefaultValue(1);
@@ -208,7 +214,6 @@ public partial class PetDbContext : DbContext
                 .HasColumnName("Create_at");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.LastEditTime).HasColumnType("datetime");
-            entity.Property(e => e.Level).HasDefaultValue(1);
             entity.Property(e => e.ParentId).HasColumnName("ParentID");
         });
 
@@ -253,6 +258,9 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.DeleteNote).HasMaxLength(200);
             entity.Property(e => e.DeleteTypeId).HasColumnName("DeleteTypeID");
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.LastEditTime).HasColumnType("datetime");
             entity.Property(e => e.LastReported).HasColumnType("datetime");
@@ -289,6 +297,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Content)
                 .IsRequired()
                 .HasMaxLength(500);
+            entity.Property(e => e.Image).HasColumnType("image");
             entity.Property(e => e.Note).HasMaxLength(100);
             entity.Property(e => e.PublishDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(100);
@@ -479,6 +488,9 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.DeleteNote).HasMaxLength(200);
             entity.Property(e => e.DeleteTypeId).HasColumnName("DeleteTypeID");
             entity.Property(e => e.ImageUrl).HasMaxLength(500);
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.SenderId).HasColumnName("SenderID");
         });
@@ -652,6 +664,9 @@ public partial class PetDbContext : DbContext
                 .HasDefaultValueSql("(getdate())")
                 .HasColumnType("datetime")
                 .HasColumnName("Create_at");
+            entity.Property(e => e.IsActive)
+                .HasDefaultValue(true)
+                .HasColumnName("isActive");
             entity.Property(e => e.IsExist).HasDefaultValue(true);
             entity.Property(e => e.LastEditTime).HasColumnType("datetime");
             entity.Property(e => e.ParentCategoryId).HasColumnName("ParentCategoryID");

@@ -26,4 +26,6 @@ public partial class Message
     public int? DeleteTypeId { get; set; }
 
     public string DeleteNote { get; set; }
+
+    public bool IsActive { get; set; }
 }

@@ -14,6 +14,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("分類管理")]
     public class CategoryController : ApiControllerBase
     {
         //注入資料庫和service

@@ -12,6 +12,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("留言管理")]
     public class CommentController : ApiControllerBase
     {
         //注入資料庫和service

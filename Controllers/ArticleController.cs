@@ -13,6 +13,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("貼文管理")]
     public class ArticleController : ApiControllerBase
     {
         //注入資料庫和service
@@ -37,6 +38,7 @@ namespace PawsPort.Controllers
         /// <response code="200">取得所有文章成功</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        
         public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
         {
             var result = await _articleService.GetAllArticlesAsync(
@@ -58,6 +60,7 @@ namespace PawsPort.Controllers
         /// <response code="200">文章建立成功</response>
         /// <response code="500">伺服器內部錯誤</response>
         [HttpPost]
+        
         public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
             if (!ModelState.IsValid)

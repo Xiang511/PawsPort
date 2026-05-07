@@ -20,4 +20,10 @@ public partial class SkinShop
     public bool IsAvailable { get; set; }
 
     public bool IsDel { get; set; }
+
+    public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
+
+    public virtual ICollection<ItemAcquisitionLog> ItemAcquisitionLogs { get; set; } = new List<ItemAcquisitionLog>();
+
+    public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 }

@@ -297,7 +297,6 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Content)
                 .IsRequired()
                 .HasMaxLength(500);
-            entity.Property(e => e.Image).HasColumnType("image");
             entity.Property(e => e.Note).HasMaxLength(100);
             entity.Property(e => e.PublishDate).HasColumnType("datetime");
             entity.Property(e => e.Status).HasMaxLength(100);
@@ -376,11 +375,16 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<GameHistory>(entity =>
         {
-            entity.HasKey(e => e.HistoryId).HasName("PK__GameHist__4D7B4ABD469F190C");
+            entity.HasKey(e => e.HistoryId).HasName("PK__GameHist__4D7B4ABDBB9877D8");
 
             entity.ToTable("GameHistory");
 
             entity.Property(e => e.LastPlayedDate).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Player).WithMany(p => p.GameHistories)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__GameHisto__Playe__681373AD");
         });
 
         modelBuilder.Entity<HealthPassport>(entity =>
@@ -396,18 +400,26 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<Inventory>(entity =>
         {
-            entity.HasKey(e => e.InventoryId).HasName("PK__Inventor__F5FDE6D364016E5C");
+            entity.HasKey(e => e.InventoryId).HasName("PK__Inventor__F5FDE6B343796064");
 
             entity.ToTable("Inventory");
 
-            entity.Property(e => e.CreateTime)
-                .HasDefaultValueSql("(getdate())")
-                .HasColumnType("datetime");
+            entity.Property(e => e.CreateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Player).WithMany(p => p.Inventories)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Inventory__Playe__6EC0713C");
+
+            entity.HasOne(d => d.Skin).WithMany(p => p.Inventories)
+                .HasForeignKey(d => d.SkinId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__Inventory__SkinI__6FB49575");
         });
 
         modelBuilder.Entity<ItemAcquisitionLog>(entity =>
         {
-            entity.HasKey(e => e.LogId).HasName("PK__ItemAcqu__5E5499A882CD82BF");
+            entity.HasKey(e => e.LogId).HasName("PK__ItemAcqu__5E54864846CD7839");
 
             entity.ToTable("ItemAcquisitionLog");
 
@@ -415,6 +427,16 @@ public partial class PetDbContext : DbContext
                 .IsRequired()
                 .HasMaxLength(50);
             entity.Property(e => e.CreateTime).HasColumnType("datetime");
+
+            entity.HasOne(d => d.Player).WithMany(p => p.ItemAcquisitionLogs)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ItemAcqui__Playe__72910220");
+
+            entity.HasOne(d => d.Skin).WithMany(p => p.ItemAcquisitionLogs)
+                .HasForeignKey(d => d.SkinId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__ItemAcqui__SkinI__73852659");
         });
 
         modelBuilder.Entity<LineBot>(entity =>
@@ -562,18 +584,18 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<PlayerProfile>(entity =>
         {
-            entity.HasKey(e => e.PlayerId).HasName("PK__PlayerPr__4A4E74C8AD85CEAB");
+            entity.HasKey(e => e.PlayerId).HasName("PK__PlayerPr__4A4E74C87D9A36FA");
 
             entity.ToTable("PlayerProfile");
 
-            entity.HasIndex(e => e.UserId, "UQ__PlayerPr__1788CC4D783340C5").IsUnique();
+            entity.HasIndex(e => e.UserId, "UQ__PlayerPr__1788CC4DD1DD9E79").IsUnique();
 
             entity.Property(e => e.UserName).HasMaxLength(10);
         });
 
         modelBuilder.Entity<PointTransaction>(entity =>
         {
-            entity.HasKey(e => e.TransactionId).HasName("PK__PointTra__55433A6BCAF9AFA0");
+            entity.HasKey(e => e.TransactionId).HasName("PK__PointTra__55433A6BF2B38774");
 
             entity.ToTable("PointTransaction");
 
@@ -581,6 +603,16 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.TransactionType)
                 .IsRequired()
                 .HasMaxLength(50);
+
+            entity.HasOne(d => d.Player).WithMany(p => p.PointTransactions)
+                .HasForeignKey(d => d.PlayerId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PointTran__Playe__6BE40491");
+
+            entity.HasOne(d => d.Skin).WithMany(p => p.PointTransactions)
+                .HasForeignKey(d => d.SkinId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK__PointTran__SkinI__6AEFE058");
         });
 
         modelBuilder.Entity<QARecord>(entity =>
@@ -623,13 +655,12 @@ public partial class PetDbContext : DbContext
 
         modelBuilder.Entity<SkinShop>(entity =>
         {
-            entity.HasKey(e => e.SkinId).HasName("PK__SkinShop__9A70C30B6FD8253E");
+            entity.HasKey(e => e.SkinId).HasName("PK__SkinShop__9A70C30B211161AE");
 
             entity.ToTable("SkinShop");
 
-            entity.Property(e => e.Description)
-                .IsRequired()
-                .HasMaxLength(50);
+            entity.Property(e => e.Description).HasMaxLength(50);
+            entity.Property(e => e.IsAvailable).HasDefaultValue(true);
             entity.Property(e => e.IsDel).HasColumnName("IsDEL");
             entity.Property(e => e.SkinImage)
                 .IsRequired()

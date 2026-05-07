@@ -14,4 +14,12 @@ public partial class PlayerProfile
     public int? CurrentPoint { get; set; }
 
     public string UserName { get; set; }
+
+    public virtual ICollection<GameHistory> GameHistories { get; set; } = new List<GameHistory>();
+
+    public virtual ICollection<Inventory> Inventories { get; set; } = new List<Inventory>();
+
+    public virtual ICollection<ItemAcquisitionLog> ItemAcquisitionLogs { get; set; } = new List<ItemAcquisitionLog>();
+
+    public virtual ICollection<PointTransaction> PointTransactions { get; set; } = new List<PointTransaction>();
 }

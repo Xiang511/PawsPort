@@ -5,23 +5,17 @@ using System.Collections.Generic;
 
 namespace PawsPort.Models;
 
-public partial class PointTransaction
+public partial class ItemAcquisitionLog
 {
-    public int TransactionId { get; set; }
-
-    public int? Amount { get; set; }
-
-    public string TransactionType { get; set; }
-
-    public int GameId { get; set; }
-
-    public int SkinId { get; set; }
-
-    public int? PassportId { get; set; }
+    public int LogId { get; set; }
 
     public int PlayerId { get; set; }
 
-    public DateTime TransactionDate { get; set; }
+    public int SkinId { get; set; }
+
+    public DateTime CreateTime { get; set; }
+
+    public string AcquireType { get; set; }
 
     public virtual PlayerProfile Player { get; set; }
 

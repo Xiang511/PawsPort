@@ -16,4 +16,8 @@ public partial class Inventory
     public bool Enable { get; set; }
 
     public DateTime? CreateTime { get; set; }
+
+    public virtual PlayerProfile Player { get; set; }
+
+    public virtual SkinShop Skin { get; set; }
 }

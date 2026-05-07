@@ -18,4 +18,6 @@ public partial class GameHistory
     public bool ReceivedReward { get; set; }
 
     public int PlayerId { get; set; }
+
+    public virtual PlayerProfile Player { get; set; }
 }

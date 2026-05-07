@@ -156,7 +156,7 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseRouting();
 // 啟用 CORS
-app.UseCors("AllowVueApp");
+app.UseCors("PawsPortPolicy");
 
 app.UseAuthorization();
 

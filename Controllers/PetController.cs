@@ -1,113 +1,97 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PawsPort.Models;
 using PawsPort.ViewModels;
+using PawsPort.Dtos;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class PetController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class PetController : ApiControllerBase
     {
+        private readonly PetService _service;
 
-        public IActionResult List(KeywordViewModel vm)
+        public PetController(PetService service)
         {
-            PetDbContext db = new PetDbContext();
-            IEnumerable<Pet> datas = null;
-
-            if (string.IsNullOrEmpty(vm.txtKeyword))
-            {
-                // 關鍵字為空時：抓出所有資料，但要「過濾掉」已經有刪除時間的
-                datas = from p in db.Pets
-                        where p.DeletedAt == null   // 新增這個條件
-                        select p;
-            }
-            else
-            {
-                // 有關鍵字時：一樣要加上 DeletedAt == null 的條件
-                datas = db.Pets.Where(p =>
-                    p.DeletedAt == null &&          // 新增這個條件
-                    (p.Name.Contains(vm.txtKeyword) || p.CoatColor.Contains(vm.txtKeyword))
-                );
-            }
-
-            return View(datas);
+            _service = service;
         }
 
-        public IActionResult Create()
+        /// <summary>
+        /// 取得所有寵物列表
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<PetListDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> List([FromQuery] string? keyword)
         {
-            return View();
+            var dtoList = await _service.GetPetsAsync(keyword);
+
+            if (dtoList == null || !dtoList.Any())
+            {
+                return NoContent();
+            }
+
+            return Success(dtoList, "成功取得寵物列表", 200);
         }
+
+        /// <summary>
+        /// 取得供編輯用的單筆寵物資料
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEditData(int id)
+        {
+            var dto = await _service.GetPetForEditAsync(id);
+            if (dto == null)
+                return Failure("PET_NOT_FOUND", "找不到指定的寵物資料", 404);
+
+            return Success(dto, "成功取得編輯資料", 200);
+        }
+
+        /// <summary>
+        /// 創建新寵物資料
+        /// </summary>
         [HttpPost]
-        public IActionResult Create(Pet p)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] PetCreateDto dto)
         {
-            PetDbContext db = new PetDbContext();
-            p.PetId = 0;
-            db.Pets.Add(p);
-            db.SaveChanges();
-            return RedirectToAction("List");
+            await _service.CreatePetAsync(dto);
+            Log.Information("創建寵物資料成功 Name:{Name}", dto.Name);
+
+            return Success(dto, "新增寵物資料成功！", 200);
         }
 
-        public IActionResult Delete(int? id)
+        /// <summary>
+        /// 更新寵物資料
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Edit(int id, [FromBody] PetEditDto dto)
         {
-            // 1. 建立資料庫連線
-            PetDbContext db = new PetDbContext();
-
-            // 2. 找到那隻寵物
-            Pet x = db.Pets.FirstOrDefault(p => p.PetId == id);
-
-            if (x != null)
+            if (id != dto.PetId)
             {
-                // 原本的硬刪除寫法： db.Pets.Remove(x);
-
-                // 改成軟刪除：給它一個刪除時間
-                x.DeletedAt = DateTime.Now;
-
-                // 儲存變更
-                db.SaveChanges();
+                return Failure("ID_MISMATCH", "寵物ID不一致", 400);
             }
 
-            return RedirectToAction("List");
+            await _service.UpdatePetAsync(dto);
+            Log.Information("更新寵物資料成功 PetId:{PetId}", id);
+
+            return NoContent();
         }
 
-        public IActionResult Edit(int? id)
+        /// <summary>
+        /// 刪除寵物 (軟刪除)
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
-            Pet x = db.Pets.FirstOrDefault(p => p.PetId == id);
-            if (x == null)
-                return RedirectToAction("List");
-            return View(x);
-        }
-        [HttpPost]
-        public IActionResult Edit(Pet uiPet) // 變數名稱改叫 uiPet 比較不會搞混
-        {
-            PetDbContext db = new PetDbContext();
+            // 注意這裡對應的是你 Service 裡的 SoftDeletePet
+            await _service.SoftDeletePetAsync(id);
+            Log.Information("軟刪除寵物資料成功 PetId:{PetId}", id);
 
-            // 1. 根據使用者傳回來的 PetId，從資料庫把「舊的那筆資料」抓出來
-            Pet dbPet = db.Pets.FirstOrDefault(p => p.PetId == uiPet.PetId);
-
-            // 2. 確保資料庫真的有這筆資料！(這一步很重要)
-            if (dbPet != null)
-            {
-                // 3. 將表單傳進來的新資料 (uiPet)，覆蓋掉資料庫裡的舊資料 (dbPet)
-                // (這裡我列出了你第一張截圖裡的寵物屬性，你可以把你不想被修改的欄位刪除)
-                dbPet.SpeciesId = uiPet.SpeciesId;
-                dbPet.Name = uiPet.Name;
-                dbPet.Gender = uiPet.Gender;
-                dbPet.Size = uiPet.Size;
-                dbPet.CoatColor = uiPet.CoatColor;
-                dbPet.CurrentStatus = uiPet.CurrentStatus;
-                dbPet.BehavioralTraits = uiPet.BehavioralTraits;
-                dbPet.IsHighMaintenance = uiPet.IsHighMaintenance;
-                dbPet.Note = uiPet.Note;
-                dbPet.IsDesex = uiPet.IsDesex;
-
-                
-                dbPet.UpdatedAt = DateTime.Now;
-
-                // 4. 告訴資料庫把變更存起來
-                db.SaveChanges();
-            }
-
-            // 修改完成後，回到列表頁看結果
-            return RedirectToAction("List");
+            return NoContent();
         }
     }
 }

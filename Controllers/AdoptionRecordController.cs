@@ -1,118 +1,96 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PawsPort.Models;
-using PawsPort.ViewModels;
+using PawsPort.ViewModels; 
+using PawsPort.DTOs;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class AdoptionRecordController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class AdoptionRecordController : ApiControllerBase
     {
-        public IActionResult List(KeywordViewModel vm)
+        private readonly AdoptionRecordService _service;
+
+        public AdoptionRecordController(AdoptionRecordService service)
         {
-            PetDbContext db = new PetDbContext();
+            _service = service;
+        }
 
+        /// <summary>
+        /// 取得所有領養紀錄列表
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<AdoptionRecordListDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> List([FromQuery] string? keyword)
+        {
+            var dtoList = await _service.GetAdoptionRecordsAsync(keyword);
 
-            var query = from h in db.AdoptionRecords
-                        join p in db.Pets on h.PetId equals p.PetId
-
-                        where p.DeletedAt == null
-                        select new AdoptionRecordViewModel
-                        {
-                            AdoptionId = h.AdoptionId,
-                            PetId = h.PetId,
-                            Name = p.Name, // 順利拿到名字
-                            UserId = h.UserId,
-                            ApplyDate = h.ApplyDate,
-                            AdoptDate = h.AdoptDate,
-                            ReturnDate = h.ReturnDate,
-                            ReturnReason = h.ReturnReason,
-                            FollowUpDeadline = h.FollowUpDeadline,
-                            Status = h.Status
-                            
-                        };
-
-
-            if (!string.IsNullOrEmpty(vm.txtKeyword))
+            if (dtoList == null || !dtoList.Any())
             {
-
-                query = query.Where(v => v.Name.Contains(vm.txtKeyword));
-
-
+                return NoContent();
             }
 
-            // 步驟 3：執行查詢，把資料變成 List，然後傳給 View
-            return View(query.ToList());
+            return Success(dtoList, "成功取得領養紀錄列表", 200);
         }
 
-        public IActionResult Create()
+        /// <summary>
+        /// 取得供編輯用的單筆領養資料
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEditData(int id)
         {
-            return View();
+            var dto = await _service.GetRecordForEditAsync(id);
+            if (dto == null)
+                return Failure("RECORD_NOT_FOUND", "找不到指定的領養紀錄", 404);
+
+            return Success(dto, "成功取得編輯資料", 200);
         }
+
+        /// <summary>
+        /// 創建新領養紀錄
+        /// </summary>
         [HttpPost]
-        public IActionResult Create(AdoptionRecord p)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] AdoptionRecordCreateDto dto)
         {
-            PetDbContext db = new PetDbContext();
-            p.AdoptionId = 0;
-            db.AdoptionRecords.Add(p);
-            db.SaveChanges();
-            return RedirectToAction("List");
+            await _service.CreateRecordAsync(dto);
+            Log.Information("創建領養紀錄成功 PetId:{PetId}, UserId:{UserId}", dto.PetId, dto.UserId);
+
+            return Success(dto, "新增領養紀錄成功！", 200);
         }
 
-        public IActionResult Delete(int? id)
+        /// <summary>
+        /// 更新領養紀錄
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Edit(int id, [FromBody] AdoptionRecordEditDto dto)
         {
-            // 1. 建立資料庫連線
-            PetDbContext db = new PetDbContext();
-
-            // 2. 找到那筆健康資料
-            AdoptionRecord x = db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == id);
-
-            if (x != null)
+            if (id != dto.AdoptionId)
             {
-                // 這裡到時候要改成軟刪除
-                db.AdoptionRecords.Remove(x);
-                db.SaveChanges();
+                return Failure("ID_MISMATCH", "領養紀錄ID不一致", 400);
             }
 
-            return RedirectToAction("List");
+            await _service.UpdateRecordAsync(dto);
+            Log.Information("更新領養紀錄成功 AdoptionId:{AdoptionId}", id);
+
+            return NoContent();
         }
 
-        public IActionResult Edit(int? id)
+        /// <summary>
+        /// 刪除領養紀錄
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
-            AdoptionRecord x = db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == id);
-            if (x == null)
-                return RedirectToAction("List");
-            return View(x);
-        }
-        [HttpPost]
-        public IActionResult Edit(AdoptionRecord uiAdoption) // 變數名稱改叫 uiPassport 比較不會搞混
-        {
-            PetDbContext db = new PetDbContext();
+            await _service.DeleteRecordAsync(id);
+            Log.Information("刪除領養紀錄成功 AdoptionId:{AdoptionId}", id);
 
-            // 1. 根據使用者傳回來的 PassportId，從資料庫把「舊的那筆資料」抓出來
-            AdoptionRecord dbAdoption = db.AdoptionRecords.FirstOrDefault(p => p.AdoptionId == uiAdoption.AdoptionId);
-
-            // 2. 確保資料庫真的有這筆資料！(這一步很重要)
-            if (dbAdoption != null)
-            {
-                // 3. 將表單傳進來的新資料 (uiPassport)，覆蓋掉資料庫裡的舊資料 (dbPassport)
-                // (這裡我列出了你第一張截圖裡的寵物屬性，你可以把你不想被修改的欄位刪除)
-                dbAdoption.ApplyDate = uiAdoption.ApplyDate;
-                dbAdoption.AdoptDate = uiAdoption.AdoptDate;
-                dbAdoption.ReturnDate = uiAdoption.ReturnDate;
-                dbAdoption.ReturnReason = uiAdoption.ReturnReason;
-                dbAdoption.FollowUpDeadline = uiAdoption.FollowUpDeadline;
-                dbAdoption.UserId = uiAdoption.UserId;
-                dbAdoption.Status = uiAdoption.Status;
-
-
-
-
-                // 4. 告訴資料庫把變更存起來
-                db.SaveChanges();
-            }
-
-            // 修改完成後，回到列表頁看結果
-            return RedirectToAction("List");
+            return NoContent();
         }
     }
 }

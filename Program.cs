@@ -23,6 +23,8 @@ builder.Services.AddCors(options =>
 // Add services to the container.
 builder.Services.AddControllersWithViews();
 
+
+
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CommentService>();
@@ -31,7 +33,18 @@ builder.Services.AddScoped<PlayerService>();
 builder.Services.AddScoped<QuestionsService>();
 builder.Services.AddScoped<ShopService>();
 
+builder.Services.AddScoped<PassPortService>();
+builder.Services.AddScoped<PetService>();
+builder.Services.AddScoped<AdoptionRecordService>();
+builder.Services.AddScoped<MissingReportsService>();
 
+builder.Services.AddScoped<FaqService>();
+
+builder.Services.AddScoped<QaService>();
+
+builder.Services.AddScoped<ENewsletterService>();
+
+builder.Services.AddScoped<LineBotService>();
 
 
 // 註冊資料庫連線
@@ -54,13 +67,8 @@ else
 builder.Services.AddDbContext<PetDbContext>(options =>
     options.UseSqlServer(connectionString));
 
-builder.Services.AddScoped<FaqService>();
+// Service DI
 
-builder.Services.AddScoped<QaService>();
-
-builder.Services.AddScoped<ENewsletterService>();
-
-builder.Services.AddScoped<LineBotService>();
 
 // 設定 Serilog
 var loggerConfig = new LoggerConfiguration()

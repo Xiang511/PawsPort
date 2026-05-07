@@ -1,117 +1,96 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using PawsPort.Models;
 using PawsPort.ViewModels;
+using PawsPort.Dtos;
+using PawsPort.Services;
+using Serilog;
 
 namespace PawsPort.Controllers
 {
-    public class MissingReportsController : Controller
+    [ApiController]
+    [Route("api/[controller]")]
+    [Produces("application/json")]
+    public class MissingReportsController : ApiControllerBase
     {
-        public IActionResult List(KeywordViewModel vm)
+        private readonly MissingReportsService _service;
+
+        public MissingReportsController(MissingReportsService service)
         {
-            PetDbContext db = new PetDbContext();
+            _service = service;
+        }
 
-           
-            var query = from h in db.MissingReports
-                        join p in db.Pets on h.PetId equals p.PetId
-                        
-                        where p.DeletedAt == null
-                        select new MissingReportListViewModel
-                        {
-                            ReportId = h.ReportId,
-                            PetId = h.PetId,
-                            Name = p.Name, // 順利拿到名字
-                            LastSeenDate = h.LastSeenDate,
-                            IsActive = h.IsActive,
-                            LastSeenLat = h.LastSeenLat,
-                            LastSeenLng = h.LastSeenLng,
-                            LostLocation = h.LostLocation,
-                            UpdatedAt = h.UpdatedAt,
-                            CreatedAt = h.CreatedAt,
-                            UserId = h.UserId
-                        };
+        /// <summary>
+        /// 取得失蹤報案列表
+        /// </summary>
+        [HttpGet]
+        [ProducesResponseType(typeof(IEnumerable<MissingReportListDto>), StatusCodes.Status200OK)]
+        public async Task<IActionResult> List([FromQuery] string? keyword)
+        {
+            var dtoList = await _service.GetReportsAsync(keyword);
 
-            
-            if (!string.IsNullOrEmpty(vm.txtKeyword))
+            if (dtoList == null || !dtoList.Any())
             {
-                
-                query = query.Where(v => v.Name.Contains(vm.txtKeyword));
-
-                
+                return NoContent();
             }
 
-            // 步驟 3：執行查詢，把資料變成 List，然後傳給 View
-            return View(query.ToList());
+            return Success(dtoList, "成功取得報案列表", 200);
         }
 
-        public IActionResult Create()
+        /// <summary>
+        /// 取得供編輯用的單筆報案資料
+        /// </summary>
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetEditData(int id)
         {
-            return View();
+            var dto = await _service.GetReportForEditAsync(id);
+            if (dto == null)
+                return Failure("REPORT_NOT_FOUND", "找不到指定的報案資料", 404);
+
+            return Success(dto, "成功取得編輯資料", 200);
         }
+
+        /// <summary>
+        /// 創建新失蹤報案
+        /// </summary>
         [HttpPost]
-        public IActionResult Create(MissingReport p)
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> Create([FromBody] MissingReportCreateDto dto)
         {
-            PetDbContext db = new PetDbContext();
-            p.ReportId = 0;
-            db.MissingReports.Add(p);
-            db.SaveChanges();
-            return RedirectToAction("List");
+            await _service.CreateReportAsync(dto);
+            Log.Information("創建失蹤報案成功 PetId:{PetId}", dto.PetId);
+
+            return Success(dto, "新增報案成功！", 200);
         }
 
-        public IActionResult Delete(int? id)
+        /// <summary>
+        /// 更新失蹤報案資料
+        /// </summary>
+        [HttpPut("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        public async Task<IActionResult> Edit(int id, [FromBody] MissingReportEditDto dto)
         {
-            // 1. 建立資料庫連線
-            PetDbContext db = new PetDbContext();
-
-            // 2. 找到那筆健康資料
-            MissingReport x = db.MissingReports.FirstOrDefault(p => p.ReportId == id);
-
-            if (x != null)
+            if (id != dto.ReportId)
             {
-                // 這裡到時候要改成軟刪除
-                db.MissingReports.Remove(x);
-                db.SaveChanges();
+                return Failure("ID_MISMATCH", "報案ID不一致", 400);
             }
 
-            return RedirectToAction("List");
+            await _service.UpdateReportAsync(dto);
+            Log.Information("更新報案成功 ReportId:{ReportId}", id);
+
+            return NoContent();
         }
 
-        public IActionResult Edit(int? id)
+        /// <summary>
+        /// 刪除失蹤報案
+        /// </summary>
+        [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        public async Task<IActionResult> Delete(int id)
         {
-            PetDbContext db = new PetDbContext();
-            MissingReport x = db.MissingReports.FirstOrDefault(p => p.ReportId == id);
-            if (x == null)
-                return RedirectToAction("List");
-            return View(x);
-        }
-        [HttpPost]
-        public IActionResult Edit(MissingReport uiReport) // 變數名稱改叫 uiPassport 比較不會搞混
-        {
-            PetDbContext db = new PetDbContext();
+            await _service.DeleteReportAsync(id);
+            Log.Information("刪除報案成功 ReportId:{ReportId}", id);
 
-            // 1. 根據使用者傳回來的 PassportId，從資料庫把「舊的那筆資料」抓出來
-            MissingReport dbReport = db.MissingReports.FirstOrDefault(p => p.ReportId == uiReport.ReportId);
-
-            // 2. 確保資料庫真的有這筆資料！(這一步很重要)
-            if (dbReport != null)
-            {
-                // 3. 將表單傳進來的新資料 (uiPassport)，覆蓋掉資料庫裡的舊資料 (dbPassport)
-                // (這裡我列出了你第一張截圖裡的寵物屬性，你可以把你不想被修改的欄位刪除)
-                dbReport.LastSeenDate = uiReport.LastSeenDate;
-                dbReport.LastSeenLat = uiReport.LastSeenLat;
-                dbReport.LastSeenLng = uiReport.LastSeenLng;
-                dbReport.IsActive = uiReport.IsActive;
-                dbReport.LostLocation = uiReport.LostLocation;
-
-
-                
-                dbReport.UpdatedAt = DateTime.Now;
-
-                // 4. 告訴資料庫把變更存起來
-                db.SaveChanges();
-            }
-
-            // 修改完成後，回到列表頁看結果
-            return RedirectToAction("List");
+            return NoContent();
         }
     }
 }

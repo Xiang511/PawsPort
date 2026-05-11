@@ -37,6 +37,7 @@ namespace PawsPort.Controllers
         /// <param name="commentSaveDTO"></param>
         /// <returns></returns>
         [HttpPost]
+        [Tags("社群管理/留言管理")]
         public async Task<IActionResult> Comment(CommentSaveDTO commentSaveDTO)
         {
             if (!ModelState.IsValid)
@@ -61,7 +62,8 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
+        [Tags("社群管理/留言管理")]
         public async Task<IActionResult> Delete(int id)
         {
             //檢查id是否正常

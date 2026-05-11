@@ -95,7 +95,7 @@ namespace PawsPort.Services
         }
 
 
-        public async Task<bool> DeleteFaqAsync(int id)
+        public async Task<bool> SoftDeleteFaqAsync(int id)
         {
             var item = await _db.Faqs.FindAsync(id);
 

@@ -7,7 +7,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-
+    [Tags("客服管理")]
 
     public class LineBotController : ApiControllerBase
     {
@@ -20,6 +20,8 @@ namespace PawsPort.Controllers
 
 
         [HttpGet]
+        [Tags("客服管理 / LINE BOT")]
+
         public async Task<IActionResult> GetList()
         {
             var result = await _lineBotService.GetAllMessagesAsync();
@@ -28,6 +30,8 @@ namespace PawsPort.Controllers
 
 
         [HttpPost("{id}/reply")]
+        [Tags("客服管理 / LINE BOT")]
+
         public async Task<IActionResult> Reply(int id, LineBotReplyDTO dto)
         {
             if (!ModelState.IsValid)

@@ -9,7 +9,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-
+    [Tags("客服管理")]
 
     public class SupportController : ApiControllerBase
     {
@@ -27,6 +27,7 @@ namespace PawsPort.Controllers
         [HttpGet("Faq")]
         [ProducesResponseType(typeof(ApiResponse<List<FaqDTO>>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [Tags("客服管理 / 常見問題")]
 
         public async Task<IActionResult> GetFaqs()
         {
@@ -44,6 +45,7 @@ namespace PawsPort.Controllers
         [HttpPost("Faq")]
         [ProducesResponseType(typeof(ApiResponse<FaqDTO>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
+        [Tags("客服管理 / 常見問題")]
 
         public async Task<IActionResult> CreateFaq(FaqCreateDTO dto)
         {
@@ -64,6 +66,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
+        [Tags("客服管理 / 常見問題")]
 
         public async Task<IActionResult> UpdateFaq(int id, FaqUpdateDTO dto)
         {
@@ -83,12 +86,12 @@ namespace PawsPort.Controllers
         }
 
 
-        [HttpDelete("Faq/{id}")]
+        [HttpPatch("Faq/{id}")]
+        [Tags("客服管理 / 常見問題")]
 
-
-        public async Task<IActionResult> DeleteFaq(int id)
+        public async Task<IActionResult> SoftDeleteFaq(int id)
         {
-            var result = await _faqService.DeleteFaqAsync(id);
+            var result = await _faqService.SoftDeleteFaqAsync(id);
 
             if (!result)
             {
@@ -102,6 +105,8 @@ namespace PawsPort.Controllers
 
 
         [HttpGet("Qa")]
+        [Tags("客服管理 / QA記錄")]
+
         public async Task<IActionResult> GetQaList()
         {
             var result = await _qaService.GetAllQaAsync();
@@ -111,6 +116,8 @@ namespace PawsPort.Controllers
 
         //取得單筆QA明細
         [HttpGet("Qa/{id}")]
+        [Tags("客服管理 / QA記錄")]
+
         public async Task<IActionResult> GetQaDetails(int id)
         {
             var result = await _qaService.GetQaByIdAsync(id);
@@ -123,6 +130,8 @@ namespace PawsPort.Controllers
 
 
         [HttpPut("Qa/{id}")]
+        [Tags("客服管理 / QA記錄")]
+
         public async Task<IActionResult> UpdateQa(int id, QaUpdateDTO dto)
         {
             if (!ModelState.IsValid)

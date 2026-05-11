@@ -139,7 +139,7 @@ namespace PawsPort.Services
         }
 
 
-        public async Task<bool> DeleteNewsletterAsync(int id)
+        public async Task<bool> SoftDeleteNewsletterAsync(int id)
         {
             var news = await _db.ENewsletters.FindAsync(id);
 

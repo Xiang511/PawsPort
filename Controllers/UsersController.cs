@@ -175,7 +175,7 @@ namespace PawsPort.Controllers
         /// <response code="404">找不到指定會員</response>
         /// 
        
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Tags("會員管理 / 會員資訊")]

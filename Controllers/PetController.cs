@@ -9,6 +9,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("寵物管理/寵物列表")]
     public class PetController : ApiControllerBase
     {
         private readonly PetService _service;

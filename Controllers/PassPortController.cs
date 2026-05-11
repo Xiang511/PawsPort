@@ -10,6 +10,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("寵物管理/寵物健康護照")]
     public class PassPortController : ApiControllerBase
     {
         private readonly PassPortService _service;

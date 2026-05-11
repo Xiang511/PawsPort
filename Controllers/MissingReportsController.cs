@@ -84,7 +84,13 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 刪除失蹤報案
         /// </summary>
-        [HttpDelete("{id}")]
+        /// <remarks>
+        /// 將資料標記為刪除狀態，不會從資料庫中物理移除。
+        /// </remarks>
+        /// <param name="id">欲刪除的報案 ID</param>
+        /// <returns>回傳 204 NoContent 表示刪除成功</returns>
+        /// <response code="204">軟刪除成功</response>
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(int id)
         {

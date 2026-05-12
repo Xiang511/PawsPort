@@ -11,7 +11,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("權限管理")]
+    [Tags("權限管理 / 權限資訊")]
     public class PermissionsController : ApiControllerBase
     {
         private readonly MemberPermissionService _memberPermissionService;
@@ -31,7 +31,7 @@ namespace PawsPort.Controllers
 
         [HttpGet("users")]
         [ProducesResponseType(typeof(IEnumerable<MemberPermissionUserDTO>), StatusCodes.Status200OK)]
-
+        [Tags("權限管理 / 權限資訊")]
         public async Task<IActionResult> UserPermission()
         {
 
@@ -46,7 +46,8 @@ namespace PawsPort.Controllers
         /// <response code="200">成功取得系統列表</response>
         [HttpGet("systems")]
         [ProducesResponseType(typeof(MemberPermissionSystemDTO), StatusCodes.Status200OK)]
- 
+        [Tags("權限管理 / 權限資訊")]
+
         public async Task<IActionResult> System()
         {
 
@@ -64,6 +65,7 @@ namespace PawsPort.Controllers
 
         [HttpGet("roles")]
         [ProducesResponseType(typeof(MemberPermissionRoleDTO), StatusCodes.Status200OK)]
+        [Tags("權限管理 / 權限資訊")]
 
         public async Task<IActionResult> Roles()
         {
@@ -81,6 +83,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功取得被封鎖的會員列表</response>
         [HttpGet("block/users")]
         [ProducesResponseType(typeof(List<MemberBlockListDTO>), StatusCodes.Status200OK)]
+        [Tags("權限管理 / 違規資訊")]
         public async Task<IActionResult> BlockList()
         {
             Log.Debug("[BlacklistController] BlockList GET - Entry");
@@ -106,6 +109,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(MemberBlockListDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("權限管理 / 違規資訊")]
         public async Task<IActionResult> BlockListCreate(int? id, MemberBlockListEditDTO user)
         {
             Log.Debug("[BlacklistController] BlockListCreate POST - Entry, UserId: {UserId}", id);

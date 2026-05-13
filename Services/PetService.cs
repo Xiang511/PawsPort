@@ -28,12 +28,22 @@ namespace PawsPort.Services
             return await query.Select(p => new PetListDto
             {
                 PetId = p.PetId,
+                Species = p.Species,
                 Name = p.Name,
-                CoatColor = p.CoatColor,
                 Gender = p.Gender,
                 Size = p.Size,
+                CoatColor = p.CoatColor,
+                BirthDate = p.BirthDate,
+                Photo = p.Photo,
                 CurrentStatus = p.CurrentStatus,
-                CreatedAt = p.CreatedAt
+                BehavioralTraits = p.BehavioralTraits,
+                IsHighMaintenance = p.IsHighMaintenance,
+                Note = p.Note,
+                CreatedAt = p.CreatedAt,
+                IsDesex = p.IsDesex,
+                UpdatedAt = p.UpdatedAt,
+                DeletedAt = p.DeletedAt,
+                Microchip = p.Microchip
             }).ToListAsync();
         }
 
@@ -42,7 +52,7 @@ namespace PawsPort.Services
         {
             Pet pet = new Pet
             {
-                SpeciesId = dto.SpeciesId,
+                Species = dto.Species,
                 Name = dto.Name,
                 Gender = dto.Gender,
                 Size = dto.Size,
@@ -81,7 +91,7 @@ namespace PawsPort.Services
             return new PetEditDto
             {
                 PetId = p.PetId,
-                SpeciesId = p.SpeciesId,
+                Species = p.Species,
                 Name = p.Name,
                 Gender = p.Gender,
                 Size = p.Size,
@@ -101,7 +111,7 @@ namespace PawsPort.Services
 
             if (dbPet != null)
             {
-                dbPet.SpeciesId = dto.SpeciesId;
+                dbPet.Species = dto.Species;
                 dbPet.Name = dto.Name;
                 dbPet.Gender = dto.Gender;
                 dbPet.Size = dto.Size;

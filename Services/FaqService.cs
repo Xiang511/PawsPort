@@ -15,18 +15,30 @@ namespace PawsPort.Services
             _db = db;
         }
 
-        //List
-        public async Task<List<FaqDTO>> GetAllFaqsAsync()
+        //List 10筆一頁
+        public async Task<(List<FaqDTO> Items, int TotalPages)> GetPagedFaqsAsync(int page, int pageSize)
         {
-            return await _db.Faqs
-                .Where(f => f.IsExist == true)
+            var query = _db.Faqs.Where(f => f.IsExist == true);
+
+            var totalCount = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling(totalCount / (double)pageSize);
+
+            var items = await query
+                .OrderByDescending(f => f.CreateAt)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(f => new FaqDTO
                 {
                     Faqid = f.Faqid,
+                    QuestionType = f.QuestionType,
                     Question = f.Question,
-                    Answer = f.Answer
+                    Answer = f.Answer,
+                    CreateAt = f.CreateAt.ToString("yyyy-MM-dd HH:mm"),
+                    Status = f.Status
                 })
                 .ToListAsync();
+
+            return (items, totalPages);
         }
 
 
@@ -40,7 +52,6 @@ namespace PawsPort.Services
                 CreateAt = DateTime.Now,
                 IsExist = true,
                 Status = "待發佈",
-
             };
 
             if (string.IsNullOrEmpty(dto.Note))

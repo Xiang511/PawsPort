@@ -394,6 +394,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
             entity.Property(e => e.Note).HasMaxLength(255);
+            entity.Property(e => e.Photo).HasMaxLength(100);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
             entity.Property(e => e.Weight).HasColumnType("decimal(5, 2)");
         });
@@ -526,7 +527,12 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.LastSeenDate).HasColumnType("datetime");
             entity.Property(e => e.LastSeenLat).HasColumnType("decimal(9, 6)");
             entity.Property(e => e.LastSeenLng).HasColumnType("decimal(9, 6)");
+            entity.Property(e => e.LostCity).HasMaxLength(20);
+            entity.Property(e => e.LostDistrict).HasMaxLength(20);
             entity.Property(e => e.LostLocation).HasMaxLength(255);
+            entity.Property(e => e.Photo).HasMaxLength(100);
+            entity.Property(e => e.Size).HasMaxLength(20);
+            entity.Property(e => e.Species).HasMaxLength(20);
             entity.Property(e => e.UpdatedAt).HasColumnType("datetime");
         });
 
@@ -576,6 +582,9 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.CoatColor).HasMaxLength(100);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
+            entity.Property(e => e.Microchip)
+                .HasMaxLength(20)
+                .IsUnicode(false);
             entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.Photo).HasMaxLength(255);

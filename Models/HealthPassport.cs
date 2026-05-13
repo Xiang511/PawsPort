@@ -24,4 +24,8 @@ public partial class HealthPassport
     public DateTime? CreatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    public int? UserId { get; set; }
+
+    public string Photo { get; set; }
 }

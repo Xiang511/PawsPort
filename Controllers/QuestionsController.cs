@@ -6,7 +6,10 @@ using Serilog;
 
 namespace PawsPort.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
+    [Tags("遊戲系統 / 題庫管理")]
     public class QuestionsController : ApiControllerBase
     {
         private readonly QuestionsService _questionsService;
@@ -17,7 +20,14 @@ namespace PawsPort.Controllers
         }
 
         // GET: api/Questions
+        /// <summary>
+        /// 取得題庫列表
+        /// </summary>
+        /// <param name="category">題目分類（選填）</param>
+        /// <returns>包含題目內容與分類選項的 JSON</returns>
+        /// <response code="200">成功取得題庫列表</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(string category = "")
         {
             try
@@ -40,7 +50,14 @@ namespace PawsPort.Controllers
         }
 
         // POST: api/Questions
+        /// <summary>
+        /// 創建新題目
+        /// </summary>
+        /// <param name="createDto">題目建立資料</param>
+        /// <returns>建立成功的題目資料</returns>
+        /// <response code="200">成功新增題目</response>
         [HttpPost]
+        [ProducesResponseType(typeof(QuestionsCreateDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Create(QuestionsCreateDTO createDto)
         {
             try
@@ -63,7 +80,19 @@ namespace PawsPort.Controllers
         }
 
         // PUT: api/Questions/{id}
+        /// <summary>
+        /// 更新指定題目資訊
+        /// </summary>
+        /// <param name="id">題目 ID</param>
+        /// <param name="editDto">更新的題目資料</param>
+        /// <returns>更新後的資料</returns>
+        /// <response code="200">成功更新題目</response>
+        /// <response code="400">ID 不一致</response>
+        /// <response code="404">找不到該題目</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(QuestionsEditDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit(int id, QuestionsEditDTO editDto)
         {
             if (id != editDto.GameId)
@@ -85,7 +114,15 @@ namespace PawsPort.Controllers
         }
 
         // DELETE: api/Questions/{id}
+        /// <summary>
+        /// 刪除指定題目
+        /// </summary>
+        /// <param name="id">題目 ID</param>
+        /// <response code="200">成功刪除題目</response>
+        /// <response code="404">找不到欲刪除的題目</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             try

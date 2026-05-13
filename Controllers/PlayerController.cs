@@ -7,7 +7,10 @@ using Serilog;
 
 namespace PawsPort.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
+    [Tags("遊戲系統 / 玩家管理")]
     public class PlayerController : ApiControllerBase
     {
         private readonly PlayerService _playerService;
@@ -18,7 +21,14 @@ namespace PawsPort.Controllers
         }
 
         // GET /api/Player
+        /// <summary>
+        /// 取得玩家列表（分頁）
+        /// </summary>
+        /// <param name="page">頁碼（預設為 1）</param>
+        /// <returns>分頁後的玩家列表與總筆數</returns>
+        /// <response code="200">成功取得玩家列表</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(int page = 1)
         {
             try
@@ -43,7 +53,19 @@ namespace PawsPort.Controllers
         }
 
         // PUT /api/Player/{id}
+        /// <summary>
+        /// 更新玩家資訊與庫存資料
+        /// </summary>
+        /// <param name="id">玩家 ID</param>
+        /// <param name="EditDTO">更新的玩家資料 DTO</param>
+        /// <returns>更新後的玩家資料</returns>
+        /// <response code="200">成功更新玩家資訊</response>
+        /// <response code="400">資料格式錯誤或 ID 不一致</response>
+        /// <response code="404">找不到該玩家或對應庫存</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(PlayerEditDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit(int id, [FromBody] PlayerEditDTO EditDTO)
         {
             if (EditDTO == null) return Failure("BAD_REQUEST", "收到的資料為空", 400);
@@ -65,7 +87,15 @@ namespace PawsPort.Controllers
         }
 
         // DELETE /api/Player/{id}
+        /// <summary>
+        /// 刪除指定玩家
+        /// </summary>
+        /// <param name="id">玩家 ID</param>
+        /// <response code="200">成功刪除玩家</response>
+        /// <response code="404">找不到該玩家</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             Log.Information("正在準備刪除玩家 ID: {id}", id);
@@ -85,7 +115,15 @@ namespace PawsPort.Controllers
         }
 
         // GET /api/Player/search?query=xxx&page=1
+        /// <summary>
+        /// 搜尋玩家
+        /// </summary>
+        /// <param name="query">搜尋關鍵字（名稱或相關資訊）</param>
+        /// <param name="page">頁碼（預設為 1）</param>
+        /// <returns>搜尋結果清單</returns>
+        /// <response code="200">成功完成搜尋</response>
         [HttpGet("search")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string query, int page = 1)
         {
             try
@@ -114,7 +152,14 @@ namespace PawsPort.Controllers
         }
 
         // GET /api/Player/{id}/logs
+        /// <summary>
+        /// 取得玩家相關紀錄（如異動日誌）
+        /// </summary>
+        /// <param name="id">玩家 ID</param>
+        /// <returns>玩家的異動紀錄列表</returns>
+        /// <response code="200">成功取得紀錄</response>
         [HttpGet("{id}/logs")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPlayerLogs(int id)
         {
             try

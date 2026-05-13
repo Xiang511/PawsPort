@@ -7,6 +7,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("客服管理")]
 
     public class ENewsletterController : ApiControllerBase
     {
@@ -19,6 +20,8 @@ namespace PawsPort.Controllers
 
 
         [HttpGet]
+        [Tags("客服管理 / 電子報")]
+
         public async Task<IActionResult> GetList()
         {
             var result = await _newsletterService.GetAllNewslettersAsync();
@@ -28,6 +31,8 @@ namespace PawsPort.Controllers
 
 
         [HttpPost]
+        [Tags("客服管理 / 電子報")]
+
         public async Task<IActionResult> Create(ENewsletterCreateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -42,6 +47,8 @@ namespace PawsPort.Controllers
 
 
         [HttpPut("{id}")]
+        [Tags("客服管理 / 電子報")]
+
         public async Task<IActionResult> Update(int id, ENewsletterUpdateDTO dto)
         {
             if (!ModelState.IsValid)
@@ -63,10 +70,12 @@ namespace PawsPort.Controllers
         }
 
 
-        [HttpDelete("{id}")]
-        public async Task<IActionResult> Delete(int id)
+        [HttpPatch("{id}")]
+        [Tags("客服管理 / 電子報")]
+
+        public async Task<IActionResult> SoftDelete(int id)
         {
-            var isSuccess = await _newsletterService.DeleteNewsletterAsync(id);
+            var isSuccess = await _newsletterService.SoftDeleteNewsletterAsync(id);
 
             if (!isSuccess)
             {

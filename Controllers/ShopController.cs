@@ -6,7 +6,10 @@ using Serilog;
 
 namespace PawsPort.Controllers
 {
+    [ApiController]
     [Route("api/[controller]")]
+    [Produces("application/json")]
+    [Tags("遊戲系統 / 商店管理")]
     public class ShopController : ApiControllerBase
     {
         private readonly ShopService _shopService;
@@ -17,7 +20,13 @@ namespace PawsPort.Controllers
         }
 
         // GET /api/Shop
+        /// <summary>
+        /// 取得所有商品列表
+        /// </summary>
+        /// <returns>商城道具與造型列表</returns>
+        /// <response code="200">成功取得商品列表</response>
         [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List()
         {
             try
@@ -33,7 +42,15 @@ namespace PawsPort.Controllers
         }
 
         // POST /api/Shop
+        /// <summary>
+        /// 新增商城商品
+        /// </summary>
+        /// <param name="dto">新商品資料（包含名稱、價格等）</param>
+        /// <returns>創建成功的商品資料</returns>
+        /// <response code="201">成功建立商品</response>
+        /// <response code="500">伺服器端儲存失敗</response>
         [HttpPost]
+        [ProducesResponseType(typeof(ShopCreateDTO), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create(ShopCreateDTO dto)
         {
             Log.Information("ShopController: 收到 JSON 新增商品請求: {SkinName}", dto.SkinName);
@@ -51,7 +68,19 @@ namespace PawsPort.Controllers
         }
 
         // PUT /api/Shop/{id}
+        /// <summary>
+        /// 更新指定商品資訊
+        /// </summary>
+        /// <param name="id">商品 ID</param>
+        /// <param name="dto">更新的商品資料</param>
+        /// <returns>更新後的商品資料</returns>
+        /// <response code="200">成功更新商品</response>
+        /// <response code="400">網址 ID 與資料 ID 不符</response>
+        /// <response code="404">找不到該商品</response>
         [HttpPut("{id}")]
+        [ProducesResponseType(typeof(ShopEditDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit(int id, ShopEditDTO dto)
         {
             if (id != dto.SkinId) return Failure("SHOP_ID_MISMATCH", "網址 ID 與資料 ID 不符", 400);
@@ -72,7 +101,15 @@ namespace PawsPort.Controllers
         }
 
         // DELETE /api/Shop/{id}
+        /// <summary>
+        /// 刪除指定商品
+        /// </summary>
+        /// <param name="id">商品 ID</param>
+        /// <response code="200">成功刪除商品</response>
+        /// <response code="404">找不到欲刪除的商品</response>
         [HttpDelete("{id}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
             try

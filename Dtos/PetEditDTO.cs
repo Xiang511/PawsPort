@@ -5,7 +5,7 @@
     public class PetEditDto
     {
         public int PetId { get; set; }
-        public int? SpeciesId { get; set; }
+        public int? Species { get; set; }
         public string? Name { get; set; }
         public int? Gender { get; set; }
         public int? Size { get; set; }

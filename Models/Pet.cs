@@ -9,7 +9,7 @@ public partial class Pet
 {
     public int PetId { get; set; }
 
-    public int? SpeciesId { get; set; }
+    public int? Species { get; set; }
 
     public string Name { get; set; }
 
@@ -38,4 +38,6 @@ public partial class Pet
     public DateTime? UpdatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    public string Microchip { get; set; }
 }

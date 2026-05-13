@@ -5,7 +5,7 @@
     // 2. 新增用
     public class PetCreateDto
     {
-        public int? SpeciesId { get; set; }
+        public int? Species { get; set; }
         public string? Name { get; set; }
         public int? Gender { get; set; }
         public int? Size { get; set; }

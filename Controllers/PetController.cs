@@ -9,6 +9,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("寵物管理/寵物列表")]
     public class PetController : ApiControllerBase
     {
         private readonly PetService _service;
@@ -83,7 +84,13 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 刪除寵物 (軟刪除)
         /// </summary>
-        [HttpDelete("{id}")]
+        /// <remarks>
+        /// 將資料標記為刪除狀態，不會從資料庫中物理移除。
+        /// </remarks>
+        /// <param name="id">欲刪除的寵物 ID</param>
+        /// <returns>回傳 204 NoContent 表示刪除成功</returns>
+        /// <response code="204">軟刪除成功</response>
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(int id)
         {

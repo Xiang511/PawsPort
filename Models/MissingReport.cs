@@ -28,4 +28,14 @@ public partial class MissingReport
     public DateTime? UpdatedAt { get; set; }
 
     public DateTime? DeletedAt { get; set; }
+
+    public string Photo { get; set; }
+
+    public string Species { get; set; }
+
+    public string Size { get; set; }
+
+    public string LostCity { get; set; }
+
+    public string LostDistrict { get; set; }
 }

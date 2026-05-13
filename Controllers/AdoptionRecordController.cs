@@ -9,6 +9,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("寵物管理/領養紀錄")]
     public class AdoptionRecordController : ApiControllerBase
     {
         private readonly AdoptionRecordService _service;
@@ -81,15 +82,19 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// 刪除領養紀錄
+        /// 軟刪除領養紀錄 (將紀錄標記為已刪除)
         /// </summary>
-        [HttpDelete("{id}")]
+        /// <param name="id">領養紀錄 ID</param>
+        [HttpPatch("{id}")] 
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> Delete(int id)
+        public async Task<IActionResult> SoftDelete(int id) //方法名同步修改
         {
+            // 呼叫 Service 執行軟刪除邏輯
             await _service.DeleteRecordAsync(id);
-            Log.Information("刪除領養紀錄成功 AdoptionId:{AdoptionId}", id);
 
+            Log.Information("軟刪除領養紀錄成功 AdoptionId:{AdoptionId}", id);
+
+            // 雖然是更新，但因為沒有要回傳新資料，回傳 204 No Content 依然是標準作法
             return NoContent();
         }
     }

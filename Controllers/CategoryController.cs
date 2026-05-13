@@ -14,6 +14,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("分類管理")]
     public class CategoryController : ApiControllerBase
     {
         //注入資料庫和service
@@ -37,6 +38,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
+        [Tags("社群管理/分類管理")]
         public async Task<IActionResult> Category([FromBody] CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
@@ -63,6 +65,7 @@ namespace PawsPort.Controllers
         /// <param name="categorySaveDTO"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
+        [Tags("社群管理/分類管理")]
         public async Task<IActionResult> Category(int id,[FromBody]CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
@@ -87,7 +90,8 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
+        [Tags("社群管理/分類管理")]
         public async Task<IActionResult> Delete(int id)
         {
             if (id <= 0) return Failure("INVALID_ID", "無效的分類編號", 400);

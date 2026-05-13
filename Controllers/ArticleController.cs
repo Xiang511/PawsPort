@@ -13,6 +13,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
+    [Tags("社群管理")]
     public class ArticleController : ApiControllerBase
     {
         //注入資料庫和service
@@ -37,6 +38,8 @@ namespace PawsPort.Controllers
         /// <response code="200">取得所有文章成功</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
+        [Tags("社群管理/貼文管理")]
+
         public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
         {
             var result = await _articleService.GetAllArticlesAsync(
@@ -58,6 +61,8 @@ namespace PawsPort.Controllers
         /// <response code="200">文章建立成功</response>
         /// <response code="500">伺服器內部錯誤</response>
         [HttpPost]
+        [Tags("社群管理/貼文管理")]
+
         public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
             if (!ModelState.IsValid)
@@ -87,6 +92,7 @@ namespace PawsPort.Controllers
         /// <response code="404">找不到該文章</response>
         /// <response code="200">文章更新成功</response>
         [HttpPut("{id}")]
+        [Tags("社群管理/貼文管理")]
         public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
         {
             if (id <= 0)
@@ -120,7 +126,8 @@ namespace PawsPort.Controllers
         /// <response code="400">無效的文章編號</response>
         /// <response code="404">找不到該文章</response>
         /// <response code="200">文章刪除成功</response>
-        [HttpDelete("{id}")]
+        [HttpPatch("{id}")]
+        [Tags("社群管理/貼文管理")]
         public async Task<IActionResult> Delete(int id)
         {
             //檢查id是否有效

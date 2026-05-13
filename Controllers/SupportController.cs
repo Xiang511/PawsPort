@@ -25,20 +25,29 @@ namespace PawsPort.Controllers
 
         //List
         [HttpGet("Faq")]
-        [ProducesResponseType(typeof(ApiResponse<List<FaqDTO>>), StatusCodes.Status200OK)]
+        [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [Tags("客服管理 / 常見問題")]
 
-        public async Task<IActionResult> GetFaqs()
+        public async Task<IActionResult> GetFaqs([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var faqs = await _faqService.GetAllFaqsAsync();
-
-            if (faqs == null || !faqs.Any())
             {
-                return NoContent();
-            }
+                var faqs = await _faqService.GetPagedFaqsAsync(page, pageSize);
 
-            return Success(faqs, "成功取得FAQ列表", 200);
+                if (faqs.Items == null || !faqs.Items.Any())
+                {
+                    return NoContent();
+                }
+
+                var responseData = new
+                {
+                    items = faqs.Items,
+                    currentPage = page,
+                    totalPages = faqs.TotalPages
+                };
+
+                return Success(responseData, "成功取得FAQ列表", 200);
+            }
         }
 
 

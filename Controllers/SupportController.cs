@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Responses;
 using PawsPort.Services;
@@ -9,7 +9,6 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("å®¢æœç®¡ç†")]
 
     public class SupportController : ApiControllerBase
     {
@@ -27,7 +26,7 @@ namespace PawsPort.Controllers
         [HttpGet("Faq")]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [Tags("å®¢æœç®¡ç† / å¸¸è¦‹å•é¡Œ")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> GetFaqs([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
@@ -46,7 +45,7 @@ namespace PawsPort.Controllers
                     totalPages = faqs.TotalPages
                 };
 
-                return Success(responseData, "æˆåŠŸå–å¾—FAQåˆ—è¡¨", 200);
+                return Success(responseData, "¦¨¥\¨ú±oFAQ¦Cªí", 200);
             }
         }
 
@@ -54,20 +53,20 @@ namespace PawsPort.Controllers
         [HttpPost("Faq")]
         [ProducesResponseType(typeof(ApiResponse<FaqDTO>), StatusCodes.Status201Created)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
-        [Tags("å®¢æœç®¡ç† / å¸¸è¦‹å•é¡Œ")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> CreateFaq(FaqCreateDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—ï¼Œè«‹æª¢æŸ¥å¿…å¡«æ¬„ä½", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ¡A½ĞÀË¬d¥²¶ñÄæ¦ì", 400);
             }
 
             var result = await _faqService.CreateFaqAsync(dto);
 
-            Log.Information("æ–°å¢FAQæˆåŠŸ FAQ_ID:{Faqid}", result.Faqid);
+            Log.Information("·s¼WFAQ¦¨¥\ FAQ_ID:{Faqid}", result.Faqid);
 
-            return Success(result, "å‰µå»ºFAQæˆåŠŸ", 201);
+            return Success(result, "³Ğ«ØFAQ¦¨¥\", 201);
         }
 
 
@@ -75,28 +74,28 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status200OK)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status400BadRequest)]
         [ProducesResponseType(typeof(ApiResponse<object>), StatusCodes.Status404NotFound)]
-        [Tags("å®¢æœç®¡ç† / å¸¸è¦‹å•é¡Œ")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> UpdateFaq(int id, FaqUpdateDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—ï¼Œè«‹æª¢æŸ¥æ¬„ä½", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ¡A½ĞÀË¬dÄæ¦ì", 400);
             }
 
             var isSuccess = await _faqService.UpdateFaqAsync(id, dto);
 
             if (!isSuccess)
             {
-                return Failure("FAQ_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„FAQï¼Œæ›´æ–°å¤±æ•—", 404);
+                return Failure("FAQ_NOT_FOUND", "§ä¤£¨ì«ü©wªºFAQ¡A§ó·s¥¢±Ñ", 404);
             }
 
-            return Success<object>(null, "æ›´æ–°FAQæˆåŠŸ", 200);
+            return Success<object>(null, "§ó·sFAQ¦¨¥\", 200);
         }
 
 
         [HttpPatch("Faq/{id}")]
-        [Tags("å®¢æœç®¡ç† / å¸¸è¦‹å•é¡Œ")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> SoftDeleteFaq(int id)
         {
@@ -104,7 +103,7 @@ namespace PawsPort.Controllers
 
             if (!result)
             {
-                return Failure("FAQ_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„FAQ", 404);
+                return Failure("FAQ_NOT_FOUND", "§ä¤£¨ì«ü©wªºFAQ", 404);
             }
 
             return NoContent();
@@ -114,47 +113,47 @@ namespace PawsPort.Controllers
 
 
         [HttpGet("Qa")]
-        [Tags("å®¢æœç®¡ç† / QAè¨˜éŒ„")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> GetQaList()
         {
             var result = await _qaService.GetAllQaAsync();
-            return Success(result, "å–å¾—QAåˆ—è¡¨æˆåŠŸ", 200);
+            return Success(result, "¨ú±oQA¦Cªí¦¨¥\", 200);
         }
 
 
-        //å–å¾—å–®ç­†QAæ˜ç´°
+        //¨ú±o³æµ§QA©ú²Ó
         [HttpGet("Qa/{id}")]
-        [Tags("å®¢æœç®¡ç† / QAè¨˜éŒ„")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> GetQaDetails(int id)
         {
             var result = await _qaService.GetQaByIdAsync(id);
             if (result == null)
             {
-                return Failure("QA_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„å•ç­”ç´€éŒ„", 404);
+                return Failure("QA_NOT_FOUND", "§ä¤£¨ì«ü©wªº°İµª¬ö¿ı", 404);
             }
-            return Success(result, "å–å¾—QAæ˜ç´°æˆåŠŸ", 200);
+            return Success(result, "¨ú±oQA©ú²Ó¦¨¥\", 200);
         }
 
 
         [HttpPut("Qa/{id}")]
-        [Tags("å®¢æœç®¡ç† / QAè¨˜éŒ„")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> UpdateQa(int id, QaUpdateDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™æ ¼å¼éŒ¯èª¤", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®Æ®æ¦¡¿ù»~", 400);
             }
 
             var isSuccess = await _qaService.UpdateQaAsync(id, dto);
             if (!isSuccess)
             {
-                return Failure("QA_NOT_FOUND", "æ‰¾ä¸åˆ°è©²ç­†å•ç­”ç´€éŒ„ï¼Œæ›´æ–°å¤±æ•—", 404);
+                return Failure("QA_NOT_FOUND", "§ä¤£¨ì¸Óµ§°İµª¬ö¿ı¡A§ó·s¥¢±Ñ", 404);
             }
 
-            return Success<object>(null, "QAå›è¦†æˆåŠŸ", 200);
+            return Success<object>(null, "QA¦^ÂĞ¦¨¥\", 200);
         }
     }
 }

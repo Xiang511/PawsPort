@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.ViewModels;
 using PawsPort.Dtos;
 using PawsPort.Services;
@@ -7,12 +7,12 @@ using Serilog;
 namespace PawsPort.Controllers
 {
     /// <summary>
-    /// å¯µç‰©å¥åº·è­·ç…§ç®¡ç† API
+    /// Ãdª«°·±dÅ@·ÓºŞ²z API
     /// </summary>
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("å¯µç‰©ç®¡ç†/å¯µç‰©å¥åº·è­·ç…§")]
+    [Tags("Ãdª«ºŞ²z")]
     public class PassPortController : ApiControllerBase
     {
         private readonly PassPortService _service;
@@ -23,12 +23,12 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// å–å¾—å¯µç‰©å¥åº·è­·ç…§åˆ—è¡¨ (å¯æ ¹æ“šå¯µç‰©åç¨±é€²è¡Œéæ¿¾)
+        /// ¨ú±oÃdª«°·±dÅ@·Ó¦Cªí (¥i®Ú¾ÚÃdª«¦WºÙ¶i¦æ¹LÂo)
         /// </summary>
-        /// <param name="keyword">æœå°‹é—œéµå­— (å¯µç‰©åç¨±)</param>
-        /// <returns>å›å‚³ç¬¦åˆæ¢ä»¶çš„è­·ç…§æ¸…å–®</returns>
-        /// <response code="200">æˆåŠŸå–å¾—åˆ—è¡¨</response>
-        /// <response code="204">æˆåŠŸè™•ç†è«‹æ±‚ï¼Œä½†æŸ¥ç„¡ä»»ä½•è³‡æ–™</response>
+        /// <param name="keyword">·j´MÃöÁä¦r (Ãdª«¦WºÙ)</param>
+        /// <returns>¦^¶Ç²Å¦X±ø¥óªºÅ@·Ó²M³æ</returns>
+        /// <response code="200">¦¨¥\¨ú±o¦Cªí</response>
+        /// <response code="204">¦¨¥\³B²z½Ğ¨D¡A¦ı¬dµL¥ô¦ó¸ê®Æ</response>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<HealthPassportListDto>), StatusCodes.Status200OK)]
         public async Task<IActionResult> List([FromQuery] string? keyword)
@@ -40,16 +40,16 @@ namespace PawsPort.Controllers
                 return NoContent();
             }
 
-            return Success(dtoList, "æˆåŠŸå–å¾—åˆ—è¡¨", 200);
+            return Success(dtoList, "¦¨¥\¨ú±o¦Cªí", 200);
         }
 
         /// <summary>
-        /// å–å¾—ç‰¹å®šå¯µç‰©çš„å¥åº·è­·ç…§è©³ç´°è³‡è¨Š (åŒ…å«ç—…æ­·èˆ‡ç–«è‹—ç´€éŒ„)
+        /// ¨ú±o¯S©wÃdª«ªº°·±dÅ@·Ó¸Ô²Ó¸ê°T (¥]§t¯f¾ú»P¬Ì­]¬ö¿ı)
         /// </summary>
-        /// <param name="id">è­·ç…§ ID</param>
-        /// <returns>å›å‚³è©³ç´°çš„å¥åº·ç´€éŒ„è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸå–å¾—è©³ç´°è³‡æ–™</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„è­·ç…§è³‡æ–™</response>
+        /// <param name="id">Å@·Ó ID</param>
+        /// <returns>¦^¶Ç¸Ô²Óªº°·±d¬ö¿ı¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\¨ú±o¸Ô²Ó¸ê®Æ</response>
+        /// <response code="404">§ä¤£¨ì«ü©wªºÅ@·Ó¸ê®Æ</response>
         [HttpGet("{id}/detail")]
         [ProducesResponseType(typeof(HealthPassportDetailsDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -59,58 +59,58 @@ namespace PawsPort.Controllers
 
             if (dto == null)
             {
-                return Failure("PASSPORT_NOT_FOUND", "è©²åå¯µç‰©ç›®å‰æ²’æœ‰ä»»ä½•ç—…æ­·èˆ‡ç–«è‹—è³‡æ–™å–”ï¼", 404);
+                return Failure("PASSPORT_NOT_FOUND", "¸Ó¦WÃdª«¥Ø«e¨S¦³¥ô¦ó¯f¾ú»P¬Ì­]¸ê®Æ³á¡I", 404);
             }
 
-            return Success(dto, "æˆåŠŸå–å¾—è©³ç´°è³‡æ–™", 200);
+            return Success(dto, "¦¨¥\¨ú±o¸Ô²Ó¸ê®Æ", 200);
         }
 
         /// <summary>
-        /// å–å¾—ç·¨è¼¯æ‰€éœ€çš„è­·ç…§åŸå§‹è³‡æ–™ (å¾Œå°è¡¨å–®ç¶å®šç”¨)
+        /// ¨ú±o½s¿è©Ò»İªºÅ@·Ó­ì©l¸ê®Æ («á¥xªí³æ¸j©w¥Î)
         /// </summary>
-        /// <param name="id">è­·ç…§ ID</param>
-        /// <returns>å›å‚³ä¾›ç·¨è¼¯ä½¿ç”¨çš„ DTO</returns>
-        /// <response code="200">æˆåŠŸå–å¾—è³‡æ–™</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„è­·ç…§è³‡æ–™</response>
+        /// <param name="id">Å@·Ó ID</param>
+        /// <returns>¦^¶Ç¨Ñ½s¿è¨Ï¥Îªº DTO</returns>
+        /// <response code="200">¦¨¥\¨ú±o¸ê®Æ</response>
+        /// <response code="404">§ä¤£¨ì«ü©wªºÅ@·Ó¸ê®Æ</response>
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(HealthPassportEditDto), StatusCodes.Status200OK)]
         public async Task<IActionResult> GetEditData(int id)
         {
             var dto = await _service.GetPassportForEditAsync(id);
             if (dto == null)
-                return Failure("PASSPORT_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„è­·ç…§è³‡æ–™", 404);
+                return Failure("PASSPORT_NOT_FOUND", "§ä¤£¨ì«ü©wªºÅ@·Ó¸ê®Æ", 404);
 
-            return Success(dto, "æˆåŠŸå–å¾—ç·¨è¼¯è³‡æ–™", 200);
+            return Success(dto, "¦¨¥\¨ú±o½s¿è¸ê®Æ", 200);
         }
 
         /// <summary>
-        /// å»ºç«‹æ–°çš„å¯µç‰©å¥åº·è­·ç…§
+        /// «Ø¥ß·sªºÃdª«°·±dÅ@·Ó
         /// </summary>
         /// <remarks>
-        /// æ­¤ API æœƒåŒæ™‚å»ºç«‹è­·ç…§ä¸»æª”ï¼Œä¸¦æ ¹æ“šè¼¸å…¥å…§å®¹æ–°å¢ç—…æ­·èˆ‡ç–«è‹—ç´€éŒ„ã€‚
+        /// ¦¹ API ·|¦P®É«Ø¥ßÅ@·Ó¥DÀÉ¡A¨Ã®Ú¾Ú¿é¤J¤º®e·s¼W¯f¾ú»P¬Ì­]¬ö¿ı¡C
         /// </remarks>
-        /// <param name="dto">è­·ç…§å»ºç«‹ DTO</param>
-        /// <returns>å›å‚³æ–°å¢æˆåŠŸçš„çµæœèˆ‡è³‡æ–™</returns>
-        /// <response code="200">æ–°å¢è³‡æ–™æˆåŠŸ</response>
+        /// <param name="dto">Å@·Ó«Ø¥ß DTO</param>
+        /// <returns>¦^¶Ç·s¼W¦¨¥\ªºµ²ªG»P¸ê®Æ</returns>
+        /// <response code="200">·s¼W¸ê®Æ¦¨¥\</response>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Create([FromBody] HealthPassportCreateDto dto)
         {
             await _service.CreatePassportAsync(dto);
 
-            Log.Information("å‰µå»ºè­·ç…§æˆåŠŸ PetId:{PetId}", dto.PetId);
+            Log.Information("³Ğ«ØÅ@·Ó¦¨¥\ PetId:{PetId}", dto.PetId);
 
-            return Success(dto, "æ–°å¢è³‡æ–™æˆåŠŸï¼", 200);
+            return Success(dto, "·s¼W¸ê®Æ¦¨¥\¡I", 200);
         }
 
         /// <summary>
-        /// æ›´æ–°ç‰¹å®šå¥åº·è­·ç…§çš„å…§å®¹
+        /// §ó·s¯S©w°·±dÅ@·Óªº¤º®e
         /// </summary>
-        /// <param name="id">è·¯å¾‘ä¸­çš„è­·ç…§ ID</param>
-        /// <param name="dto">åŒ…å«æ›´æ–°è³‡è¨Šçš„ DTO</param>
-        /// <returns>å›å‚³ 204 NoContent è¡¨ç¤ºæ›´æ–°æˆåŠŸ</returns>
-        /// <response code="204">æ›´æ–°æˆåŠŸ</response>
-        /// <response code="400">ID ä¸ä¸€è‡´æˆ–è«‹æ±‚æ ¼å¼éŒ¯èª¤</response>
+        /// <param name="id">¸ô®|¤¤ªºÅ@·Ó ID</param>
+        /// <param name="dto">¥]§t§ó·s¸ê°Tªº DTO</param>
+        /// <returns>¦^¶Ç 204 NoContent ªí¥Ü§ó·s¦¨¥\</returns>
+        /// <response code="204">§ó·s¦¨¥\</response>
+        /// <response code="400">ID ¤£¤@­P©Î½Ğ¨D®æ¦¡¿ù»~</response>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -118,32 +118,32 @@ namespace PawsPort.Controllers
         {
             if (id != dto.PassportId)
             {
-                return Failure("ID_MISMATCH", "è­·ç…§IDä¸ä¸€è‡´", 400);
+                return Failure("ID_MISMATCH", "Å@·ÓID¤£¤@­P", 400);
             }
 
             await _service.UpdatePassportAsync(dto);
 
-            Log.Information("æ›´æ–°è­·ç…§æˆåŠŸ PassportId:{PassportId}", id);
+            Log.Information("§ó·sÅ@·Ó¦¨¥\ PassportId:{PassportId}", id);
 
             return NoContent();
         }
 
         /// <summary>
-        /// è»Ÿåˆªé™¤æŒ‡å®šå¥åº·è­·ç…§
+        /// ³n§R°£«ü©w°·±dÅ@·Ó
         /// </summary>
         /// <remarks>
-        /// å°‡è³‡æ–™æ¨™è¨˜ç‚ºåˆªé™¤ç‹€æ…‹ï¼Œä¸æœƒå¾è³‡æ–™åº«ä¸­ç‰©ç†ç§»é™¤ã€‚
+        /// ±N¸ê®Æ¼Ğ°O¬°§R°£ª¬ºA¡A¤£·|±q¸ê®Æ®w¤¤ª«²z²¾°£¡C
         /// </remarks>
-        /// <param name="id">æ¬²åˆªé™¤çš„è­·ç…§ ID</param>
-        /// <returns>å›å‚³ 204 NoContent è¡¨ç¤ºåˆªé™¤æˆåŠŸ</returns>
-        /// <response code="204">è»Ÿåˆªé™¤æˆåŠŸ</response>
+        /// <param name="id">±ı§R°£ªºÅ@·Ó ID</param>
+        /// <returns>¦^¶Ç 204 NoContent ªí¥Ü§R°£¦¨¥\</returns>
+        /// <response code="204">³n§R°£¦¨¥\</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SoftDelete(int id)
         {
             await _service.DeletePassportAsync(id);
 
-            Log.Information("åˆªé™¤è­·ç…§æˆåŠŸ PassportId:{PassportId}", id);
+            Log.Information("§R°£Å@·Ó¦¨¥\ PassportId:{PassportId}", id);
 
             return NoContent();
         }

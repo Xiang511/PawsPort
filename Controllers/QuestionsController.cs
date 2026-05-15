@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
@@ -9,7 +9,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("éŠæˆ²ç³»çµ± / é¡Œåº«ç®¡ç†")]
+    [Tags("¹CÀ¸¨t²Î")]
     public class QuestionsController : ApiControllerBase
     {
         private readonly QuestionsService _questionsService;
@@ -21,11 +21,11 @@ namespace PawsPort.Controllers
 
         // GET: api/Questions
         /// <summary>
-        /// å–å¾—é¡Œåº«åˆ—è¡¨
+        /// ¨ú±oÃD®w¦Cªí
         /// </summary>
-        /// <param name="category">é¡Œç›®åˆ†é¡ï¼ˆé¸å¡«ï¼‰</param>
-        /// <returns>åŒ…å«é¡Œç›®å…§å®¹èˆ‡åˆ†é¡é¸é …çš„ JSON</returns>
-        /// <response code="200">æˆåŠŸå–å¾—é¡Œåº«åˆ—è¡¨</response>
+        /// <param name="category">ÃD¥Ø¤ÀÃş¡]¿ï¶ñ¡^</param>
+        /// <returns>¥]§tÃD¥Ø¤º®e»P¤ÀÃş¿ï¶µªº JSON</returns>
+        /// <response code="200">¦¨¥\¨ú±oÃD®w¦Cªí</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(string category = "")
@@ -40,22 +40,22 @@ namespace PawsPort.Controllers
                     QuestionContent = data,
                     Categories = categories,
                     SelectedCategory = category
-                }, "å–å¾—æˆåŠŸ", 200);
+                }, "¨ú±o¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "QuestionsController: å–å¾—é¡Œåº«åˆ—è¡¨å¤±æ•—");
-                return Failure("QUESTIONS_LIST_FAILED", "ä¼ºæœå™¨å–å¾—è³‡æ–™å¤±æ•—", 500);
+                Log.Error(ex, "QuestionsController: ¨ú±oÃD®w¦Cªí¥¢±Ñ");
+                return Failure("QUESTIONS_LIST_FAILED", "¦øªA¾¹¨ú±o¸ê®Æ¥¢±Ñ", 500);
             }
         }
 
         // POST: api/Questions
         /// <summary>
-        /// å‰µå»ºæ–°é¡Œç›®
+        /// ³Ğ«Ø·sÃD¥Ø
         /// </summary>
-        /// <param name="createDto">é¡Œç›®å»ºç«‹è³‡æ–™</param>
-        /// <returns>å»ºç«‹æˆåŠŸçš„é¡Œç›®è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸæ–°å¢é¡Œç›®</response>
+        /// <param name="createDto">ÃD¥Ø«Ø¥ß¸ê®Æ</param>
+        /// <returns>«Ø¥ß¦¨¥\ªºÃD¥Ø¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\·s¼WÃD¥Ø</response>
         [HttpPost]
         [ProducesResponseType(typeof(QuestionsCreateDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Create(QuestionsCreateDTO createDto)
@@ -70,25 +70,25 @@ namespace PawsPort.Controllers
                 Log.Information("Rewards: {Rewards}", createDto.Rewards);
                 Log.Information("Type: {Type}", createDto.Type);
                 await _questionsService.CreateQuestionAsync(createDto);
-                return Success(createDto, "æ–°å¢æˆåŠŸ", 200);
+                return Success(createDto, "·s¼W¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "QuestionsController: æ–°å¢å¤±æ•—");
-                return Failure("QUESTION_CREATE_FAILED", "å„²å­˜é¡Œç›®æ™‚ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "QuestionsController: ·s¼W¥¢±Ñ");
+                return Failure("QUESTION_CREATE_FAILED", "Àx¦sÃD¥Ø®Éµo¥Í¿ù»~", 500);
             }
         }
 
         // PUT: api/Questions/{id}
         /// <summary>
-        /// æ›´æ–°æŒ‡å®šé¡Œç›®è³‡è¨Š
+        /// §ó·s«ü©wÃD¥Ø¸ê°T
         /// </summary>
-        /// <param name="id">é¡Œç›® ID</param>
-        /// <param name="editDto">æ›´æ–°çš„é¡Œç›®è³‡æ–™</param>
-        /// <returns>æ›´æ–°å¾Œçš„è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸæ›´æ–°é¡Œç›®</response>
-        /// <response code="400">ID ä¸ä¸€è‡´</response>
-        /// <response code="404">æ‰¾ä¸åˆ°è©²é¡Œç›®</response>
+        /// <param name="id">ÃD¥Ø ID</param>
+        /// <param name="editDto">§ó·sªºÃD¥Ø¸ê®Æ</param>
+        /// <returns>§ó·s«áªº¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\§ó·sÃD¥Ø</response>
+        /// <response code="400">ID ¤£¤@­P</response>
+        /// <response code="404">§ä¤£¨ì¸ÓÃD¥Ø</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(QuestionsEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -96,30 +96,30 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> Edit(int id, QuestionsEditDTO editDto)
         {
             if (id != editDto.GameId)
-                return Failure("QUESTION_ID_MISMATCH", "ç¶²å€ ID èˆ‡è³‡æ–™å…§å®¹ä¸ç¬¦", 400);
+                return Failure("QUESTION_ID_MISMATCH", "ºô§} ID »P¸ê®Æ¤º®e¤£²Å", 400);
 
             try
             {
                 await _questionsService.UpdateQuestionAsync(editDto);
-                return Success(editDto, "æ›´æ–°æˆåŠŸ", 200);
+                return Success(editDto, "§ó·s¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("æ‰¾ä¸åˆ°"))
-                    return Failure("QUESTION_NOT_FOUND", "æ‰¾ä¸åˆ°è©²é¡Œç›®", 404);
+                if (ex.Message.Contains("§ä¤£¨ì"))
+                    return Failure("QUESTION_NOT_FOUND", "§ä¤£¨ì¸ÓÃD¥Ø", 404);
 
-                Log.Error(ex, "QuestionsController: æ›´æ–° ID {id} å¤±æ•—", id);
-                return Failure("QUESTION_UPDATE_FAILED", "æ›´æ–°éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "QuestionsController: §ó·s ID {id} ¥¢±Ñ", id);
+                return Failure("QUESTION_UPDATE_FAILED", "§ó·s¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
 
         // DELETE: api/Questions/{id}
         /// <summary>
-        /// åˆªé™¤æŒ‡å®šé¡Œç›®
+        /// §R°£«ü©wÃD¥Ø
         /// </summary>
-        /// <param name="id">é¡Œç›® ID</param>
-        /// <response code="200">æˆåŠŸåˆªé™¤é¡Œç›®</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æ¬²åˆªé™¤çš„é¡Œç›®</response>
+        /// <param name="id">ÃD¥Ø ID</param>
+        /// <response code="200">¦¨¥\§R°£ÃD¥Ø</response>
+        /// <response code="404">§ä¤£¨ì±ı§R°£ªºÃD¥Ø</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -128,15 +128,15 @@ namespace PawsPort.Controllers
             try
             {
                 await _questionsService.DeleteQuestionAsync(id);
-                return Success(id, "åˆªé™¤æˆåŠŸ", 200);
+                return Success(id, "§R°£¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("æ‰¾ä¸åˆ°"))
-                    return Failure("QUESTION_NOT_FOUND", "æ‰¾ä¸åˆ°æ¬²åˆªé™¤çš„é¡Œç›®", 404);
+                if (ex.Message.Contains("§ä¤£¨ì"))
+                    return Failure("QUESTION_NOT_FOUND", "§ä¤£¨ì±ı§R°£ªºÃD¥Ø", 404);
 
-                Log.Error(ex, "QuestionsController: åˆªé™¤ ID {id} å¤±æ•—", id);
-                return Failure("QUESTION_DELETE_FAILED", "åˆªé™¤éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "QuestionsController: §R°£ ID {id} ¥¢±Ñ", id);
+                return Failure("QUESTION_DELETE_FAILED", "§R°£¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
     }

@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Services;
 
@@ -7,7 +7,6 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("å®¢æœç®¡ç†")]
 
     public class ENewsletterController : ApiControllerBase
     {
@@ -20,40 +19,40 @@ namespace PawsPort.Controllers
 
 
         [HttpGet]
-        [Tags("å®¢æœç®¡ç† / é›»å­å ±")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> GetList()
         {
             var result = await _newsletterService.GetAllNewslettersAsync();
 
-            return Success(result, "å–å¾—é›»å­å ±åˆ—è¡¨æˆåŠŸ", 200);
+            return Success(result, "¨ú±o¹q¤l³ø¦Cªí¦¨¥\", 200);
         }
 
 
         [HttpPost]
-        [Tags("å®¢æœç®¡ç† / é›»å­å ±")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> Create(ENewsletterCreateDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™æ ¼å¼éŒ¯èª¤", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®Æ®æ¦¡¿ù»~", 400);
             }
 
             var result = await _newsletterService.CreateNewsletterAsync(dto);
 
-            return Success(result, "é›»å­å ±æ–°å¢æˆåŠŸ", 201);
+            return Success(result, "¹q¤l³ø·s¼W¦¨¥\", 201);
         }
 
 
         [HttpPut("{id}")]
-        [Tags("å®¢æœç®¡ç† / é›»å­å ±")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> Update(int id, ENewsletterUpdateDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™æ ¼å¼éŒ¯èª¤ï¼Œè«‹æª¢æŸ¥å¿…å¡«æ¬„ä½", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®Æ®æ¦¡¿ù»~¡A½ĞÀË¬d¥²¶ñÄæ¦ì", 400);
             }
 
 
@@ -62,16 +61,16 @@ namespace PawsPort.Controllers
 
             if (!isSuccess)
             {
-                return Failure("NEWS_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„é›»å­å ±ï¼Œæ›´æ–°å¤±æ•—", 404);
+                return Failure("NEWS_NOT_FOUND", "§ä¤£¨ì«ü©wªº¹q¤l³ø¡A§ó·s¥¢±Ñ", 404);
             }
 
 
-            return Success<object>(null, "é›»å­å ±ä¿®æ”¹æˆåŠŸ", 200);
+            return Success<object>(null, "¹q¤l³ø­×§ï¦¨¥\", 200);
         }
 
 
         [HttpPatch("{id}")]
-        [Tags("å®¢æœç®¡ç† / é›»å­å ±")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> SoftDelete(int id)
         {
@@ -79,11 +78,11 @@ namespace PawsPort.Controllers
 
             if (!isSuccess)
             {
-                return Failure("NEWS_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„é›»å­å ±ï¼Œåˆªé™¤å¤±æ•—", 404);
+                return Failure("NEWS_NOT_FOUND", "§ä¤£¨ì«ü©wªº¹q¤l³ø¡A§R°£¥¢±Ñ", 404);
             }
 
 
-            return Success<object>(null, "é›»å­å ±åˆªé™¤æˆåŠŸ", 200);
+            return Success<object>(null, "¹q¤l³ø§R°£¦¨¥\", 200);
         }
     }
 }

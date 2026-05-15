@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Data.SqlClient;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -14,10 +14,10 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("åˆ†é¡ç®¡ç†")]
+    [Tags("¤ÀÃşºŞ²z")]
     public class CategoryController : ApiControllerBase
     {
-        //æ³¨å…¥è³‡æ–™åº«å’Œservice
+        //ª`¤J¸ê®Æ®w©Mservice
         private readonly PetDbContext _context;
         private readonly CategoryService _categoryService;
 
@@ -28,9 +28,9 @@ namespace PawsPort.Controllers
         }
 
 
-        //æ–°å¢åˆ†é¡
+        //·s¼W¤ÀÃş
         /// <summary>
-        /// æ–°å¢åˆ†é¡
+        /// ·s¼W¤ÀÃş
         /// </summary>
         /// <param name="categorySaveDTO"></param>
         /// <returns></returns>
@@ -38,18 +38,18 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        [Tags("ç¤¾ç¾¤ç®¡ç†/åˆ†é¡ç®¡ç†")]
+        [Tags("ªÀ¸sºŞ²z")]
         public async Task<IActionResult> Category([FromBody] CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ", 400);
             }
             try
             {
                 var result = await _categoryService.CreateCategoryAsync(categorySaveDTO);
-                return Success(result, "åˆ†é¡å»ºç«‹æˆåŠŸ", 200);
-                //**è·³è½‰åˆ°åˆ†é¡ç®¡ç†é é¢
+                return Success(result, "¤ÀÃş«Ø¥ß¦¨¥\", 200);
+                //**¸õÂà¨ì¤ÀÃşºŞ²z­¶­±
             }
             catch (Exception ex)
             {
@@ -59,24 +59,24 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// ç·¨è¼¯åˆ†é¡
+        /// ½s¿è¤ÀÃş
         /// </summary>
         /// <param name="id"></param>
         /// <param name="categorySaveDTO"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        [Tags("ç¤¾ç¾¤ç®¡ç†/åˆ†é¡ç®¡ç†")]
+        [Tags("ªÀ¸sºŞ²z")]
         public async Task<IActionResult> Category(int id,[FromBody]CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—", 400);
+                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ", 400);
             }
             try
             {
                 var result = await _categoryService.UpdateCategoryAsync(id,categorySaveDTO);
-                return Success(result, "åˆ†é¡æ›´æ–°æˆåŠŸ", 200);
-                //**è·³è½‰åˆ°åˆ†é¡ç®¡ç†é é¢
+                return Success(result, "¤ÀÃş§ó·s¦¨¥\", 200);
+                //**¸õÂà¨ì¤ÀÃşºŞ²z­¶­±
             }
             catch (Exception ex)
             {
@@ -84,27 +84,27 @@ namespace PawsPort.Controllers
             }
         }
 
-        //è»Ÿåˆªé™¤åˆ†é¡
+        //³n§R°£¤ÀÃş
         /// <summary>
-        /// åˆªé™¤åˆ†é¡
+        /// §R°£¤ÀÃş
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPatch("{id}")]
-        [Tags("ç¤¾ç¾¤ç®¡ç†/åˆ†é¡ç®¡ç†")]
+        [Tags("ªÀ¸sºŞ²z")]
         public async Task<IActionResult> Delete(int id)
         {
-            if (id <= 0) return Failure("INVALID_ID", "ç„¡æ•ˆçš„åˆ†é¡ç·¨è™Ÿ", 400);
+            if (id <= 0) return Failure("INVALID_ID", "µL®Äªº¤ÀÃş½s¸¹", 400);
 
             var result = await _categoryService.DeleteCategoryAsync(id);
 
             if(result == false)
             {
-                return Failure("CATEGORY_NOT_FOUND", "æ‰¾ä¸åˆ°è©²åˆ†é¡", 404);
+                return Failure("CATEGORY_NOT_FOUND", "§ä¤£¨ì¸Ó¤ÀÃş", 404);
             }
             else
             {
-                return Success(result, "åˆ†é¡åˆªé™¤æˆåŠŸ", 200);
+                return Success(result, "¤ÀÃş§R°£¦¨¥\", 200);
             }      
         }
 

@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Services;
 
@@ -7,7 +7,6 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("å®¢æœç®¡ç†")]
 
     public class LineBotController : ApiControllerBase
     {
@@ -20,34 +19,34 @@ namespace PawsPort.Controllers
 
 
         [HttpGet]
-        [Tags("å®¢æœç®¡ç† / LINE BOT")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> GetList()
         {
             var result = await _lineBotService.GetAllMessagesAsync();
-            return Success(result, "å–å¾— LineBot è¨Šæ¯åˆ—è¡¨æˆåŠŸ", 200);
+            return Success(result, "¨ú±o LineBot °T®§¦Cªí¦¨¥\", 200);
         }
 
 
         [HttpPost("{id}/reply")]
-        [Tags("å®¢æœç®¡ç† / LINE BOT")]
+        [Tags("«ÈªAºŞ²z")]
 
         public async Task<IActionResult> Reply(int id, LineBotReplyDTO dto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "è«‹å¡«å¯«å›è¦†å…§å®¹", 400);
+                return Failure("VALIDATION_ERROR", "½Ğ¶ñ¼g¦^ÂĞ¤º®e", 400);
             }
 
             var isSuccess = await _lineBotService.ReplyMessageAsync(id, dto);
 
             if (!isSuccess)
             {
-                return Failure("MESSAGE_NOT_FOUND", "æ‰¾ä¸åˆ°è©²ç­†è¨Šæ¯ï¼Œç„¡æ³•å›è¦†", 404);
+                return Failure("MESSAGE_NOT_FOUND", "§ä¤£¨ì¸Óµ§°T®§¡AµLªk¦^ÂĞ", 404);
             }
 
 
-            return Success<object>(null, "âœ… æˆåŠŸï¼å›è¦†è¨Šæ¯å·²é€é LINE Bot å‚³é€çµ¦è©²åä½¿ç”¨è€…ã€‚", 200);
+            return Success<object>(null, "? ¦¨¥\¡I¦^ÂĞ°T®§¤w³z¹L LINE Bot ¶Ç°eµ¹¸Ó¦W¨Ï¥ÎªÌ¡C", 200);
         }
     }
 }

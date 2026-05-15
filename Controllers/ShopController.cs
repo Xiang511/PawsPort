@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
@@ -9,7 +9,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("éŠæˆ²ç³»çµ± / å•†åº—ç®¡ç†")]
+    [Tags("¹CÀ¸¨t²Î")]
     public class ShopController : ApiControllerBase
     {
         private readonly ShopService _shopService;
@@ -21,10 +21,10 @@ namespace PawsPort.Controllers
 
         // GET /api/Shop
         /// <summary>
-        /// å–å¾—æ‰€æœ‰å•†å“åˆ—è¡¨
+        /// ¨ú±o©Ò¦³°Ó«~¦Cªí
         /// </summary>
-        /// <returns>å•†åŸé“å…·èˆ‡é€ å‹åˆ—è¡¨</returns>
-        /// <response code="200">æˆåŠŸå–å¾—å•†å“åˆ—è¡¨</response>
+        /// <returns>°Ó«°¹D¨ã»P³y«¬¦Cªí</returns>
+        /// <response code="200">¦¨¥\¨ú±o°Ó«~¦Cªí</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List()
@@ -32,81 +32,81 @@ namespace PawsPort.Controllers
             try
             {
                 var data = await _shopService.GetShopListAsync();
-                return Success(data, "å–å¾—å•†å“åˆ—è¡¨æˆåŠŸ", 200);
+                return Success(data, "¨ú±o°Ó«~¦Cªí¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "ShopController: å–å¾—å•†å“åˆ—è¡¨æ™‚ç™¼ç”Ÿç•°å¸¸");
-                return Failure("SHOP_LIST_ERROR", "ä¼ºæœå™¨ç›®å‰ç„¡æ³•è®€å–å•†å“è³‡æ–™ï¼Œè«‹ç¨å¾Œå†è©¦", 500);
+                Log.Error(ex, "ShopController: ¨ú±o°Ó«~¦Cªí®Éµo¥Í²§±`");
+                return Failure("SHOP_LIST_ERROR", "¦øªA¾¹¥Ø«eµLªkÅª¨ú°Ó«~¸ê®Æ¡A½Ğµy«á¦A¸Õ", 500);
             }
         }
 
         // POST /api/Shop
         /// <summary>
-        /// æ–°å¢å•†åŸå•†å“
+        /// ·s¼W°Ó«°°Ó«~
         /// </summary>
-        /// <param name="dto">æ–°å•†å“è³‡æ–™ï¼ˆåŒ…å«åç¨±ã€åƒ¹æ ¼ç­‰ï¼‰</param>
-        /// <returns>å‰µå»ºæˆåŠŸçš„å•†å“è³‡æ–™</returns>
-        /// <response code="201">æˆåŠŸå»ºç«‹å•†å“</response>
-        /// <response code="500">ä¼ºæœå™¨ç«¯å„²å­˜å¤±æ•—</response>
+        /// <param name="dto">·s°Ó«~¸ê®Æ¡]¥]§t¦WºÙ¡B»ù®æµ¥¡^</param>
+        /// <returns>³Ğ«Ø¦¨¥\ªº°Ó«~¸ê®Æ</returns>
+        /// <response code="201">¦¨¥\«Ø¥ß°Ó«~</response>
+        /// <response code="500">¦øªA¾¹ºİÀx¦s¥¢±Ñ</response>
         [HttpPost]
         [ProducesResponseType(typeof(ShopCreateDTO), StatusCodes.Status201Created)]
         public async Task<IActionResult> Create(ShopCreateDTO dto)
         {
-            Log.Information("ShopController: æ”¶åˆ° JSON æ–°å¢å•†å“è«‹æ±‚: {SkinName}", dto.SkinName);
+            Log.Information("ShopController: ¦¬¨ì JSON ·s¼W°Ó«~½Ğ¨D: {SkinName}", dto.SkinName);
 
             try
             {
                 await _shopService.CreateAsync(dto);
-                return Success<object>(dto, "å»ºç«‹æˆåŠŸ", 201);
+                return Success<object>(dto, "«Ø¥ß¦¨¥\", 201);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "ShopController: æ–°å¢å•†å“å¤±æ•—");
-                return Failure("SHOP_CREATE_FAILED", "ä¼ºæœå™¨å„²å­˜è³‡æ–™å¤±æ•—", 500);
+                Log.Error(ex, "ShopController: ·s¼W°Ó«~¥¢±Ñ");
+                return Failure("SHOP_CREATE_FAILED", "¦øªA¾¹Àx¦s¸ê®Æ¥¢±Ñ", 500);
             }
         }
 
         // PUT /api/Shop/{id}
         /// <summary>
-        /// æ›´æ–°æŒ‡å®šå•†å“è³‡è¨Š
+        /// §ó·s«ü©w°Ó«~¸ê°T
         /// </summary>
-        /// <param name="id">å•†å“ ID</param>
-        /// <param name="dto">æ›´æ–°çš„å•†å“è³‡æ–™</param>
-        /// <returns>æ›´æ–°å¾Œçš„å•†å“è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸæ›´æ–°å•†å“</response>
-        /// <response code="400">ç¶²å€ ID èˆ‡è³‡æ–™ ID ä¸ç¬¦</response>
-        /// <response code="404">æ‰¾ä¸åˆ°è©²å•†å“</response>
+        /// <param name="id">°Ó«~ ID</param>
+        /// <param name="dto">§ó·sªº°Ó«~¸ê®Æ</param>
+        /// <returns>§ó·s«áªº°Ó«~¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\§ó·s°Ó«~</response>
+        /// <response code="400">ºô§} ID »P¸ê®Æ ID ¤£²Å</response>
+        /// <response code="404">§ä¤£¨ì¸Ó°Ó«~</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(ShopEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit(int id, ShopEditDTO dto)
         {
-            if (id != dto.SkinId) return Failure("SHOP_ID_MISMATCH", "ç¶²å€ ID èˆ‡è³‡æ–™ ID ä¸ç¬¦", 400);
+            if (id != dto.SkinId) return Failure("SHOP_ID_MISMATCH", "ºô§} ID »P¸ê®Æ ID ¤£²Å", 400);
 
             try
             {
                 await _shopService.UpdateAsync(dto);
-                return Success<object>(dto, "æ›´æ–°æˆåŠŸ", 200);
+                return Success<object>(dto, "§ó·s¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message == "å•†å“ä¸å­˜åœ¨")
-                    return Failure("SHOP_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„å•†å“", 404);
+                if (ex.Message == "°Ó«~¤£¦s¦b")
+                    return Failure("SHOP_NOT_FOUND", "§ä¤£¨ì«ü©wªº°Ó«~", 404);
 
-                Log.Error(ex, "ShopController: æ›´æ–°å•†å“ ID {id} å¤±æ•—", id);
-                return Failure("SHOP_UPDATE_FAILED", "æ›´æ–°éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "ShopController: §ó·s°Ó«~ ID {id} ¥¢±Ñ", id);
+                return Failure("SHOP_UPDATE_FAILED", "§ó·s¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
 
         // DELETE /api/Shop/{id}
         /// <summary>
-        /// åˆªé™¤æŒ‡å®šå•†å“
+        /// §R°£«ü©w°Ó«~
         /// </summary>
-        /// <param name="id">å•†å“ ID</param>
-        /// <response code="200">æˆåŠŸåˆªé™¤å•†å“</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æ¬²åˆªé™¤çš„å•†å“</response>
+        /// <param name="id">°Ó«~ ID</param>
+        /// <response code="200">¦¨¥\§R°£°Ó«~</response>
+        /// <response code="404">§ä¤£¨ì±ı§R°£ªº°Ó«~</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -115,15 +115,15 @@ namespace PawsPort.Controllers
             try
             {
                 await _shopService.DeleteAsync(id);
-                return Success<object>(id, "åˆªé™¤æˆåŠŸ", 200);
+                return Success<object>(id, "§R°£¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message == "å•†å“ä¸å­˜åœ¨")
-                    return Failure("SHOP_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„å•†å“", 404);
+                if (ex.Message == "°Ó«~¤£¦s¦b")
+                    return Failure("SHOP_NOT_FOUND", "§ä¤£¨ì«ü©wªº°Ó«~", 404);
 
-                Log.Error(ex, "ShopController: åˆªé™¤å•†å“ ID {id} å¤±æ•—", id);
-                return Failure("SHOP_DELETE_FAILED", "åˆªé™¤éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "ShopController: §R°£°Ó«~ ID {id} ¥¢±Ñ", id);
+                return Failure("SHOP_DELETE_FAILED", "§R°£¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
     }

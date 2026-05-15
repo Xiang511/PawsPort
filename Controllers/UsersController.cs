@@ -1,4 +1,4 @@
-ï»¿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
@@ -10,7 +10,6 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("æœƒå“¡ç®¡ç†")]
 
     public class UsersController : ApiControllerBase
     {
@@ -24,335 +23,335 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// å–å¾—æ‰€æœ‰æœƒå“¡åˆ—è¡¨
+        /// ¨ú±o©Ò¦³·|­û¦Cªí
         /// </summary>
-        /// <returns>æœƒå“¡åˆ—è¡¨ JSON</returns>
-        /// <response code="200">æˆåŠŸå–å¾—æœƒå“¡åˆ—è¡¨</response>
+        /// <returns>·|­û¦Cªí JSON</returns>
+        /// <response code="200">¦¨¥\¨ú±o·|­û¦Cªí</response>
         [HttpGet]
         [ProducesResponseType(typeof(List<MemberUserDTO>), StatusCodes.Status200OK)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡è³‡è¨Š")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> Members()
         {
             Log.Debug("[UsersController] Members GET - Entry");
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.GetAllUserInfoAsync");
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.GetAllUserInfoAsync");
             var users = await _memberProfileService.GetAllUserInfoAsync();
-            Log.Debug("[UsersController] å–å¾—æœƒå“¡è³‡æ–™æˆåŠŸ, å…± {Count} ç­†", users.Count);
+            Log.Debug("[UsersController] ¨ú±o·|­û¸ê®Æ¦¨¥\, ¦@ {Count} µ§", users.Count);
             return Success(users, "Success", 200);
         }
 
         /// <summary>
-        /// å–å¾—æŒ‡å®šæœƒå“¡è³‡è¨Š
+        /// ¨ú±o«ü©w·|­û¸ê°T
         /// </summary>
-        /// <param name="id">æœƒå“¡ ID</param>
-        /// <returns>æœƒå“¡è©³ç´°è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸå–å¾—æœƒå“¡è³‡æ–™</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„æœƒå“¡</response>
+        /// <param name="id">·|­û ID</param>
+        /// <returns>·|­û¸Ô²Ó¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\¨ú±o·|­û¸ê®Æ</response>
+        /// <response code="404">§ä¤£¨ì«ü©wªº·|­û</response>
         
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡è³‡è¨Š")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> Members(int? id)
         {
             Log.Debug("[UsersController] Members GET by id - Entry, UserId: {UserId}", id);
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
             bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
 
             if (!exist)
             {
-                Log.Warning("[UsersController] æœƒå“¡ä¸å­˜åœ¨, UserId: {UserId}", id);
-                return Failure("USER_NOT_FOUND", "æ‰¾ä¸åˆ°ä½¿ç”¨è€…", 404);
+                Log.Warning("[UsersController] ·|­û¤£¦s¦b, UserId: {UserId}", id);
+                return Failure("USER_NOT_FOUND", "§ä¤£¨ì¨Ï¥ÎªÌ", 404);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.GetUserInfoByIdAsync, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.GetUserInfoByIdAsync, UserId: {UserId}", id);
             var users = await _memberProfileService.GetUserInfoByIdAsync(id);
-            Log.Debug("[UsersController] å–å¾—æœƒå“¡è³‡æ–™æˆåŠŸ, UserId: {UserId}, åç¨±: {Name}", users.UserId, users.Name);
+            Log.Debug("[UsersController] ¨ú±o·|­û¸ê®Æ¦¨¥\, UserId: {UserId}, ¦WºÙ: {Name}", users.UserId, users.Name);
             return Success(users, "Success", 200);
         }
 
 
 
         /// <summary>
-        /// å‰µå»ºæ–°æœƒå“¡
+        /// ³Ğ«Ø·s·|­û
         /// </summary>
-        /// <param name="createDto">æœƒå“¡è¨»å†Šè³‡æ–™ï¼ˆUserId æœƒç”±ç³»çµ±è‡ªå‹•ç”Ÿæˆï¼‰</param>
-        /// <returns>å‰µå»ºæˆåŠŸçš„æœƒå“¡è³‡æ–™ï¼ˆåŒ…å«è‡ªå‹•ç”Ÿæˆçš„ UserIdï¼‰</returns>
-        /// <response code="200">æˆåŠŸå‰µå»ºæœƒå“¡</response>
-        /// <response code="400">è«‹æ±‚è³‡æ–™æ ¼å¼éŒ¯èª¤æˆ–å¿…å¡«æ¬„ä½ç¼ºå¤±</response>
+        /// <param name="createDto">·|­ûµù¥U¸ê®Æ¡]UserId ·|¥Ñ¨t²Î¦Û°Ê¥Í¦¨¡^</param>
+        /// <returns>³Ğ«Ø¦¨¥\ªº·|­û¸ê®Æ¡]¥]§t¦Û°Ê¥Í¦¨ªº UserId¡^</returns>
+        /// <response code="200">¦¨¥\³Ğ«Ø·|­û</response>
+        /// <response code="400">½Ğ¨D¸ê®Æ®æ¦¡¿ù»~©Î¥²¶ñÄæ¦ì¯Ê¥¢</response>
         [HttpPost]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡è³‡è¨Š")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> Members(CreateMemberDTO user)
         {
-            Log.Debug("[UsersController] Members POST - Entry, æœƒå“¡åç¨±: {Name}", user.Name);
+            Log.Debug("[UsersController] Members POST - Entry, ·|­û¦WºÙ: {Name}", user.Name);
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.CreateUserAsync, æœƒå“¡åç¨±: {Name}", user.Name);
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.CreateUserAsync, ·|­û¦WºÙ: {Name}", user.Name);
             var result = await _memberProfileService.CreateUserAsync(user);
 
-            Log.Debug("[UsersController] å‰µå»ºæœƒå“¡æˆåŠŸ, åç¨±: {Name}", result.Name);
+            Log.Debug("[UsersController] ³Ğ«Ø·|­û¦¨¥\, ¦WºÙ: {Name}", result.Name);
 
-            return Success(result, "å‰µå»ºæœƒå“¡æˆåŠŸ", 200);
+            return Success(result, "³Ğ«Ø·|­û¦¨¥\", 200);
         }
 
         /// <summary>
-        /// å–å¾—æœƒå“¡çµ±è¨ˆè³‡è¨Šï¼ˆå„€è¡¨æ¿ç”¨ï¼‰
+        /// ¨ú±o·|­û²Î­p¸ê°T¡]»öªíªO¥Î¡^
         /// </summary>
-        /// <returns>æœƒå“¡çµ±è¨ˆæ•¸æ“šï¼ŒåŒ…å«ç¸½æ•¸ã€æœˆè¨»å†Šæ•¸ã€èªè­‰æ¯”ä¾‹ã€è¨‚é–±æ•¸ç­‰</returns>
-        /// <response code="200">æˆåŠŸå–å¾—çµ±è¨ˆè³‡è¨Š</response>
+        /// <returns>·|­û²Î­p¼Æ¾Ú¡A¥]§tÁ`¼Æ¡B¤ëµù¥U¼Æ¡B»{ÃÒ¤ñ¨Ò¡B­q¾\¼Æµ¥</returns>
+        /// <response code="200">¦¨¥\¨ú±o²Î­p¸ê°T</response>
 
         [HttpGet("Summary")]
         [ProducesResponseType(typeof(MemberSummaryDTO), StatusCodes.Status200OK)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡è³‡è¨Š")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> Summary()
         {
             Log.Debug("[UsersController] Summary GET - Entry");
 
-            // å–å¾—æœƒå“¡çµ±è¨ˆè³‡è¨Š
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.GetMemberSummaryAsync");
+            // ¨ú±o·|­û²Î­p¸ê°T
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.GetMemberSummaryAsync");
             var summary = await _memberProfileService.GetMemberSummaryAsync();
 
-            Log.Debug("[UsersController] æˆåŠŸå–å¾—çµ±è¨ˆè³‡è¨Š, æœƒå“¡ç¸½æ•¸: {MemberCount}, æœˆè¨»å†Šæ•¸: {MonthSignUp}, èªè­‰æ¯”ä¾‹: {VerifyPercentage}, è¨‚é–±é›»å­å ±äººæ•¸: {SubscribedCount}", 
+            Log.Debug("[UsersController] ¦¨¥\¨ú±o²Î­p¸ê°T, ·|­ûÁ`¼Æ: {MemberCount}, ¤ëµù¥U¼Æ: {MonthSignUp}, »{ÃÒ¤ñ¨Ò: {VerifyPercentage}, ­q¾\¹q¤l³ø¤H¼Æ: {SubscribedCount}", 
                 summary.MemberCount,
                 summary.MemberMonthSignUp,
                 summary.VerifyPercentage,
                 summary.SubscribedMemberCount);
 
-            return Success(summary, "æˆåŠŸå–å¾—çµ±è¨ˆè³‡è¨Š", 200);
+            return Success(summary, "¦¨¥\¨ú±o²Î­p¸ê°T", 200);
         }
 
 
         /// <summary>
-        /// æ›´æ–°æŒ‡å®šæœƒå“¡è³‡è¨Š
+        /// §ó·s«ü©w·|­û¸ê°T
         /// </summary>
-        /// <param name="id">æœƒå“¡ID</param>
-        /// <param name="userDto">æ›´æ–°çš„æœƒå“¡è³‡æ–™</param>
-        /// <returns>æ›´æ–°å¾Œçš„æœƒå“¡è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸæ›´æ–°æœƒå“¡</response>
-        /// <response code="400">æœƒå“¡ ID ä¸ä¸€è‡´æˆ–è³‡æ–™æ ¼å¼éŒ¯èª¤</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„æœƒå“¡</response>
+        /// <param name="id">·|­ûID</param>
+        /// <param name="userDto">§ó·sªº·|­û¸ê®Æ</param>
+        /// <returns>§ó·s«áªº·|­û¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\§ó·s·|­û</response>
+        /// <response code="400">·|­û ID ¤£¤@­P©Î¸ê®Æ®æ¦¡¿ù»~</response>
+        /// <response code="404">§ä¤£¨ì«ü©wªº·|­û</response>
 
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡è³‡è¨Š")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> UpdateMembers(int? id, MemberUserDTO userDto)
         {
-            Log.Debug("[UsersController] UpdateMembers PUT - Entry, UserId: {UserId}, æœƒå“¡åç¨±: {Name}", id, userDto.Name);
+            Log.Debug("[UsersController] UpdateMembers PUT - Entry, UserId: {UserId}, ·|­û¦WºÙ: {Name}", id, userDto.Name);
 
             if (id != userDto.UserId)
             {
-                Log.Warning("[UsersController] æœƒå“¡IDä¸ä¸€è‡´, è·¯å¾‘ID: {PathId}, DTO ID: {DtoId}", id, userDto.UserId);
-                return Failure("USER_ID_MISMATCH", "æœƒå“¡IDä¸ä¸€è‡´", 400);
+                Log.Warning("[UsersController] ·|­ûID¤£¤@­P, ¸ô®|ID: {PathId}, DTO ID: {DtoId}", id, userDto.UserId);
+                return Failure("USER_ID_MISMATCH", "·|­ûID¤£¤@­P", 400);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
             bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
 
             if (!exist)
             {
-                Log.Warning("[UsersController] æœƒå“¡ä¸å­˜åœ¨, UserId: {UserId}", id);
-                return Failure("USER_NOT_FOUND", "æ‰¾ä¸åˆ°ä½¿ç”¨è€…", 404);
+                Log.Warning("[UsersController] ·|­û¤£¦s¦b, UserId: {UserId}", id);
+                return Failure("USER_NOT_FOUND", "§ä¤£¨ì¨Ï¥ÎªÌ", 404);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.UpdateUserInfoAsync, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.UpdateUserInfoAsync, UserId: {UserId}", id);
             var result = await _memberProfileService.UpdateUserInfoAsync(id.Value, userDto);
 
-            Log.Debug("[UsersController] æ›´æ–°æœƒå“¡æˆåŠŸ, æœƒå“¡ID: {UserId}, åç¨±: {Name}", userDto.UserId, userDto.Name);
+            Log.Debug("[UsersController] §ó·s·|­û¦¨¥\, ·|­ûID: {UserId}, ¦WºÙ: {Name}", userDto.UserId, userDto.Name);
             return Success(result, "Success", 200);
 
         }
 
         /// <summary>
-        /// åˆªé™¤æŒ‡å®šæœƒå“¡ï¼ˆè»Ÿåˆªé™¤ï¼‰
+        /// §R°£«ü©w·|­û¡]³n§R°£¡^
         /// </summary>
-        /// <param name="id">æœƒå“¡ ID</param>
-        /// <returns>ç„¡å…§å®¹ï¼ˆ204ï¼‰æˆ–éŒ¯èª¤è¨Šæ¯</returns>
-        /// <response code="204">æˆåŠŸåˆªé™¤æœƒå“¡ï¼ˆè»Ÿåˆªé™¤ï¼‰</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šæœƒå“¡</response>
+        /// <param name="id">·|­û ID</param>
+        /// <returns>µL¤º®e¡]204¡^©Î¿ù»~°T®§</returns>
+        /// <response code="204">¦¨¥\§R°£·|­û¡]³n§R°£¡^</response>
+        /// <response code="404">§ä¤£¨ì«ü©w·|­û</response>
         /// 
        
         [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡è³‡è¨Š")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> DeleteMember(int? id)
         {
             Log.Debug("[UsersController] DeleteMember DELETE - Entry, UserId: {UserId}", id);
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberProfileService.DeleteUserAsync, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ½Õ¥Î MemberProfileService.DeleteUserAsync, UserId: {UserId}", id);
             var result = await _memberProfileService.DeleteUserAsync(id);
 
             if (result)
             {
-                Log.Debug("[UsersController] åˆªé™¤æœƒå“¡æˆåŠŸ, æœƒå“¡ID: {UserId}", id);
+                Log.Debug("[UsersController] §R°£·|­û¦¨¥\, ·|­ûID: {UserId}", id);
                 return NoContent();
             }
             else
             {
-                Log.Warning("[UsersController] åˆªé™¤æœƒå“¡å¤±æ•—, æœƒå“¡ID: {UserId}", id);
-                return Failure("USER_NOT_FOUND", "æ‰¾ä¸åˆ°ä½¿ç”¨è€…", 404);
+                Log.Warning("[UsersController] §R°£·|­û¥¢±Ñ, ·|­ûID: {UserId}", id);
+                return Failure("USER_NOT_FOUND", "§ä¤£¨ì¨Ï¥ÎªÌ", 404);
             }
         }
 
         /// <summary>
-        /// å–å¾—æŒ‡å®šæœƒå“¡çš„æ¬Šé™åˆ—è¡¨
+        /// ¨ú±o«ü©w·|­ûªºÅv­­¦Cªí
         /// </summary>
-        /// <param name="id">ä½¿ç”¨è€… ID</param>
-        /// <returns>ä½¿ç”¨è€…çš„æ¬Šé™è§’è‰²åˆ—è¡¨</returns>
-        /// <response code="200">æˆåŠŸå–å¾—ä½¿ç”¨è€…æ¬Šé™</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„ä½¿ç”¨è€…</response>
+        /// <param name="id">¨Ï¥ÎªÌ ID</param>
+        /// <returns>¨Ï¥ÎªÌªºÅv­­¨¤¦â¦Cªí</returns>
+        /// <response code="200">¦¨¥\¨ú±o¨Ï¥ÎªÌÅv­­</response>
+        /// <response code="404">§ä¤£¨ì«ü©wªº¨Ï¥ÎªÌ</response>
         [HttpGet("/api/users/{id}/roles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡æ¬Šé™")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> QueryRoleById(int? id)
         {
             Log.Debug("[UsersController] QueryRoleById GET - Entry, UserId: {UserId}", id);
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberPermissionService.GetUserPermissionsAsync, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ½Õ¥Î MemberPermissionService.GetUserPermissionsAsync, UserId: {UserId}", id);
             var userPermission = await _memberPermissionService.GetUserPermissionsAsync(id);
 
             if (userPermission == null)
             {
-                Log.Warning("[UsersController] æ‰¾ä¸åˆ°æŒ‡å®šçš„ä½¿ç”¨è€…æ¬Šé™, UserId: {UserId}", id);
-                return Failure("PERMISSION_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„ä½¿ç”¨è€…", 404);
+                Log.Warning("[UsersController] §ä¤£¨ì«ü©wªº¨Ï¥ÎªÌÅv­­, UserId: {UserId}", id);
+                return Failure("PERMISSION_NOT_FOUND", "§ä¤£¨ì«ü©wªº¨Ï¥ÎªÌ", 404);
             }
 
-            Log.Debug("[UsersController] æˆåŠŸå–å¾—ä½¿ç”¨è€…æ¬Šé™, UserId: {UserId}", id);
+            Log.Debug("[UsersController] ¦¨¥\¨ú±o¨Ï¥ÎªÌÅv­­, UserId: {UserId}", id);
             return Success(userPermission, "Success", 200);
         }
 
 
 
         /// <summary>
-        /// æ–°å¢æœƒå“¡æ¬Šé™
+        /// ·s¼W·|­ûÅv­­
         /// </summary>
-        /// <param name="US">ä½¿ç”¨è€…æ¬Šé™è³‡æ–™ï¼ˆåŒ…å« UserIdã€SystemIdã€RoleIdï¼‰</param>
-        /// <returns>æ“ä½œçµæœ JSON</returns>
-        /// <response code="200">æˆåŠŸæ–°å¢ä½¿ç”¨è€…æ¬Šé™</response>
-        /// <response code="204">æ–°å¢å¤±æ•—ï¼ˆå¯èƒ½å› ç‚ºæ¬Šé™å·²å­˜åœ¨æˆ–åƒæ•¸ç„¡æ•ˆï¼‰</response>
-        /// <response code="409">æ¬Šé™è¡çªï¼ˆè©²ä½¿ç”¨è€…å·²æ“æœ‰æ­¤ç³»çµ±çš„ç›¸åŒè§’è‰²æ¬Šé™ï¼‰</response>
+        /// <param name="US">¨Ï¥ÎªÌÅv­­¸ê®Æ¡]¥]§t UserId¡BSystemId¡BRoleId¡^</param>
+        /// <returns>¾Ş§@µ²ªG JSON</returns>
+        /// <response code="200">¦¨¥\·s¼W¨Ï¥ÎªÌÅv­­</response>
+        /// <response code="204">·s¼W¥¢±Ñ¡]¥i¯à¦]¬°Åv­­¤w¦s¦b©Î°Ñ¼ÆµL®Ä¡^</response>
+        /// <response code="409">Åv­­½Ä¬ğ¡]¸Ó¨Ï¥ÎªÌ¤w¾Ö¦³¦¹¨t²Îªº¬Û¦P¨¤¦âÅv­­¡^</response>
         [HttpPost("/api/users/roles")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡æ¬Šé™")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> CreateRole(MemberUserSystemRoleDTO US)
         {
             Log.Debug("[UsersController] CreateRole POST - Entry, UserId: {UserId}, SystemId: {SystemId}, RoleId: {RoleId}", US.UserId, US.SystemId, US.RoleId);
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberPermissionService.CheckMemberPermissionExistAsync");
+            Log.Debug("[UsersController] ½Õ¥Î MemberPermissionService.CheckMemberPermissionExistAsync");
             bool exist = await _memberPermissionService.CheckMemberPermissionExistAsync(US);
 
             if (exist)
             {
-                Log.Warning("[UsersController] å˜—è©¦æ–°å¢å·²å­˜åœ¨çš„ä½¿ç”¨è€…æ¬Šé™: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
-                return Failure("PERMISSION_ALREADY_EXISTS", "è©²ä½¿ç”¨è€…å·²æ“æœ‰æ­¤ç³»çµ±çš„ç›¸åŒè§’è‰²æ¬Šé™", 409);
+                Log.Warning("[UsersController] ¹Á¸Õ·s¼W¤w¦s¦bªº¨Ï¥ÎªÌÅv­­: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
+                return Failure("PERMISSION_ALREADY_EXISTS", "¸Ó¨Ï¥ÎªÌ¤w¾Ö¦³¦¹¨t²Îªº¬Û¦P¨¤¦âÅv­­", 409);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberPermissionService.CreateMemberPermissionAsync");
+            Log.Debug("[UsersController] ½Õ¥Î MemberPermissionService.CreateMemberPermissionAsync");
             var result = await _memberPermissionService.CreateMemberPermissionAsync(US);
 
             if (result == false)
             {
-                Log.Warning("[UsersController] æ–°å¢ä½¿ç”¨è€…æ¬Šé™å¤±æ•—: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
+                Log.Warning("[UsersController] ·s¼W¨Ï¥ÎªÌÅv­­¥¢±Ñ: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
                 return NoContent();
             }
 
-            Log.Debug("[UsersController] æˆåŠŸæ–°å¢ä½¿ç”¨è€…æ¬Šé™: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
+            Log.Debug("[UsersController] ¦¨¥\·s¼W¨Ï¥ÎªÌÅv­­: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", US.UserId, US.SystemId, US.RoleId);
             return Success(result, "Success", 200);
         }
 
         /// <summary>
-        /// æ›´æ–°ä½¿ç”¨è€…æ¬Šé™
+        /// §ó·s¨Ï¥ÎªÌÅv­­
         /// </summary>
-        /// <param name="mappingId">æ¬Šé™å°æ‡‰ ID</param>
-        /// <param name="user">æ›´æ–°çš„æ¬Šé™è³‡æ–™ï¼ˆåŒ…å« UserIdã€SystemIdã€RoleIdï¼‰</param>
-        /// <returns>æ“ä½œçµæœ</returns>
-        /// <response code="204">æˆåŠŸæ›´æ–°ä½¿ç”¨è€…æ¬Šé™</response>
-        /// <response code="400">ç„¡æ•ˆçš„æ¬Šé™å°æ‡‰ IDï¼ˆID ç‚ºç©ºæˆ–å°æ–¼ 0ï¼‰</response>
-        /// <response code="409">æ¬Šé™è¡çªæˆ–æ¬Šé™ä¸å­˜åœ¨</response>
+        /// <param name="mappingId">Åv­­¹ïÀ³ ID</param>
+        /// <param name="user">§ó·sªºÅv­­¸ê®Æ¡]¥]§t UserId¡BSystemId¡BRoleId¡^</param>
+        /// <returns>¾Ş§@µ²ªG</returns>
+        /// <response code="204">¦¨¥\§ó·s¨Ï¥ÎªÌÅv­­</response>
+        /// <response code="400">µL®ÄªºÅv­­¹ïÀ³ ID¡]ID ¬°ªÅ©Î¤p©ó 0¡^</response>
+        /// <response code="409">Åv­­½Ä¬ğ©ÎÅv­­¤£¦s¦b</response>
         [HttpPatch("/api/users/{mappingId}/roles")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡æ¬Šé™")]
+        [Tags("·|­ûºŞ²z")]
 
         public async Task<IActionResult> EditRole(int? mappingId, MemberPermissionUpdateRoleDTO user)
         {
             Log.Debug("[UsersController] EditRole PATCH - Entry, MappingId: {MappingId}, UserId: {UserId}, SystemId: {SystemId}, RoleId: {RoleId}", mappingId, user.UserId, user.SystemId, user.RoleId);
 
-            // é©—è­‰è·¯ç”±åƒæ•¸ï¼šmappingId ä¸å¯ç‚º null æˆ–å°æ–¼ 0
+            // ÅçÃÒ¸ô¥Ñ°Ñ¼Æ¡GmappingId ¤£¥i¬° null ©Î¤p©ó 0
             if (mappingId == null || mappingId < 0)
             {
-                Log.Warning("[UsersController] ç„¡æ•ˆçš„æ¬Šé™å°æ‡‰ ID: {MappingId}", mappingId);
-                return Failure("INVALID_MAPPING_ID", "ç„¡æ•ˆID", 400);
+                Log.Warning("[UsersController] µL®ÄªºÅv­­¹ïÀ³ ID: {MappingId}", mappingId);
+                return Failure("INVALID_MAPPING_ID", "µL®ÄID", 400);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberPermissionService.CheckMemberPermissionExistAsync");
+            Log.Debug("[UsersController] ½Õ¥Î MemberPermissionService.CheckMemberPermissionExistAsync");
             bool exist = await _memberPermissionService.CheckMemberPermissionExistAsync(user);
 
             if (exist)
             {
-                Log.Warning("[UsersController] å˜—è©¦æ›´æ–°ç‚ºå·²å­˜åœ¨çš„ä½¿ç”¨è€…æ¬Šé™: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", user.UserId, user.SystemId, user.RoleId);
-                return Failure("PERMISSION_ALREADY_EXISTS", "è©²ä½¿ç”¨è€…å·²æ“æœ‰ç›¸åŒè§’è‰²æ¬Šé™", 409);
+                Log.Warning("[UsersController] ¹Á¸Õ§ó·s¬°¤w¦s¦bªº¨Ï¥ÎªÌÅv­­: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", user.UserId, user.SystemId, user.RoleId);
+                return Failure("PERMISSION_ALREADY_EXISTS", "¸Ó¨Ï¥ÎªÌ¤w¾Ö¦³¬Û¦P¨¤¦âÅv­­", 409);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberPermissionService.UpdateMemberPermissionRoleAsync, MappingId: {MappingId}", mappingId);
+            Log.Debug("[UsersController] ½Õ¥Î MemberPermissionService.UpdateMemberPermissionRoleAsync, MappingId: {MappingId}", mappingId);
             bool result = await _memberPermissionService.UpdateMemberPermissionRoleAsync(mappingId, user);
 
 
             if (!result)
             {
-                Log.Warning("[UsersController] æ‰¾ä¸åˆ°æŒ‡å®šçš„ä½¿ç”¨è€…æ¬Šé™: MappingId={MappingId}", mappingId);
-                return Failure("User_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„Idæˆ–æ˜¯ä½¿ç”¨è€…", 404);
+                Log.Warning("[UsersController] §ä¤£¨ì«ü©wªº¨Ï¥ÎªÌÅv­­: MappingId={MappingId}", mappingId);
+                return Failure("User_NOT_FOUND", "§ä¤£¨ì«ü©wªºId©Î¬O¨Ï¥ÎªÌ", 404);
             }
 
-            Log.Debug("[UsersController] æˆåŠŸæ›´æ–°ä½¿ç”¨è€…æ¬Šé™: MappingId={MappingId}, UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", mappingId, user.UserId, user.SystemId, user.RoleId);
+            Log.Debug("[UsersController] ¦¨¥\§ó·s¨Ï¥ÎªÌÅv­­: MappingId={MappingId}, UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", mappingId, user.UserId, user.SystemId, user.RoleId);
             return NoContent();
 
         }
 
         /// <summary>
-        /// åˆªé™¤ä½¿ç”¨è€…æ¬Šé™
+        /// §R°£¨Ï¥ÎªÌÅv­­
         /// </summary>
-        /// <param name="mappingId">æ¬Šé™å°æ‡‰ ID</param>
-        /// <returns>æ“ä½œçµæœ</returns>
-        /// <response code="204">æˆåŠŸåˆªé™¤ä½¿ç”¨è€…æ¬Šé™</response>
-        /// <response code="400">ç„¡æ•ˆçš„æ¬Šé™å°æ‡‰ IDï¼ˆID ç‚ºç©ºï¼‰</response>
-        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„æ¬Šé™</response>
+        /// <param name="mappingId">Åv­­¹ïÀ³ ID</param>
+        /// <returns>¾Ş§@µ²ªG</returns>
+        /// <response code="204">¦¨¥\§R°£¨Ï¥ÎªÌÅv­­</response>
+        /// <response code="400">µL®ÄªºÅv­­¹ïÀ³ ID¡]ID ¬°ªÅ¡^</response>
+        /// <response code="404">§ä¤£¨ì«ü©wªºÅv­­</response>
 
         [HttpDelete("/api/users/{mappingId}/roles")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Tags("æœƒå“¡ç®¡ç† / æœƒå“¡æ¬Šé™")]
+        [Tags("·|­ûºŞ²z")]
         public async Task<IActionResult> DeleteRole(int? mappingId)
         {
             Log.Debug("[UsersController] DeleteRole DELETE - Entry, MappingId: {MappingId}", mappingId);
 
-            // é©—è­‰è·¯ç”±åƒæ•¸ï¼šmappingId ä¸å¯ç‚º null
+            // ÅçÃÒ¸ô¥Ñ°Ñ¼Æ¡GmappingId ¤£¥i¬° null
             if (mappingId == null)
             {
-                Log.Warning("[UsersController] åˆªé™¤ä½¿ç”¨è€…æ¬Šé™å¤±æ•—ï¼Œç„¡æ•ˆçš„æ¬Šé™å°æ‡‰ ID: {MappingId}", mappingId);
-                return Failure("INVALID_MAPPING_ID", "ç„¡æ•ˆID", 400);
+                Log.Warning("[UsersController] §R°£¨Ï¥ÎªÌÅv­­¥¢±Ñ¡AµL®ÄªºÅv­­¹ïÀ³ ID: {MappingId}", mappingId);
+                return Failure("INVALID_MAPPING_ID", "µL®ÄID", 400);
             }
 
-            Log.Debug("[UsersController] èª¿ç”¨ MemberPermissionService.DeleteMemberPermissionRoleAsync, MappingId: {MappingId}", mappingId);
+            Log.Debug("[UsersController] ½Õ¥Î MemberPermissionService.DeleteMemberPermissionRoleAsync, MappingId: {MappingId}", mappingId);
             bool result = await _memberPermissionService.DeleteMemberPermissionRoleAsync(mappingId);
 
             if (!result)
             {
-                Log.Warning("[UsersController] æ‰¾ä¸åˆ°æŒ‡å®šçš„ä½¿ç”¨è€…æ¬Šé™ï¼Œåˆªé™¤å¤±æ•—: MappingId={MappingId}", mappingId);
-                return Failure("PERMISSION_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„æ¬Šé™", 404);
+                Log.Warning("[UsersController] §ä¤£¨ì«ü©wªº¨Ï¥ÎªÌÅv­­¡A§R°£¥¢±Ñ: MappingId={MappingId}", mappingId);
+                return Failure("PERMISSION_NOT_FOUND", "§ä¤£¨ì«ü©wªºÅv­­", 404);
             }
 
-            Log.Debug("[UsersController] æˆåŠŸåˆªé™¤ä½¿ç”¨è€…æ¬Šé™: MappingId={MappingId}", mappingId);
+            Log.Debug("[UsersController] ¦¨¥\§R°£¨Ï¥ÎªÌÅv­­: MappingId={MappingId}", mappingId);
             return NoContent();
         }
     }

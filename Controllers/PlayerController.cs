@@ -1,4 +1,4 @@
-ï»¿using Azure;
+using Azure;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -10,7 +10,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("éŠæˆ²ç³»çµ± / ç©å®¶ç®¡ç†")]
+    [Tags("¹CÀ¸¨t²Î")]
     public class PlayerController : ApiControllerBase
     {
         private readonly PlayerService _playerService;
@@ -22,11 +22,11 @@ namespace PawsPort.Controllers
 
         // GET /api/Player
         /// <summary>
-        /// å–å¾—ç©å®¶åˆ—è¡¨ï¼ˆåˆ†é ï¼‰
+        /// ¨ú±oª±®a¦Cªí¡]¤À­¶¡^
         /// </summary>
-        /// <param name="page">é ç¢¼ï¼ˆé è¨­ç‚º 1ï¼‰</param>
-        /// <returns>åˆ†é å¾Œçš„ç©å®¶åˆ—è¡¨èˆ‡ç¸½ç­†æ•¸</returns>
-        /// <response code="200">æˆåŠŸå–å¾—ç©å®¶åˆ—è¡¨</response>
+        /// <param name="page">­¶½X¡]¹w³]¬° 1¡^</param>
+        /// <returns>¤À­¶«áªºª±®a¦Cªí»PÁ`µ§¼Æ</returns>
+        /// <response code="200">¦¨¥\¨ú±oª±®a¦Cªí</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(int page = 1)
@@ -43,92 +43,92 @@ namespace PawsPort.Controllers
                     Data = pagedList,
                     CurrentPage = page,
                     TotalCount = allPlayers.Count
-                }, "å–å¾—ç©å®¶åˆ—è¡¨æˆåŠŸ", 200);
+                }, "¨ú±oª±®a¦Cªí¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: å–å¾—åˆ—è¡¨å¤±æ•—");
-                return Failure("PLAYER_LIST_FAILED", "ä¼ºæœå™¨è®€å–ç©å®¶è³‡æ–™å¤±æ•—", 500);
+                Log.Error(ex, "PlayerController: ¨ú±o¦Cªí¥¢±Ñ");
+                return Failure("PLAYER_LIST_FAILED", "¦øªA¾¹Åª¨úª±®a¸ê®Æ¥¢±Ñ", 500);
             }
         }
 
         // PUT /api/Player/{id}
         /// <summary>
-        /// æ›´æ–°ç©å®¶è³‡è¨Šèˆ‡åº«å­˜è³‡æ–™
+        /// §ó·sª±®a¸ê°T»P®w¦s¸ê®Æ
         /// </summary>
-        /// <param name="id">ç©å®¶ ID</param>
-        /// <param name="EditDTO">æ›´æ–°çš„ç©å®¶è³‡æ–™ DTO</param>
-        /// <returns>æ›´æ–°å¾Œçš„ç©å®¶è³‡æ–™</returns>
-        /// <response code="200">æˆåŠŸæ›´æ–°ç©å®¶è³‡è¨Š</response>
-        /// <response code="400">è³‡æ–™æ ¼å¼éŒ¯èª¤æˆ– ID ä¸ä¸€è‡´</response>
-        /// <response code="404">æ‰¾ä¸åˆ°è©²ç©å®¶æˆ–å°æ‡‰åº«å­˜</response>
+        /// <param name="id">ª±®a ID</param>
+        /// <param name="EditDTO">§ó·sªºª±®a¸ê®Æ DTO</param>
+        /// <returns>§ó·s«áªºª±®a¸ê®Æ</returns>
+        /// <response code="200">¦¨¥\§ó·sª±®a¸ê°T</response>
+        /// <response code="400">¸ê®Æ®æ¦¡¿ù»~©Î ID ¤£¤@­P</response>
+        /// <response code="404">§ä¤£¨ì¸Óª±®a©Î¹ïÀ³®w¦s</response>
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(PlayerEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit(int id, [FromBody] PlayerEditDTO EditDTO)
         {
-            if (EditDTO == null) return Failure("BAD_REQUEST", "æ”¶åˆ°çš„è³‡æ–™ç‚ºç©º", 400);
-            if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "ç¶²å€ ID èˆ‡è³‡æ–™ ID ä¸ç¬¦", 400);
+            if (EditDTO == null) return Failure("BAD_REQUEST", "¦¬¨ìªº¸ê®Æ¬°ªÅ", 400);
+            if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "ºô§} ID »P¸ê®Æ ID ¤£²Å", 400);
 
             try
             {
                 await _playerService.UpdatePlayerAsync(EditDTO);
-                return Success(EditDTO, "æ›´æ–°æˆåŠŸ", 200);
+                return Success(EditDTO, "§ó·s¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message == "ç©å®¶ä¸å­˜åœ¨" || ex.Message == "åº«å­˜ä¸å­˜åœ¨")
+                if (ex.Message == "ª±®a¤£¦s¦b" || ex.Message == "®w¦s¤£¦s¦b")
                     return Failure("PLAYER_NOT_FOUND", ex.Message, 404);
 
-                Log.Error(ex, "PlayerController: æ›´æ–°ç©å®¶ {id} å¤±æ•—", id);
-                return Failure("PLAYER_UPDATE_FAILED", "æ›´æ–°éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "PlayerController: §ó·sª±®a {id} ¥¢±Ñ", id);
+                return Failure("PLAYER_UPDATE_FAILED", "§ó·s¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
 
         // DELETE /api/Player/{id}
         /// <summary>
-        /// åˆªé™¤æŒ‡å®šç©å®¶
+        /// §R°£«ü©wª±®a
         /// </summary>
-        /// <param name="id">ç©å®¶ ID</param>
-        /// <response code="200">æˆåŠŸåˆªé™¤ç©å®¶</response>
-        /// <response code="404">æ‰¾ä¸åˆ°è©²ç©å®¶</response>
+        /// <param name="id">ª±®a ID</param>
+        /// <response code="200">¦¨¥\§R°£ª±®a</response>
+        /// <response code="404">§ä¤£¨ì¸Óª±®a</response>
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            Log.Information("æ­£åœ¨æº–å‚™åˆªé™¤ç©å®¶ ID: {id}", id);
+            Log.Information("¥¿¦b·Ç³Æ§R°£ª±®a ID: {id}", id);
             try
             {
                 await _playerService.DeletePlayerAsync(id);
-                return Success(id, "åˆªé™¤æˆåŠŸ", 200);
+                return Success(id, "§R°£¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message == "ç©å®¶ä¸å­˜åœ¨")
-                    return Failure("PLAYER_NOT_FOUND", "æ‰¾ä¸åˆ°ç©å®¶", 404);
+                if (ex.Message == "ª±®a¤£¦s¦b")
+                    return Failure("PLAYER_NOT_FOUND", "§ä¤£¨ìª±®a", 404);
 
-                Log.Error(ex, "PlayerController: åˆªé™¤ç©å®¶ {id} å¤±æ•—", id);
-                return Failure("PLAYER_DELETE_FAILED", "åˆªé™¤éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "PlayerController: §R°£ª±®a {id} ¥¢±Ñ", id);
+                return Failure("PLAYER_DELETE_FAILED", "§R°£¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
 
         // GET /api/Player/search?query=xxx&page=1
         /// <summary>
-        /// æœå°‹ç©å®¶
+        /// ·j´Mª±®a
         /// </summary>
-        /// <param name="query">æœå°‹é—œéµå­—ï¼ˆåç¨±æˆ–ç›¸é—œè³‡è¨Šï¼‰</param>
-        /// <param name="page">é ç¢¼ï¼ˆé è¨­ç‚º 1ï¼‰</param>
-        /// <returns>æœå°‹çµæœæ¸…å–®</returns>
-        /// <response code="200">æˆåŠŸå®Œæˆæœå°‹</response>
+        /// <param name="query">·j´MÃöÁä¦r¡]¦WºÙ©Î¬ÛÃö¸ê°T¡^</param>
+        /// <param name="page">­¶½X¡]¹w³]¬° 1¡^</param>
+        /// <returns>·j´Mµ²ªG²M³æ</returns>
+        /// <response code="200">¦¨¥\§¹¦¨·j´M</response>
         [HttpGet("search")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string query, int page = 1)
         {
             try
             {
-                // 1. å‘¼å« Service å–å¾—æœå°‹å¾Œçš„çµæœï¼Œæ­¤æ™‚ searchResults å·²ç¶“æ˜¯ List<PlayerListDTO>
+                // 1. ©I¥s Service ¨ú±o·j´M«áªºµ²ªG¡A¦¹®É searchResults ¤w¸g¬O List<PlayerListDTO>
                 var searchResults = await _playerService.SearchPlayersAsync(query);
 
                 int pageSize = 10;
@@ -142,22 +142,22 @@ namespace PawsPort.Controllers
                     Data = pagedList,      
                     CurrentPage = page,
                     TotalCount = searchResults.Count
-                }, $"æœå°‹ã€Œ{query}ã€æˆåŠŸ", 200);
+                }, $"·j´M¡u{query}¡v¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: æœå°‹ç©å®¶å¤±æ•—");
-                return Failure("PLAYER_SEARCH_FAILED", "æœå°‹éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
+                Log.Error(ex, "PlayerController: ·j´Mª±®a¥¢±Ñ");
+                return Failure("PLAYER_SEARCH_FAILED", "·j´M¹Lµ{µo¥Í¿ù»~", 500);
             }
         }
 
         // GET /api/Player/{id}/logs
         /// <summary>
-        /// å–å¾—ç©å®¶ç›¸é—œç´€éŒ„ï¼ˆå¦‚ç•°å‹•æ—¥èªŒï¼‰
+        /// ¨ú±oª±®a¬ÛÃö¬ö¿ı¡]¦p²§°Ê¤é»x¡^
         /// </summary>
-        /// <param name="id">ç©å®¶ ID</param>
-        /// <returns>ç©å®¶çš„ç•°å‹•ç´€éŒ„åˆ—è¡¨</returns>
-        /// <response code="200">æˆåŠŸå–å¾—ç´€éŒ„</response>
+        /// <param name="id">ª±®a ID</param>
+        /// <returns>ª±®aªº²§°Ê¬ö¿ı¦Cªí</returns>
+        /// <response code="200">¦¨¥\¨ú±o¬ö¿ı</response>
         [HttpGet("{id}/logs")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPlayerLogs(int id)
@@ -165,12 +165,12 @@ namespace PawsPort.Controllers
             try
             {
                 var records = await _playerService.GetPlayerRecordsAsync(id);
-                return Success(records, "å–å¾—ç©å®¶ç´€éŒ„æˆåŠŸ", 200);
+                return Success(records, "¨ú±oª±®a¬ö¿ı¦¨¥\", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "å–å¾—ç´€éŒ„å¤±æ•—");
-                return Failure("GET_LOGS_FAILED", "ä¼ºæœå™¨éŒ¯èª¤", 500);
+                Log.Error(ex, "¨ú±o¬ö¿ı¥¢±Ñ");
+                return Failure("GET_LOGS_FAILED", "¦øªA¾¹¿ù»~", 500);
             }
         }
     }

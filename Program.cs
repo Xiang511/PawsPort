@@ -102,8 +102,8 @@ builder.Services.AddOpenApi(options =>
             Title = " PawsPort API",
             Version = "v1.0.0",
             Description = """
-                
-                
+
+
                 """,
             Contact = new()
             {
@@ -118,7 +118,34 @@ builder.Services.AddOpenApi(options =>
             }
         };
 
+        // 設定 Tags 順序（依照模組分類）
+        var tagOrder = new[]
+        {
+            "會員管理",
+            "權限管理",
+            "寵物管理",
+            "遊戲系統",
+            "社群管理",
+            "客服管理"
+        };
 
+        // 對現有的 Tags 進行排序
+        if (document.Tags != null && document.Tags.Count > 0)
+        {
+            var sortedTags = document.Tags
+                .OrderBy(tag =>
+                {
+                    int index = Array.IndexOf(tagOrder, tag.Name);
+                    return index == -1 ? int.MaxValue : index;
+                })
+                .ToList();
+
+            document.Tags.Clear();
+            foreach (var tag in sortedTags)
+            {
+                document.Tags.Add(tag);
+            }
+        }
 
         return Task.CompletedTask;
     });

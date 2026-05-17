@@ -143,6 +143,17 @@ namespace PawsPort.Services
             return user;
         }
 
+        public async Task<bool> GetUserInfoByEmailAsync(string email)
+        {
+            Log.Debug("[MemberProfileService] GetUserInfoByIdAsync - Entry, UserEmail: {email}", email);
+
+            bool isExist = await _context.UserAuthTables
+                .AnyAsync(x => x.Email == email);
+
+            Log.Debug("[MemberProfileService] GetUserInfoByIdAsync - Exit, UserEmail: {email}, 找到用戶: {email}", email);
+            return isExist;
+        }
+
 
         public async Task<MemberUserDTO> UpdateUserInfoAsync(int id ,MemberUserDTO userDto)
         {

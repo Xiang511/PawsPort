@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -12,6 +13,7 @@ namespace PawsPort.Controllers
     [Route("api/[controller]")]
     [Produces("application/json")]
     [Tags("權限管理")]
+
     public class PermissionsController : ApiControllerBase
     {
         private readonly MemberPermissionService _memberPermissionService;
@@ -28,7 +30,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>使用者權限列表 JSON</returns>
         /// <response code="200">成功取得使用者權限列表</response>
-
+        [Authorize(Policy = "會員系統_系統管理員")]
         [HttpGet("users")]
         [ProducesResponseType(typeof(IEnumerable<MemberPermissionUserDTO>), StatusCodes.Status200OK)]
         [Tags("權限管理")]
@@ -44,6 +46,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>系統列表 JSON</returns>
         /// <response code="200">成功取得系統列表</response>
+        [Authorize(Policy = "會員系統_系統管理員")]
         [HttpGet("systems")]
         [ProducesResponseType(typeof(MemberPermissionSystemDTO), StatusCodes.Status200OK)]
         [Tags("權限管理")]
@@ -62,7 +65,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>角色列表 JSON</returns>
         /// <response code="200">成功取得角色列表</response>
-
+        [Authorize(Policy = "會員系統_系統管理員")]
         [HttpGet("roles")]
         [ProducesResponseType(typeof(MemberPermissionRoleDTO), StatusCodes.Status200OK)]
         [Tags("權限管理")]
@@ -81,6 +84,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>被封鎖的會員列表</returns>
         /// <response code="200">成功取得被封鎖的會員列表</response>
+        [Authorize(Policy = "會員系統_普通管理員")]
         [HttpGet("block/users")]
         [ProducesResponseType(typeof(List<MemberBlockListDTO>), StatusCodes.Status200OK)]
         [Tags("權限管理")]
@@ -105,6 +109,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功封鎖會員</response>
         /// <response code="400">請求資料格式錯誤</response>
         /// <response code="404">找不到指定的會員</response>
+        [Authorize(Policy = "會員系統_普通管理員")]
         [HttpPatch("block/users/{id}")]
         [ProducesResponseType(typeof(MemberBlockListDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

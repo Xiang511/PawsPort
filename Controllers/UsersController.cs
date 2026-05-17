@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -7,6 +8,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Controllers
 {
+    [Authorize(Policy = "會員系統_普通管理員")]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -27,6 +29,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>會員列表 JSON</returns>
         /// <response code="200">成功取得會員列表</response>
+        
         [HttpGet]
         [ProducesResponseType(typeof(List<MemberUserDTO>), StatusCodes.Status200OK)]
         [Tags("會員管理")]
@@ -80,6 +83,7 @@ namespace PawsPort.Controllers
         /// <returns>創建成功的會員資料（包含自動生成的 UserId）</returns>
         /// <response code="200">成功創建會員</response>
         /// <response code="400">請求資料格式錯誤或必填欄位缺失</response>
+
         [HttpPost]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -101,7 +105,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>會員統計數據，包含總數、月註冊數、認證比例、訂閱數等</returns>
         /// <response code="200">成功取得統計資訊</response>
-
+        
         [HttpGet("Summary")]
         [ProducesResponseType(typeof(MemberSummaryDTO), StatusCodes.Status200OK)]
         [Tags("會員管理")]
@@ -132,7 +136,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功更新會員</response>
         /// <response code="400">會員 ID 不一致或資料格式錯誤</response>
         /// <response code="404">找不到指定的會員</response>
-
+        
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -173,7 +177,7 @@ namespace PawsPort.Controllers
         /// <response code="204">成功刪除會員（軟刪除）</response>
         /// <response code="404">找不到指定會員</response>
         /// 
-       
+        
         [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -204,6 +208,8 @@ namespace PawsPort.Controllers
         /// <returns>使用者的權限角色列表</returns>
         /// <response code="200">成功取得使用者權限</response>
         /// <response code="404">找不到指定的使用者</response>
+        [Authorize(Policy = "會員系統_系統管理員")]
+
         [HttpGet("/api/users/{id}/roles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -235,6 +241,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功新增使用者權限</response>
         /// <response code="204">新增失敗（可能因為權限已存在或參數無效）</response>
         /// <response code="409">權限衝突（該使用者已擁有此系統的相同角色權限）</response>
+        [Authorize(Policy = "會員系統_系統管理員")]
         [HttpPost("/api/users/roles")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -275,6 +282,8 @@ namespace PawsPort.Controllers
         /// <response code="204">成功更新使用者權限</response>
         /// <response code="400">無效的權限對應 ID（ID 為空或小於 0）</response>
         /// <response code="409">權限衝突或權限不存在</response>
+        [Authorize(Policy = "會員系統_系統管理員")]
+
         [HttpPatch("/api/users/{mappingId}/roles")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -325,6 +334,7 @@ namespace PawsPort.Controllers
         /// <response code="204">成功刪除使用者權限</response>
         /// <response code="400">無效的權限對應 ID（ID 為空）</response>
         /// <response code="404">找不到指定的權限</response>
+        [Authorize(Policy = "會員系統_系統管理員")]
 
         [HttpDelete("/api/users/{mappingId}/roles")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]

@@ -1,12 +1,45 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using PawsPort.Authorization;
 using PawsPort.Middlewares;
 using PawsPort.Models;
 using PawsPort.Services;
 using Scalar.AspNetCore;
 using Serilog;
+using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
 
+// 1. 讀取 JWT 設定
+var jwtSettings = builder.Configuration.GetSection("JwtSettings");
+var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
+
+// 2. 設定驗證服務
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwtSettings["Issuer"],
+        ValidAudience = jwtSettings["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(secretKey),
+        ClockSkew = TimeSpan.Zero // 取消預設的 5 分鐘緩衝時間，讓過期更精準
+    };
+});
+
+// 3. 設定授權策略（使用擴展方法）
+builder.Services.AddPawsPortAuthorization();
+
+builder.Services.AddControllers();
 
 builder.Services.AddCors(options =>
 {
@@ -21,6 +54,13 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+
+//auth
+builder.Services.AddScoped<AuthService>();
+
+
+
 
 // member
 builder.Services.AddScoped<MemberProfileService>();
@@ -182,10 +222,12 @@ app.UseSerilogRequestLogging();
 
 app.UseHttpsRedirection();
 app.UseRouting();
+
+app.UseAuthentication(); // 認證：你是誰？
+app.UseAuthorization();  // 授權：你能做什麼？
+
 // 啟用 CORS
 app.UseCors("PawsPortPolicy");
-
-app.UseAuthorization();
 
 app.MapStaticAssets();
 // 根路徑重定向到 Scalar API 文件  ← 新增這兩行

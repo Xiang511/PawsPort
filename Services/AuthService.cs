@@ -1,6 +1,7 @@
-﻿using Microsoft.IdentityModel.Tokens;
+﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using PawsPort.Dtos;
 using PawsPort.Models;
-using Microsoft.EntityFrameworkCore;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
@@ -39,7 +40,7 @@ namespace PawsPort.Services
             // 2. 取得使用者的所有權限 (只需要 SystemId 和 RoleId)
             var userPermissions = await _context.UserSystemRoles
                 .Where(x => x.UserId == user.userId)
-                .Select(usr => new PermissionDto
+                .Select(usr => new MemberPermissionUpdateRoleDTO
                 {
                     SystemId = usr.SystemId,
                     RoleId = usr.RoleId
@@ -51,13 +52,8 @@ namespace PawsPort.Services
             return token;
         }
 
-        private class PermissionDto
-        {
-            public int SystemId { get; set; }
-            public int RoleId { get; set; }
-        }
 
-        private string GenerateJwtToken(string userEmail, int userId, List<PermissionDto> userPermissions)
+        private string GenerateJwtToken(string userEmail, int userId, List<MemberPermissionUpdateRoleDTO> userPermissions)
         {
             var jwtSettings = _configuration.GetSection("JwtSettings");
             var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]));

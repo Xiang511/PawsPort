@@ -140,26 +140,26 @@ namespace PawsPort.Controllers
             }
         }
 
-        // GET: api/Questions/game-level?category=èªé¤Šé ˆçŸ¥
+       // GET: api/Questions/game-level?category=»{¾i¶·ª¾
         /// <summary>
-        /// éŠæˆ²å‰å°ï¼šæ ¹æ“šé—œå¡åˆ†é¡å–å¾—é¡Œç›®(éš¨æ©Ÿ)
+        /// ¹CÀ¸«e¥x¡G®Ú¾ÚÃö¥d¤ÀÃş¨ú±oÃD¥Ø(ÀH¾÷)
         /// </summary>
-        /// <param name="category">é—œå¡åˆ†é¡åç¨± (GameNameï¼Œä¾‹å¦‚ï¼šèªé¤Šé ˆçŸ¥)</param>
+        /// <param name="category">Ãö¥d¤ÀÃş¦WºÙ (GameName¡A¨Ò¦p¡G»{¾i¶·ª¾)</param>
         [HttpGet("game-level")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGameLevelQuestions([FromQuery] string category)
         {
-            // å•†æ¥­é‚è¼¯é©—è­‰ï¼šå¦‚æœå‰ç«¯æ¼å‚³åƒæ•¸ï¼Œä¸»å‹•å›å‚³ Failureï¼ˆé€™ä¸æ˜¯ç³»çµ±å´©æ½°ï¼Œæ˜¯å±¬æ–¼æ­£å¸¸é©—è­‰ï¼Œæ‰€ä»¥ä¸ç”¨ try/catchï¼‰
+            // °Ó·~ÅŞ¿èÅçÃÒ¡G¦pªG«eºİº|¶Ç°Ñ¼Æ¡A¥D°Ê¦^¶Ç Failure¡]³o¤£¬O¨t²Î±Y¼ì¡A¬OÄİ©ó¥¿±`ÅçÃÒ¡A©Ò¥H¤£¥Î try/catch¡^
             if (string.IsNullOrEmpty(category))
             {
-                return Failure("CATEGORY_REQUIRED", "å¿…é ˆæä¾›é—œå¡åˆ†é¡åç¨±ï¼ˆGameNameï¼‰", 400);
+                return Failure("CATEGORY_REQUIRED", "¥²¶·´£¨ÑÃö¥d¤ÀÃş¦WºÙ¡]GameName¡^", 400);
             }
 
-            // æ ¸å¿ƒæ¥­å‹™ï¼šç›´æ¥å‘¼å« Service æ’ˆå–è³‡æ–™ã€‚
+            // ®Ö¤ß·~°È¡Gª½±µ©I¥s Service ¼´¨ú¸ê®Æ¡C
             var questions = await _questionsService.GetLevelQuestionsAsync(category, 10);
 
-            // å‚³å›æˆåŠŸåŒ…è£çš„ JSON
-            return Success(questions, "æˆåŠŸå–å¾—éŠæˆ²é—œå¡é¡Œåº«", 200);
+            // ¶Ç¦^¦¨¥\¥]¸Ëªº JSON
+            return Success(questions, "¦¨¥\¨ú±o¹CÀ¸Ãö¥dÃD®w", 200);
         }
     }
 }

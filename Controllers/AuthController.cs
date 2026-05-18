@@ -1,13 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
-using Newtonsoft.Json.Linq;
 using PawsPort.Dtos;
-using PawsPort.Models;
 using PawsPort.Services;
 using Serilog;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
-using System.Text;
 
 namespace PawsPort.Controllers
 {
@@ -18,7 +12,7 @@ namespace PawsPort.Controllers
     {
         private readonly AuthService _authService;
         private readonly MemberProfileService _memberProfileService;
-        public AuthController(AuthService authService,MemberProfileService memberProfileService)
+        public AuthController(AuthService authService, MemberProfileService memberProfileService)
         {
             _authService = authService;
             _memberProfileService = memberProfileService;
@@ -32,9 +26,9 @@ namespace PawsPort.Controllers
                 return Failure("使用者不存在", "User_Not_Found", 404);
             }
             else
-            {   
+            {
                 var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.UserEmail);
-                var token = await _authService.ValidateUser(model.UserEmail,model.Password);
+                var token = await _authService.ValidateUser(model.UserEmail, model.Password);
 
                 if (!string.IsNullOrEmpty(token))
                 {
@@ -56,7 +50,7 @@ namespace PawsPort.Controllers
                 }
 
             }
-            
+
         }
         [HttpPost("logout")]
         public IActionResult Logout()
@@ -84,7 +78,34 @@ namespace PawsPort.Controllers
             Log.Debug("[AuthController] Logout POST - Exit");
             return Success("登出成功");
         }
+        [HttpPost("register")]
+        public async Task<IActionResult> Register([FromBody] UserRegisterDTO model)
+        {
+            Log.Debug("[AuthController] Register POST - Entry, Email: {Email}, Name: {Name}", model.Email, model.Name);
 
+            // 檢查 Email 是否已存在
+            var isEmailExist = await _memberProfileService.GetUserInfoByEmailAsync(model.Email);
+
+            if (isEmailExist != null)
+            {
+                Log.Warning("[AuthController] Register - Email 已存在: {Email}", model.Email);
+                return Failure("EMAIL_EXISTS", "Email 已存在", 400);
+            }
+
+            // 呼叫 RegisterUser（密碼雜湊在 Service 中處理）
+            var result = await _authService.RegisterUser(model);
+
+            if (result)
+            {
+                Log.Debug("[AuthController] Register - 註冊成功, Email: {Email}", model.Email);
+                return Success(new { Message = "註冊成功", Email = model.Email });
+            }
+            else
+            {
+                Log.Warning("[AuthController] Register - 註冊失敗, Email: {Email}", model.Email);
+                return Failure("REGISTRATION_FAILED", "註冊失敗，請稍後再試", 500);
+            }
+        }
     }
 }
 

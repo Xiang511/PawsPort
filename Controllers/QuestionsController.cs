@@ -139,5 +139,27 @@ namespace PawsPort.Controllers
                 return Failure("QUESTION_DELETE_FAILED", "�R���L�{�o�Ϳ��~", 500);
             }
         }
+
+        // GET: api/Questions/game-level?category=認養須知
+        /// <summary>
+        /// 遊戲前台：根據關卡分類取得題目(隨機)
+        /// </summary>
+        /// <param name="category">關卡分類名稱 (GameName，例如：認養須知)</param>
+        [HttpGet("game-level")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetGameLevelQuestions([FromQuery] string category)
+        {
+            // 商業邏輯驗證：如果前端漏傳參數，主動回傳 Failure（這不是系統崩潰，是屬於正常驗證，所以不用 try/catch）
+            if (string.IsNullOrEmpty(category))
+            {
+                return Failure("CATEGORY_REQUIRED", "必須提供關卡分類名稱（GameName）", 400);
+            }
+
+            // 核心業務：直接呼叫 Service 撈取資料。
+            var questions = await _questionsService.GetLevelQuestionsAsync(category, 10);
+
+            // 傳回成功包裝的 JSON
+            return Success(questions, "成功取得遊戲關卡題庫", 200);
+        }
     }
 }

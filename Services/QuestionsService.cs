@@ -101,5 +101,35 @@ namespace PawsPort.Services
             await _db.SaveChangesAsync();
             Log.Information("題目 ID: {GameId} 已刪除", id);
         }
+
+        
+        public async Task<List<QuestionsListDTO>> GetLevelQuestionsAsync(string category, int limit = 10)
+        {
+            // 1. 核心過濾：必須符合傳入的分類(GameName)、且啟用(IsActive)、且 Type 必須是 "問答"
+            var query = _db.GameContents
+                .Where(g => g.GameName == category
+                         && g.IsActive == true
+                         && g.Type == "問答"); // 嚴格限制只要問答題
+
+            // 2. 透過 Guid 隨機排序，並限制只取 10 題
+            return await query
+                .OrderBy(g => Guid.NewGuid())
+                .Take(limit)
+                .Select(g => new QuestionsListDTO
+                {
+                    GameId = g.GameId,
+                    GameName = g.GameName,
+                    Questions = g.Questions,       // 讀取題目內容
+                    Answers = g.Answers,           // 答案
+                    AnswersDetail = g.AnswersDetail, // 詳細解答
+                    Rewards = g.Rewards,           // 答題獎勵
+                    IsActive = g.IsActive,
+                    Type = g.Type
+                })
+                .ToListAsync();
+        }
     }
+
+
+
 }

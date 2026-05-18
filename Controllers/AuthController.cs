@@ -73,7 +73,7 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Tags("身分驗證")]
 
-        public IActionResult Logout()
+        public async Task<IActionResult> Logout()
         {
             Log.Debug("[AuthController] Logout POST - Entry");
 
@@ -96,7 +96,7 @@ namespace PawsPort.Controllers
             }
 
             Log.Debug("[AuthController] Logout POST - Exit");
-            return Success("登出成功");
+            return Success(true,"登出成功",200);
         }
         /// <summary>
         /// 使用者註冊

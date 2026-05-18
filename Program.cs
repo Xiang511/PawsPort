@@ -23,6 +23,24 @@ builder.Services.AddAuthentication(options =>
 })
 .AddJwtBearer(options =>
 {
+    options.Events = new JwtBearerEvents
+    {
+        OnMessageReceived = context =>
+        {
+            // 先從 Authorization Header 讀取
+            var token = context.Request.Headers["Authorization"]
+                .FirstOrDefault()?.Split(" ").Last();
+
+            // 如果 Header 没有，讀 Cookie 
+            if (string.IsNullOrEmpty(token))
+            {
+                token = context.Request.Cookies["X-Access-Token"];
+            }
+
+            context.Token = token;
+            return Task.CompletedTask;
+        }
+    };
     options.TokenValidationParameters = new TokenValidationParameters
     {
         ValidateIssuer = true,
@@ -46,9 +64,12 @@ builder.Services.AddCors(options =>
     options.AddPolicy("PawsPortPolicy", policy =>
     {
         // 允許你的 Vue 前端網址
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins("https://localhost:5173")
+        .WithOrigins("https://localhost:5174")
+        .WithOrigins("https://localhost:5175")
               .AllowAnyHeader()
-              .AllowAnyMethod();
+              .AllowAnyMethod()
+              .AllowCredentials();
     });
 });
 
@@ -223,11 +244,12 @@ app.UseSerilogRequestLogging();
 app.UseHttpsRedirection();
 app.UseRouting();
 
+
+app.UseCors("PawsPortPolicy"); // 啟用 CORS
 app.UseAuthentication(); // 認證：你是誰？
 app.UseAuthorization();  // 授權：你能做什麼？
 
-// 啟用 CORS
-app.UseCors("PawsPortPolicy");
+
 
 app.MapStaticAssets();
 // 根路徑重定向到 Scalar API 文件  ← 新增這兩行

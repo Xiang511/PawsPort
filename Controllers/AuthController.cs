@@ -18,7 +18,19 @@ namespace PawsPort.Controllers
             _memberProfileService = memberProfileService;
         }
 
+        /// <summary>
+        /// 使用者登入
+        /// </summary>
+        /// <param name="model">登入資訊，包含 Email 和密碼</param>
+        /// <returns>登入成功返回 Token 和使用者資訊</returns>
+        /// <response code="200">登入成功</response>
+        /// <response code="401">帳號或密碼錯誤</response>
+        /// <response code="404">使用者不存在</response>
         [HttpPost("login")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("身分驗證")]
         public async Task<IActionResult> Login([FromBody] LoginDTO model)
         {
             if (model.UserEmail == null)
@@ -52,7 +64,15 @@ namespace PawsPort.Controllers
             }
 
         }
+        /// <summary>
+        /// 使用者登出
+        /// </summary>
+        /// <returns>登出成功訊息</returns>
+        /// <response code="200">登出成功</response>
         [HttpPost("logout")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Tags("身分驗證")]
+
         public IActionResult Logout()
         {
             Log.Debug("[AuthController] Logout POST - Entry");
@@ -78,7 +98,20 @@ namespace PawsPort.Controllers
             Log.Debug("[AuthController] Logout POST - Exit");
             return Success("登出成功");
         }
+        /// <summary>
+        /// 使用者註冊
+        /// </summary>
+        /// <param name="model">註冊資訊，包含 Email、姓名和密碼</param>
+        /// <returns>註冊成功訊息</returns>
+        /// <response code="200">註冊成功</response>
+        /// <response code="400">Email 已存在</response>
+        /// <response code="500">註冊失敗</response>
         [HttpPost("register")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [Tags("身分驗證")]
+
         public async Task<IActionResult> Register([FromBody] UserRegisterDTO model)
         {
             Log.Debug("[AuthController] Register POST - Entry, Email: {Email}, Name: {Name}", model.Email, model.Name);

@@ -240,8 +240,10 @@ namespace PawsPort.Services
 
             //去除空白和重複的標籤(不分大小寫)
             var UniqueTagNames = TagNames
-                .Select(t => t.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase);
+                .Select(t => t.Replace("#", "").Trim())
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             //去資料庫撈出所有tag表中名稱有包含在輸入的tagnames裡的資料，轉換成list<tag>
             var ExistingTags = await _context.Tags

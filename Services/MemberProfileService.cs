@@ -143,6 +143,40 @@ namespace PawsPort.Services
             return user;
         }
 
+        public async Task<MemberUserDTO> GetUserInfoByEmailAsync(string email)
+        {
+            Log.Debug("[MemberProfileService] GetUserInfoByEmailAsync - Entry, Email: {Email}", email);
+
+            var user = await _context.UserAuthTables
+                .Where(x => x.Email == email)
+                .Join(
+                    _context.UserTables.Where(u => u.DeleteDay == null),
+                    auth => auth.UserId,
+                    userTable => userTable.UserId,
+                    (auth, userTable) => new MemberUserDTO
+                    {
+                        UserId = userTable.UserId,
+                        Name = userTable.Name,
+                        Photo = userTable.Photo,
+                        Job = userTable.Job,
+                        Phone = userTable.Phone,
+                        Birthday = userTable.Birthday,
+                        City = userTable.City,
+                        Point = userTable.Point,
+                        Note = userTable.Note,
+                        HasPriorExp = userTable.HasPriorExp,
+                        Status = userTable.Status,
+                        IsSubscribe = userTable.IsSubscribe,
+                        IsVerify = userTable.IsVerify,
+                        CreatedAt = userTable.CreatedAt,
+                        UpdatedAt = userTable.UpdatedAt
+                    })
+                .FirstOrDefaultAsync();
+
+            Log.Debug("[MemberProfileService] GetUserInfoByEmailAsync - Exit, Email: {Email}, 找到用戶: {Found}", email, user != null);
+            return user;
+        }
+
 
         public async Task<MemberUserDTO> UpdateUserInfoAsync(int id ,MemberUserDTO userDto)
         {
@@ -188,6 +222,12 @@ namespace PawsPort.Services
             var userEntity = await _context.UserTables
                 .Where(m => m.UserId == id && m.DeleteDay == null)
                 .FirstOrDefaultAsync();
+
+            if (userEntity == null)
+            {
+                Log.Warning("[MemberProfileService] DeleteUserAsync - Exit, 找不到 UserId: {UserId}, 返回 false", id);
+                return false;
+            }
 
             userEntity.DeleteDay = DateTime.Now;
             userEntity.UpdatedAt = DateTime.Now;

@@ -33,7 +33,7 @@ namespace PawsPort.Services
                     QuestionType = f.QuestionType,
                     Question = f.Question,
                     Answer = f.Answer,
-                    CreateAt = f.CreateAt.ToString("yyyy-MM-dd HH:mm"),
+                    CreateAt = f.CreateAt,
                     Status = f.Status
                 })
                 .ToListAsync();

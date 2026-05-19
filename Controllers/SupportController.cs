@@ -115,10 +115,17 @@ namespace PawsPort.Controllers
         [HttpGet("Qa")]
         [Tags("客服管理")]
 
-        public async Task<IActionResult> GetQaList()
+        public async Task<IActionResult> GetQaList(int page = 1)
         {
-            var result = await _qaService.GetAllQaAsync();
-            return Success(result, "取得QA列表成功", 200);
+            var result = await _qaService.GetQaPagedAsync(page, 10);
+
+            return Success(new
+            {
+                CurrentPage = page,
+                TotalPages = result.TotalPages,
+                Items = result.Items
+            }, "取得QA列表成功", 200);
+
         }
 
 

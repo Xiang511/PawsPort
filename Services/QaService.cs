@@ -14,16 +14,30 @@ namespace PawsPort.Services
             _db = db;
         }
 
-        public async Task<List<QaDTO>> GetAllQaAsync()
+        public async Task<(List<QaDTO> Data, int TotalPages)> GetQaPagedAsync(int page, int pageSize = 10)
         {
-            return await _db.QARecords
+            // 💡 2. 計算資料庫總共有幾筆資料
+            var totalRecords = await _db.QARecords.CountAsync();
+
+            // 💡 3. 計算總頁數 (無條件進位，例如 21 筆資料除以 10 = 3 頁)
+            var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+
+            var data = await _db.QARecords
+                .OrderByDescending(q => q.QuestionDate)
+                .Skip((page - 1) * pageSize)           // 跳過前面幾頁的資料
+        .Take(pageSize)
                 .Select(q => new QaDTO
                 {
                     Qaid = q.Qaid,
+                    UserId = q.UserId,
+                    QuestionType = q.QuestionType,
+                    ChiefComplaint = q.ChiefComplaint,
                     Csname = q.Csname,
+                    QuestionDate = q.QuestionDate,
                     ReplyContent = q.ReplyContent,
                     Note = q.Note,
-                    ReplyDate = q.ReplyDate
+                    ReplyDate = q.ReplyDate,
+                    Score = q.Score
                 })
                 .ToListAsync();
         }
@@ -38,10 +52,21 @@ namespace PawsPort.Services
             return new QaDTO
             {
                 Qaid = q.Qaid,
+                UserId = q.UserId,
+                QuestionType = q.QuestionType,
+                ChiefComplaint = q.ChiefComplaint,
                 Csname = q.Csname,
+                QuestionDate = q.QuestionDate,
                 ReplyContent = q.ReplyContent,
                 Note = q.Note,
-                ReplyDate = q.ReplyDate
+                ReplyDate = q.ReplyDate,
+                Score = q.Score
+
+                // Qaid = q.Qaid,
+                //Csname = q.Csname,
+                //ReplyContent = q.ReplyContent,
+                //Note = q.Note,
+                //ReplyDate = q.ReplyDate
             };
         }
 

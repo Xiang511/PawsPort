@@ -27,6 +27,33 @@ namespace PawsPort.Controllers
             _categoryService = categoryService;
         }
 
+        //取得分類列表
+        /// <summary>
+        /// 取得所有分類列表
+        /// </summary>
+        /// <returns></returns>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+        [HttpGet]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetCategories()
+        {
+            try
+            {
+                // 呼叫剛剛寫好的 Service 撈取資料（不帶參數）
+                var result = await _categoryService.GetCategoriesAsync();
+
+                // 仿照你的格式，回傳 200 成功與資料
+                return Success(result, "分類列表取得成功", 200);
+            }
+            catch (Exception ex)
+            {
+                // 使用你專案中配置的 Serilog 紀錄錯誤（建議加上，方便追蹤 Log）
+                // _logger.LogError(ex, "取得分類列表時發生異常");
+
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
 
         //新增分類
         /// <summary>

@@ -16,7 +16,21 @@ namespace PawsPort.Services
 
 
         //=====分類列表=====
+        public async Task<List<CategoryListDTO>> GetCategoriesAsync()
+        {
+            var categories = await (from c in _context.Categories
+                                        // 這裡使用 Left Join 連接自己，撈出父分類
+                                    join p in _context.Categories on c.ParentId equals p.CategoryId into parentJoin
+                                    from p in parentJoin.DefaultIfEmpty()
+                                    select new CategoryListDTO
+                                    {
+                                        // 如果沒有父分類，就給它空字串或 null
+                                        ParentCategoryName = p != null ? p.CategoryName : string.Empty,
+                                        CategoryName = c.CategoryName
+                                    }).ToListAsync();
 
+            return categories;
+        }
 
         //=====新增分類=====
         public async Task<int> CreateCategoryAsync(CategorySaveDTO categorySaveDTO)

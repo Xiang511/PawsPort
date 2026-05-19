@@ -46,7 +46,7 @@ namespace PawsPort.Controllers
             }
 
 
-            return Success<object>(null, "? 成功！回覆訊息已透過 LINE Bot 傳送給該名使用者。", 200);
+            return Success<object>(null, "成功！回覆訊息已透過 LINE Bot 傳送給該名使用者。", 200);
         }
     }
 }

@@ -14,22 +14,39 @@ namespace PawsPort.Services
             _db = db;
         }
 
-        public async Task<List<QaDTO>> GetAllQaAsync()
+        public async Task<(List<QaDTO> Items, int TotalPages)> GetQaPagedAsync(int page, int pageSize = 10)
         {
-            return await _db.QARecords
+            // 計算資料庫總共有幾筆資料
+            var totalRecords = await _db.QARecords.CountAsync();
+
+            // 計算總頁數 (無條件進位，例如 21 筆資料除以 10 = 3 頁)
+            var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
+
+            var items = await _db.QARecords
+                .OrderByDescending(q => q.QuestionDate)
+                .Skip((page - 1) * pageSize)           // 跳過前面幾頁的資料
+                .Take(pageSize)
                 .Select(q => new QaDTO
                 {
                     Qaid = q.Qaid,
+                    UserId = q.UserId,
+                    QuestionType = q.QuestionType,
+                    ChiefComplaint = q.ChiefComplaint,
+                    ChatContent = q.ChatContent,
                     Csname = q.Csname,
+                    QuestionDate = q.QuestionDate,
                     ReplyContent = q.ReplyContent,
                     Note = q.Note,
-                    ReplyDate = q.ReplyDate
+                    ReplyDate = q.ReplyDate,
+                    Score = q.Score
                 })
                 .ToListAsync();
+
+            return (Data: items, TotalPages: totalPages);
         }
 
 
-        //取得單筆QA明細
+        // 取得單筆QA明細
         public async Task<QaDTO> GetQaByIdAsync(int id)
         {
             var q = await _db.QARecords.FindAsync(id);
@@ -38,10 +55,17 @@ namespace PawsPort.Services
             return new QaDTO
             {
                 Qaid = q.Qaid,
+                UserId = q.UserId,
+                QuestionType = q.QuestionType,
+                ChiefComplaint = q.ChiefComplaint,
+                ChatContent = q.ChatContent,
                 Csname = q.Csname,
+                QuestionDate = q.QuestionDate,
                 ReplyContent = q.ReplyContent,
                 Note = q.Note,
-                ReplyDate = q.ReplyDate
+                ReplyDate = q.ReplyDate,
+                Score = q.Score
+
             };
         }
 

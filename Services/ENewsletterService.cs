@@ -13,26 +13,25 @@ namespace PawsPort.Services
             _db = db;
         }
 
-
-        public async Task<List<ENewsletterDTO>> GetAllNewslettersAsync()
+        public async Task<(List<ENewsletterDTO> Items, int TotalPages)> GetPagedENewslettersAsync(int page, int pageSize)
         {
             var categoryOrder = new List<string>
-            {
-                "活動公告", "認養資訊", "飼養知識", "遊戲挑戰", "其它類別"
-            };
+             {
+              "活動公告", "認養資訊", "飼養知識", "遊戲挑戰", "其它類別"
+             };
 
+            var query = _db.ENewsletters.Where(n => n.Status != "已刪除");
 
-            var listFromDb = await _db.ENewsletters
-                .Where(n => n.Status != "已刪除")
-                .ToListAsync();
+            var totalRecords = await query.CountAsync();
+            var totalPages = (int)Math.Ceiling((double)totalRecords / pageSize);
 
-            return listFromDb
-                .OrderBy(n =>
-                {
-                    int index = categoryOrder.IndexOf(n.Category);
-                    return index == -1 ? 99 : index; //防呆
-                })
+            var listFromDb = await query.ToListAsync();
+
+            var items = listFromDb
+                .OrderByDescending(n => n.PublishDate)
                 .ThenByDescending(n => n.NewsLetterId)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(n => new ENewsletterDTO
                 {
                     NewsLetterId = n.NewsLetterId,
@@ -45,7 +44,9 @@ namespace PawsPort.Services
                     PublishDate = n.PublishDate,
                     UserId = n.UserId
                 })
-                .ToList();
+                    .ToList();
+
+            return (items, totalPages);
         }
 
 
@@ -59,7 +60,7 @@ namespace PawsPort.Services
                 Category = dto.Category,
                 Status = dto.Status,
                 Note = dto.Note,
-                PublishDate = dto.PublishDate,
+                PublishDate = DateTime.Now,
                 //如果前端沒傳 UserId (null)，就給它 0，方便下面跑防呆
                 UserId = dto.UserId ?? 0
             };

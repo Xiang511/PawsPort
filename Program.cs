@@ -79,6 +79,10 @@ builder.Services.AddControllersWithViews();
 
 //auth
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<LoginLogService>();
+
+// 註冊 HttpClient
+builder.Services.AddHttpClient();
 
 
 

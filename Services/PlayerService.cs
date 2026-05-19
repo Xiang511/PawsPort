@@ -247,6 +247,103 @@ namespace PawsPort.Services
 
             return result;
         }
+
+
+        // 取得該玩家 (PlayerId) 在所有關卡的通關紀錄
+        public async Task<List<GameHistory>> GetPlayerGameHistoryAsync(int playerId)
+        {
+            return await _db.GameHistories
+                .Where(h => h.PlayerId == playerId)
+                .ToListAsync();
+        }
+
+        // 儲存關卡結算、解鎖下一關、發放代幣並寫入交易日誌
+        public async Task<bool> SaveGameProgressAsync(int playerId, int gameId, bool isVictory, int bonusPoints)
+        {
+            // 1. 檢查此玩家是否曾經玩過這一關的紀錄
+            var currentHistory = await _db.GameHistories
+                .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.GameId == gameId);
+
+            if (currentHistory == null)
+            {
+                // 第一次通關：新增紀錄
+                currentHistory = new GameHistory
+                {
+                    PlayerId = playerId,
+                    GameId = gameId,
+                    StageClear = isVictory,
+                    LastPlayedDate = DateTime.Now,
+                    ReceivedReward = bonusPoints > 0
+                };
+                _db.GameHistories.Add(currentHistory);
+            }
+            else
+            {
+                // 重刷關卡：更新最後遊玩時間，且如果之前沒過而這次過了，就改為 true
+                if (isVictory)
+                {
+                    currentHistory.StageClear = true;
+                }
+                currentHistory.LastPlayedDate = DateTime.Now;
+                if (bonusPoints > 0)
+                {
+                    currentHistory.ReceivedReward = true;
+                }
+            }
+
+            // 自動連鎖解鎖「下一關」
+            // 根據大廳邏輯，如果第 1 關過了，就必須在 GameHistory 裡面建立一筆第 2 關的初始化資料
+            if (isVictory)
+            {
+                int nextGameId = gameId + 1;
+                // 假設總關卡到 10 關為止
+                if (nextGameId <= 10)
+                {
+                    var nextHistory = await _db.GameHistories
+                        .FirstOrDefaultAsync(h => h.PlayerId == playerId && h.GameId == nextGameId);
+
+                    if (nextHistory == null)
+                    {
+                        _db.GameHistories.Add(new GameHistory
+                        {
+                            PlayerId = playerId,
+                            GameId = nextGameId,
+                            StageClear = false, // 尚未通關，但建立紀錄代表大廳可以「解鎖」它
+                            LastPlayedDate = DateTime.Now,
+                            ReceivedReward = false
+                        });
+                    }
+                }
+            }
+
+            // 處理金幣獎勵（發放點數並更新主表，同時記錄到 Transaction 歷史表）
+            if (bonusPoints > 0)
+            {
+                // 更新玩家主表 (PlayerProfile) 的 CurrentPoint
+                var player = await _db.PlayerProfiles.FindAsync(playerId);
+                if (player != null)
+                {
+                    player.CurrentPoint = (player.CurrentPoint ?? 0) + bonusPoints;
+                }
+
+                // 寫入點數交易紀錄表 (PointTransaction)
+                var transaction = new PointTransaction
+                {
+                    PlayerId = playerId,
+                    GameId = gameId,                       // 對齊你們的 GameId
+                    Amount = bonusPoints,                  // 例如全對得 10 點
+                    TransactionType = "遊戲關卡獎勵",
+                    TransactionDate = DateTime.Now,
+                    SkinId = 1,                            // 遊戲獎勵非購買造型，給予1
+                    PassportId = null
+                };
+                _db.PointTransactions.Add(transaction);
+            }
+
+            // 執行資料庫異動儲存
+            await _db.SaveChangesAsync();
+            return true;
+        }
     }
 
     

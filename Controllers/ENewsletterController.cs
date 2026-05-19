@@ -21,11 +21,23 @@ namespace PawsPort.Controllers
         [HttpGet]
         [Tags("客服管理")]
 
-        public async Task<IActionResult> GetList()
+        public async Task<IActionResult> GetList([FromQuery] int page = 1, [FromQuery] int pageSize = 10)
         {
-            var result = await _newsletterService.GetAllNewslettersAsync();
+            var enewsletters = await _newsletterService.GetPagedENewslettersAsync(page, pageSize);
 
-            return Success(result, "取得電子報列表成功", 200);
+            if (enewsletters.Items == null || !enewsletters.Items.Any())
+            {
+                return NoContent();
+            }
+
+            var responseData = new
+            {
+                items = enewsletters.Items,
+                currentPage = page,
+                totalPages = enewsletters.TotalPages
+            };
+
+            return Success(responseData, "取得電子報列表成功", 200);
         }
 
 

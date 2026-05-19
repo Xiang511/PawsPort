@@ -6,6 +6,7 @@
         public int UserId { get; set; }
         public string QuestionType { get; set; }
         public string ChiefComplaint { get; set; }
+        public string ChatContent { get; set; }
         public string Csname { get; set; }
         public DateTime QuestionDate { get; set; }
         public string ReplyContent { get; set; }

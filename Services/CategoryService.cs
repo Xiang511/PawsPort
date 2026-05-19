@@ -25,6 +25,8 @@ namespace PawsPort.Services
                                     select new CategoryListDTO
                                     {
                                         // 如果沒有父分類，就給它空字串或 null
+                                        CategoryId=c.CategoryId,
+                                        ParentId= p != null ? p.ParentId : null,
                                         ParentCategoryName = p != null ? p.CategoryName : string.Empty,
                                         CategoryName = c.CategoryName
                                     }).ToListAsync();

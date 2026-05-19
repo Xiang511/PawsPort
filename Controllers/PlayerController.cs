@@ -173,5 +173,53 @@ namespace PawsPort.Controllers
                 return Failure("GET_LOGS_FAILED", "伺服器錯誤", 500);
             }
         }
+
+
+        // GET /api/Player/{id}/game-history
+        /// <summary>
+        /// 遊戲系統：撈取玩家所有關卡的通關歷史紀錄（用來回填大廳地圖）
+        /// </summary>
+        [HttpGet("{id}/game-history")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetGameHistory(int id)
+        {
+            try
+            {
+                var history = await _playerService.GetPlayerGameHistoryAsync(id);
+                return Success(history, "成功取得遊戲歷史紀錄", 200); // 採用你們的統一回傳格式
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 取得遊戲歷史紀錄失敗");
+                return Failure("GAME_HISTORY_GET_FAILED", "取得紀錄發生錯誤", 500);
+            }
+        }
+
+        // POST /api/Player/save-game-result
+        /// <summary>
+        /// 遊戲系統：小遊戲結算，儲存歷史進度並發放獎勵點數
+        /// </summary>
+        [HttpPost("save-game-result")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> SaveGameResult([FromBody] GameResultSubmitDTO dto)
+        {
+            try
+            {
+                if (dto == null) return Failure("INVALID_DATA", "傳入資料不能為空", 400);
+
+                bool result = await _playerService.SaveGameProgressAsync(
+                    dto.PlayerId, dto.GameId, dto.IsVictory, dto.BonusPoints
+                );
+
+                return Success(new { Success = true }, "小遊戲結算成功，已同步至資料庫！", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 儲存小遊戲結算失敗");
+                return Failure("GAME_RESULT_SAVE_FAILED", "儲存結算資料發生錯誤", 500);
+            }
+        }
     }
+    
 }
+    

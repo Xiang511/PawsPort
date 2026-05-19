@@ -1,6 +1,8 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
+using System.Text;
+using System.Text.Json;
 
 namespace PawsPort.Services
 {
@@ -43,22 +45,73 @@ namespace PawsPort.Services
         }
 
 
+
         public async Task<bool> ReplyMessageAsync(int id, LineBotReplyDTO dto)
         {
+
             var message = await _db.LineBots.FindAsync(id);
             if (message == null) return false;
 
-            // 【未來擴充區】
-            // 未來要串接 LINE API 時，可以用 message.UserId 去推播給特定使用者
-            // LineApi.PushMessage(message.UserId.ToString(), dto.ReplyText);
-            // 等你們資料庫如果加了 ReplyContent 跟 ReplyDate 欄位，也可以在這裡存檔：
-            // message.ReplyContent = dto.ReplyText;
-            // message.ReplyDate = DateTime.Now;
-            // await _db.SaveChangesAsync();
+
+            string channelAccessToken = "mfFnFw0or3XIbqvxdYwEQ6Miebdv2RWGhBy6QiBiJqGazJaKEUWjMRcS4Puewqs3TGiiggUZe65wNQ0YoqUH9Vw4A85oxRds1JBnjpndxBqO2L+ZiTWgrGQ06yVElV5nF/jFlXK6T6cVSJjdFPXVeAdB04t89/1O/w1cDnyilFU=";
 
 
-            // 目前先直接回傳 true 代表模擬傳送成功
+            // 等未來 Users 表格加了欄位，這段就會改成類似：
+            // var targetLineId = await _db.Users.Where(u => u.UserId == message.UserId).Select(u => u.LineId).FirstOrDefaultAsync();
+
+            string targetLineId = "";
+
+            // 假資料
+            if (message.UserId == 110)
+            {
+                targetLineId = "U41291dd10ae56ea72207be445b446da3"; //此Id為真
+            }
+            else if (message.UserId == 102)
+            {
+                targetLineId = "U123456nrji3t9tjign3gip3qgnjui3nh";
+            }
+
+            // 查不到就直接中斷，不發送
+            if (string.IsNullOrEmpty(targetLineId))
+            {
+                return false;
+            }
+
+
+            // 3. 準備要傳給 LINE 的資料格式 (JSON)
+            var requestBody = new
+            {
+                to = targetLineId,
+                messages = new[]
+                {
+                    new { type = "text", text = dto.ReplyText }
+                }
+            };
+
+            using (var client = new HttpClient())
+            {
+
+                client.DefaultRequestHeaders.Add("Authorization", $"Bearer {channelAccessToken}");
+
+                var content = new StringContent(
+                    JsonSerializer.Serialize(requestBody),
+                    Encoding.UTF8,
+                    "application/json"
+                );
+
+
+                var response = await client.PostAsync("https://api.line.me/v2/bot/message/push", content);
+
+
+                if (!response.IsSuccessStatusCode)
+                {
+
+                    return false;
+                }
+            }
+
             return true;
         }
     }
 }
+

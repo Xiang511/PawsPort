@@ -14,15 +14,17 @@ namespace PawsPort.Controllers
         private readonly AuthService _authService;
         private readonly MemberProfileService _memberProfileService;
         private readonly LoginLogService _loginLogService;
+        private readonly MemberPermissionService _memberPermissionService;
 
         public AuthController(
             AuthService authService,
             MemberProfileService memberProfileService,
-            LoginLogService loginLogService)
+            LoginLogService loginLogService, MemberPermissionService memberPermissionService)
         {
             _authService = authService;
             _memberProfileService = memberProfileService;
             _loginLogService = loginLogService;
+            _memberPermissionService = memberPermissionService;
         }
 
 
@@ -185,10 +187,30 @@ namespace PawsPort.Controllers
             // 呼叫 RegisterUser（密碼雜湊在 Service 中處理）
             var result = await _authService.RegisterUser(model);
 
-            if (result)
+            if (result.success)
             {
-                Log.Debug("[AuthController] Register - 註冊成功, Email: {Email}", model.Email);
-                return Success(new { Message = "註冊成功", Email = model.Email });
+                Log.Debug("[AuthController] Register - 註冊成功, Email: {Email}, UserId: {UserId}", model.Email, result.userId);
+
+                // 為新用戶分配除會員系統外的所有系統一般成員權限
+                // 寵物系統(2), 遊戲系統(3), 客服系統(4), 社群系統(5) - 都設為一般成員(3)
+                var systemsToAssign = new[] { 2, 3, 4, 5 }; // 除了會員系統(1)外的所有系統
+                var generalMemberRoleId = 3; // 一般成員
+
+                foreach (var systemId in systemsToAssign)
+                {
+                    var permissionDto = new MemberUserSystemRoleDTO
+                    {
+                        UserId = result.userId,
+                        SystemId = systemId,
+                        RoleId = generalMemberRoleId
+                    };
+
+                    await _memberPermissionService.CreateMemberPermissionAsync(permissionDto);
+                    Log.Debug("[AuthController] Register - 已分配權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", 
+                        result.userId, systemId, generalMemberRoleId);
+                }
+
+                return Success(new { Message = "註冊成功", Email = model.Email, UserId = result.userId });
             }
             else
             {
@@ -298,7 +320,7 @@ namespace PawsPort.Controllers
 
             Log.Debug("[AuthController] Logout POST - Exit");
             return Success(true, "登出成功", 200);
-        }       
+        }
         /// <summary>
         /// 取得客戶端真實 IP 位址
         /// </summary>

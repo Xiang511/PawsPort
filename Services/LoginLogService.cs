@@ -50,7 +50,7 @@ namespace PawsPort.Services
                     City = locationInfo?.City,
                     Latitude = locationInfo?.Latitude != null ? (decimal)locationInfo.Latitude : null,
                     Longitude = locationInfo?.Longitude != null ? (decimal)locationInfo.Longitude : null,
-                    LoginTime = DateTime.UtcNow,
+                    LoginTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Taipei Standard Time")),
                     Status = true // true = 成功
                 };
 
@@ -86,7 +86,7 @@ namespace PawsPort.Services
                     City = locationInfo?.City,
                     Latitude = locationInfo?.Latitude != null ? (decimal)locationInfo.Latitude : null,
                     Longitude = locationInfo?.Longitude != null ? (decimal)locationInfo.Longitude : null,
-                    LoginTime = DateTime.UtcNow,
+                    LoginTime = TimeZoneInfo.ConvertTimeFromUtc(DateTime.UtcNow, TimeZoneInfo.FindSystemTimeZoneById("Taipei Standard Time")),
                     Status = false // false = 失敗
                 };
 

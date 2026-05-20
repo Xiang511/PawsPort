@@ -155,10 +155,28 @@ namespace PawsPort.Services
         /// <summary>
         /// 取得使用者的登入歷史記錄
         /// </summary>
-        public async Task<List<LoginActivity>> GetUserLoginHistoryAsync(int userId, int limit = 10)
+        public async Task<List<LoginActivityWithUserDTO>> GetUserLoginHistoryAsync(int userId, int limit = 10)
         {
             return await _context.LoginActivities
                 .Where(log => log.UserId == userId)
+                .Join(_context.UserTables,
+                    log => log.UserId,
+                    user => user.UserId,
+                    (log, user) => new LoginActivityWithUserDTO
+                    {
+                        LogId = log.LogId,
+                        LoginTime = log.LoginTime,
+                        Ipaddress = log.Ipaddress,
+                        DeviceInfo = log.DeviceInfo,
+                        AuthType = log.AuthType,
+                        Country = log.Country,
+                        City = log.City,
+                        Latitude = log.Latitude,
+                        Longitude = log.Longitude,
+                        Status = log.Status,
+                        UserId = log.UserId,
+                        UserName = user.Name
+                    })
                 .OrderByDescending(log => log.LoginTime)
                 .Take(limit)
                 .ToListAsync();
@@ -167,13 +185,34 @@ namespace PawsPort.Services
         /// <summary>
         /// 取得最近的失敗登入嘗試
         /// </summary>
-        public async Task<List<LoginActivity>> GetRecentFailedLoginsAsync(string email, TimeSpan timeWindow)
+        public async Task<List<LoginActivityWithUserDTO>> GetRecentFailedLoginsAsync(string email, TimeSpan timeWindow)
         {
             var cutoffTime = DateTime.UtcNow.Subtract(timeWindow);
 
             return await _context.LoginActivities
                 .Where(log => log.Status == false && 
                              log.LoginTime >= cutoffTime)
+                .GroupJoin(_context.UserTables,
+                    log => log.UserId,
+                    user => user.UserId,
+                    (log, users) => new { log, users })
+                .SelectMany(
+                    x => x.users.DefaultIfEmpty(),
+                    (x, user) => new LoginActivityWithUserDTO
+                    {
+                        LogId = x.log.LogId,
+                        LoginTime = x.log.LoginTime,
+                        Ipaddress = x.log.Ipaddress,
+                        DeviceInfo = x.log.DeviceInfo,
+                        AuthType = x.log.AuthType,
+                        Country = x.log.Country,
+                        City = x.log.City,
+                        Latitude = x.log.Latitude,
+                        Longitude = x.log.Longitude,
+                        Status = x.log.Status,
+                        UserId = x.log.UserId,
+                        UserName = user != null ? user.Name : null
+                    })
                 .OrderByDescending(log => log.LoginTime)
                 .ToListAsync();
         }
@@ -184,10 +223,31 @@ namespace PawsPort.Services
         /// <param name="skip">略過的筆數（分頁用）</param>
         /// <param name="take">取得的筆數（分頁用）</param>
         /// <returns>成功的登入記錄列表</returns>
-        public async Task<List<LoginActivity>> GetAllSuccessfulLoginsAsync(int skip = 0, int take = 100)
+        public async Task<List<LoginActivityWithUserDTO>> GetAllSuccessfulLoginsAsync(int skip = 0, int take = 100)
         {
             return await _context.LoginActivities
                 .Where(log => log.Status == true)
+                .GroupJoin(_context.UserTables,
+                    log => log.UserId,
+                    user => user.UserId,
+                    (log, users) => new { log, users })
+                .SelectMany(
+                    x => x.users.DefaultIfEmpty(),
+                    (x, user) => new LoginActivityWithUserDTO
+                    {
+                        LogId = x.log.LogId,
+                        LoginTime = x.log.LoginTime,
+                        Ipaddress = x.log.Ipaddress,
+                        DeviceInfo = x.log.DeviceInfo,
+                        AuthType = x.log.AuthType,
+                        Country = x.log.Country,
+                        City = x.log.City,
+                        Latitude = x.log.Latitude,
+                        Longitude = x.log.Longitude,
+                        Status = x.log.Status,
+                        UserId = x.log.UserId,
+                        UserName = user != null ? user.Name : null
+                    })
                 .OrderByDescending(log => log.LoginTime)
                 .Skip(skip)
                 .Take(take)
@@ -200,10 +260,31 @@ namespace PawsPort.Services
         /// <param name="skip">略過的筆數（分頁用）</param>
         /// <param name="take">取得的筆數（分頁用）</param>
         /// <returns>失敗的登入記錄列表</returns>
-        public async Task<List<LoginActivity>> GetAllFailedLoginsAsync(int skip = 0, int take = 100)
+        public async Task<List<LoginActivityWithUserDTO>> GetAllFailedLoginsAsync(int skip = 0, int take = 100)
         {
             return await _context.LoginActivities
                 .Where(log => log.Status == false)
+                .GroupJoin(_context.UserTables,
+                    log => log.UserId,
+                    user => user.UserId,
+                    (log, users) => new { log, users })
+                .SelectMany(
+                    x => x.users.DefaultIfEmpty(),
+                    (x, user) => new LoginActivityWithUserDTO
+                    {
+                        LogId = x.log.LogId,
+                        LoginTime = x.log.LoginTime,
+                        Ipaddress = x.log.Ipaddress,
+                        DeviceInfo = x.log.DeviceInfo,
+                        AuthType = x.log.AuthType,
+                        Country = x.log.Country,
+                        City = x.log.City,
+                        Latitude = x.log.Latitude,
+                        Longitude = x.log.Longitude,
+                        Status = x.log.Status,
+                        UserId = x.log.UserId,
+                        UserName = user != null ? user.Name : null
+                    })
                 .OrderByDescending(log => log.LoginTime)
                 .Skip(skip)
                 .Take(take)

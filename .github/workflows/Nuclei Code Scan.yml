@@ -1,0 +1,29 @@
+name: Nuclei Code Scan (Manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      scan_tags:
+        description: '要掃描的 Nuclei Tags'
+        required: true
+        default: 'file,token-spray,exposure'
+
+jobs:
+  nuclei-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run Nuclei Scan
+        uses: projectdiscovery/nuclei-action@v3
+        with:
+          # 關鍵修正：v3 現在只接受 args，我們把目標、模式、標籤與輸出檔案全部寫在這裡
+          args: "-target . -type file -file -tags ${{ github.event.inputs.scan_tags }} -output report.txt"
+
+      - name: Upload Scan Report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: nuclei-security-report
+          path: report.txt

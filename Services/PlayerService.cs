@@ -354,6 +354,92 @@ namespace PawsPort.Services
             await _db.SaveChangesAsync();
             return true;
         }
+
+        public async Task EquipSkinAsync(int playerId, int skinId)
+        {
+            // 1. 驗證玩家是否存在
+            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == playerId);
+            if (player == null) throw new Exception("玩家不存在");
+
+            // 2. 驗證玩家是否擁有該造型
+            var ownedSkin = await _db.Inventories
+                .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.SkinId == skinId);
+            if (ownedSkin == null) throw new Exception("玩家未擁有此造型");
+
+            // 3. 取消該玩家的所有其他 Enable 狀態
+            var otherEnabledSkins = _db.Inventories
+                .Where(i => i.PlayerId == playerId && i.Enable);
+
+            foreach (var skin in otherEnabledSkins)
+            {
+                skin.Enable = false;
+            }
+
+            // 4. 啟用新的造型
+            ownedSkin.Enable = true;
+
+            await _db.SaveChangesAsync();
+            Log.Information("玩家 {PlayerId} 裝備造型 {SkinId}", playerId, skinId);
+        }
+
+        public async Task<(int remainingPoints, int acquiredSkinId)> BuySkinAsync(int playerId, int skinId)
+        {
+            // 1. 驗證玩家
+            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == playerId);
+            if (player == null) throw new Exception("玩家不存在");
+
+            // 2. 驗證造型
+            var skin = await _db.SkinShops.FirstOrDefaultAsync(s => s.SkinId == skinId && s.IsAvailable);
+            if (skin == null) throw new Exception("造型不存在或不可購買");
+
+            // 3. 檢查是否已擁有
+            var alreadyOwned = await _db.Inventories
+                .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.SkinId == skinId);
+            if (alreadyOwned != null) throw new Exception("玩家已擁有此造型");
+
+            // 4. 驗證點數
+            int currentPoints = player.CurrentPoint ?? 0;
+            if (currentPoints < skin.Price) throw new Exception("點數不足");
+
+            // 5. 扣除點數
+            player.CurrentPoint = currentPoints - skin.Price;
+
+            // 6. 添加到 Inventory
+            var newInventory = new Inventory
+            {
+                PlayerId = playerId,
+                SkinId = skinId,
+                Enable = false,
+                CreateTime = DateTime.Now
+            };
+            _db.Inventories.Add(newInventory);
+
+            // 7. 記錄獲取日誌
+            var acquisitionLog = new ItemAcquisitionLog
+            {
+                PlayerId = playerId,
+                SkinId = skinId,
+                CreateTime = DateTime.Now,
+                AcquireType = "Purchase"
+            };
+            _db.ItemAcquisitionLogs.Add(acquisitionLog);
+
+            // 8. 記錄點數交易
+            var pointTransaction = new PointTransaction
+            {
+                PlayerId = playerId,
+                SkinId = skinId,
+                Amount = -skin.Price,
+                TransactionType = "Skin Purchase",
+                TransactionDate = DateTime.Now
+            };
+            _db.PointTransactions.Add(pointTransaction);
+
+            await _db.SaveChangesAsync();
+            Log.Information("玩家 {PlayerId} 購買造型 {SkinId}，消費 {Price} 點", playerId, skinId, skin.Price);
+
+            return (player.CurrentPoint.Value, skinId);
+        }
     }
 
     

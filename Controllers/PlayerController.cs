@@ -219,6 +219,58 @@ namespace PawsPort.Controllers
                 return Failure("GAME_RESULT_SAVE_FAILED", "儲存結算資料發生錯誤", 500);
             }
         }
+
+        // PUT /api/Player/{playerId}/equip-skin
+        [HttpPut("{playerId}/equip-skin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> EquipSkin(int playerId, [FromBody] EquipSkinDTO dto)
+        {
+            if (dto == null || dto.SkinId <= 0)
+                return Failure("INVALID_DATA", "造型 ID 不能為空", 400);
+
+            try
+            {
+                await _playerService.EquipSkinAsync(playerId, dto.SkinId);
+                return Success(new { Success = true }, "造型裝備成功", 200);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("不存在") || ex.Message.Contains("未擁有"))
+                    return Failure("EQUIP_SKIN_FAILED", ex.Message, 404);
+
+                Log.Error(ex, "PlayerController: 裝備造型失敗");
+                return Failure("EQUIP_SKIN_FAILED", "裝備造型失敗", 500);
+            }
+        }
+
+        // POST /api/Player/{playerId}/buy-skin
+        [HttpPost("{playerId}/buy-skin")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> BuySkin(int playerId, [FromBody] BuySkinDTO dto)
+        {
+            if (dto == null || dto.SkinId <= 0)
+                return Failure("INVALID_DATA", "造型 ID 不能為空", 400);
+
+            try
+            {
+                var (remainingPoints, acquiredSkinId) = await _playerService.BuySkinAsync(playerId, dto.SkinId);
+                return Success(new { remainingPoints, acquiredSkinId }, "購買成功，已添加到收藏", 200);
+            }
+            catch (Exception ex)
+            {
+                if (ex.Message.Contains("不存在") || ex.Message.Contains("已擁有"))
+                    return Failure("BUY_SKIN_FAILED", ex.Message, 404);
+                if (ex.Message.Contains("點數不足"))
+                    return Failure("INSUFFICIENT_POINTS", "點數不足", 400);
+
+                Log.Error(ex, "PlayerController: 購買造型失敗");
+                return Failure("BUY_SKIN_FAILED", "購買失敗", 500);
+            }
+        }
     }
     
 }

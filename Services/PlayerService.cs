@@ -141,6 +141,16 @@ namespace PawsPort.Services
             var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == EditDTO.PlayerId);
             if (player == null) throw new Exception("玩家不存在");
 
+            // 更新玩家名稱
+            if (!string.IsNullOrWhiteSpace(EditDTO.UserName))
+            {
+                // 驗證名字長度
+                if (EditDTO.UserName.Length > 50)
+                    throw new Exception("玩家名字不能超過 50 個字");
+
+                player.UserName = EditDTO.UserName.Trim();
+            }
+
             // 更新後台可修改的數值 (例如點數)
             player.CurrentPoint = EditDTO.Point;
 
@@ -169,7 +179,7 @@ namespace PawsPort.Services
             }
 
             await _db.SaveChangesAsync();
-            Log.Information("PlayerService: 玩家 {PlayerId} 的資料與造型 {SkinId} 狀態已更新", EditDTO.PlayerId, EditDTO.SkinId);
+            Log.Information("PlayerService: 玩家 {PlayerId} 的資料與造型 {SkinId} 狀態已更新，名字: {UserName}", EditDTO.PlayerId, EditDTO.SkinId, EditDTO.UserName);
         }
 
         public async Task DeletePlayerAsync(int id)

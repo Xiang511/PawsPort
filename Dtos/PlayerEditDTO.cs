@@ -6,5 +6,6 @@
         public int Point { get; set; }
         public int SkinId { get; set; }
         public bool Enable { get; set; }
+        public string UserName { get; set; }
     }
 }

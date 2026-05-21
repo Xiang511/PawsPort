@@ -28,7 +28,8 @@ namespace PawsPort.Services
                                         CategoryId=c.CategoryId,
                                         ParentId= p != null ? p.ParentId : null,
                                         ParentCategoryName = p != null ? p.CategoryName : string.Empty,
-                                        CategoryName = c.CategoryName
+                                        CategoryName = c.CategoryName,
+                                        Level = c.Level
                                     }).ToListAsync();
 
             return categories;
@@ -56,7 +57,7 @@ namespace PawsPort.Services
 
                 //檢查parent id是否存在，且level >=2(最多只能到1)
                 if (Parent == null) throw new Exception("找不到指定的父分類");
-                if (Parent.Level >= 2) throw new Exception("目前僅支援三層分類結構，該分類無法再擁有子分類");
+                if (Parent.Level >= 1) throw new Exception("目前僅支援三層分類結構，該分類無法再擁有子分類");
 
                 //驗證ok，此分類的level基於父分類level+1
                 TargetLevel = (Parent.Level ?? 0) + 1;
@@ -118,7 +119,7 @@ namespace PawsPort.Services
                 var Parent = await _context.Categories
                     .FirstOrDefaultAsync(p => p.CategoryId == categorySaveDTO.ParentId && p.IsExist == true);
                 if (Parent == null) throw new Exception("找不到指定的父分類");
-                if (Parent.Level >= 2) throw new Exception("分類層級過深，不支援此結構"); //最多層級到2，由於必須+1，父分類層級最多到1
+                if (Parent.Level >= 1) throw new Exception("分類層級過深，不支援此結構"); //最多層級到1，由於必須+1，父分類層級最多到0
                 
                 TargetLevel = (Parent.Level ?? 0) + 1;
             }

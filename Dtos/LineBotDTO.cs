@@ -8,5 +8,8 @@
         public string QuestionType { get; set; }
         public string ChiefComplaint { get; set; }
         public string ChatContent { get; set; }
+        public string? ReplyContent { get; set; }
+        public DateTime? ReplyDate { get; set; }
+        public string? Status { get; set; }
     }
 }

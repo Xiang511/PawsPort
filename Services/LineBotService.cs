@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using System.Text;
@@ -9,29 +9,27 @@ namespace PawsPort.Services
     public class LineBotService
     {
         private readonly PetDbContext _db;
+        private readonly IConfiguration _config;
 
-        public LineBotService(PetDbContext db)
+        public LineBotService(PetDbContext db, IConfiguration config)
         {
             _db = db;
+            _config = config;
         }
 
 
-        public async Task<List<LineBotDTO>> GetAllMessagesAsync()
+        public async Task<(List<LineBotDTO> Items, int TotalPages)> GetPagedMessagesAsync(int page, int pageSize = 10)
         {
-            var typeOrder = new List<string>
-            {
-                "認養", "醫療", "帳號", "系統", "遊戲", "其他"
-            };
+            var query = _db.LineBots.AsQueryable();
 
-            var listFromDb = await _db.LineBots.ToListAsync();
+            query = query.OrderByDescending(b => b.ChatDate);
 
-            return listFromDb
-                .OrderBy(b =>
-                {
-                    int index = typeOrder.IndexOf(b.QuestionType);
-                    return index == -1 ? 99 : index;
-                })
-                .ThenByDescending(b => b.ChatDate)
+            int totalItems = await query.CountAsync();
+            int totalPages = (int)Math.Ceiling((double)totalItems / pageSize);
+
+            var items = await query
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
                 .Select(b => new LineBotDTO
                 {
                     Id = b.Id,
@@ -39,9 +37,14 @@ namespace PawsPort.Services
                     ChatDate = b.ChatDate,
                     QuestionType = b.QuestionType,
                     ChiefComplaint = b.ChiefComplaint,
-                    ChatContent = b.ChatContent
+                    ChatContent = b.ChatContent,
+                    ReplyContent = b.ReplyContent,
+                    ReplyDate = b.ReplyDate,
+                    Status = b.Status
                 })
-                .ToList();
+                .ToListAsync();
+
+            return (items, totalPages);
         }
 
 
@@ -53,7 +56,7 @@ namespace PawsPort.Services
             if (message == null) return false;
 
 
-            string channelAccessToken = "mfFnFw0or3XIbqvxdYwEQ6Miebdv2RWGhBy6QiBiJqGazJaKEUWjMRcS4Puewqs3TGiiggUZe65wNQ0YoqUH9Vw4A85oxRds1JBnjpndxBqO2L+ZiTWgrGQ06yVElV5nF/jFlXK6T6cVSJjdFPXVeAdB04t89/1O/w1cDnyilFU=";
+            string channelAccessToken = _config["LineBotToken"];
 
 
             // 等未來 Users 表格加了欄位，這段就會改成類似：
@@ -64,7 +67,7 @@ namespace PawsPort.Services
             // 假資料
             if (message.UserId == 110)
             {
-                targetLineId = "U41291dd10ae56ea72207be445b446da3"; //此Id為真
+                targetLineId = _config["TestLineId"];
             }
             else if (message.UserId == 102)
             {
@@ -90,27 +93,47 @@ namespace PawsPort.Services
 
             using (var client = new HttpClient())
             {
-
                 client.DefaultRequestHeaders.Add("Authorization", $"Bearer {channelAccessToken}");
-
                 var content = new StringContent(
                     JsonSerializer.Serialize(requestBody),
                     Encoding.UTF8,
                     "application/json"
                 );
 
-
                 var response = await client.PostAsync("https://api.line.me/v2/bot/message/push", content);
 
-
-                if (!response.IsSuccessStatusCode)
+                if (response.IsSuccessStatusCode)
                 {
+                    message.Status = "已回覆";
+                    message.ReplyContent = dto.ReplyText;
+                    message.ReplyDate = DateTime.Now;
 
-                    return false;
+                    _db.LineBots.Update(message);
+                    await _db.SaveChangesAsync();
+
+                    return true;
                 }
-            }
 
-            return true;
+                return false;
+            }
+        }
+
+
+        // 處理 LINE 傳來的客訴訊息並存入資料庫
+        public async Task SaveReceivedMessageAsync(string lineUserId, string userRawMessage)
+        {
+            var newChat = new LineBot
+            {
+                // 實務上會用 lineUserId 去查對應的會員 ID，這裡先寫死 110 測試
+                UserId = 110,
+                ChatContent = userRawMessage,
+                ChatDate = DateTime.Now,
+                QuestionType = "其他", // 預設分類
+                Status = "未回覆" // 預設為未回覆
+            };
+
+            _db.LineBots.Add(newChat);
+            await _db.SaveChangesAsync();
         }
     }
 }

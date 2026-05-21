@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -26,6 +27,7 @@ namespace PawsPort.Controllers
         /// <param name="category">題目分類（選填）</param>
         /// <returns>包含題目內容與分類選項的 JSON</returns>
         /// <response code="200">成功取得題庫列表</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(string category = "")
@@ -56,6 +58,7 @@ namespace PawsPort.Controllers
         /// <param name="createDto">題目建立資料</param>
         /// <returns>建立成功的題目資料</returns>
         /// <response code="200">成功新增題目</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpPost]
         [ProducesResponseType(typeof(QuestionsCreateDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Create(QuestionsCreateDTO createDto)
@@ -89,6 +92,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功更新題目</response>
         /// <response code="400">ID 不一致</response>
         /// <response code="404">找不到該題目</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(QuestionsEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -120,6 +124,7 @@ namespace PawsPort.Controllers
         /// <param name="id">題目 ID</param>
         /// <response code="200">成功刪除題目</response>
         /// <response code="404">找不到欲刪除的題目</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -140,11 +145,12 @@ namespace PawsPort.Controllers
             }
         }
 
-       // GET: api/Questions/game-level?category=認養須知
+        // GET: api/Questions/game-level?category=認養須知
         /// <summary>
         /// 遊戲前台：根據關卡分類取得題目(隨機)
         /// </summary>
         /// <param name="category">關卡分類名稱 (GameName，例如：認養須知)</param>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [HttpGet("game-level")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGameLevelQuestions([FromQuery] string category)

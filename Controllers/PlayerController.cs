@@ -1,4 +1,5 @@
 using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -27,6 +28,7 @@ namespace PawsPort.Controllers
         /// <param name="page">頁碼（預設為 1）</param>
         /// <returns>分頁後的玩家列表與總筆數</returns>
         /// <response code="200">成功取得玩家列表</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(int page = 1)
@@ -62,6 +64,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功更新玩家資訊</response>
         /// <response code="400">資料格式錯誤或 ID 不一致</response>
         /// <response code="404">找不到該玩家或對應庫存</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(PlayerEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -93,6 +96,7 @@ namespace PawsPort.Controllers
         /// <param name="id">玩家 ID</param>
         /// <response code="200">成功刪除玩家</response>
         /// <response code="404">找不到該玩家</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -122,6 +126,7 @@ namespace PawsPort.Controllers
         /// <param name="page">頁碼（預設為 1）</param>
         /// <returns>搜尋結果清單</returns>
         /// <response code="200">成功完成搜尋</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpGet("search")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string query, int page = 1)
@@ -158,6 +163,7 @@ namespace PawsPort.Controllers
         /// <param name="id">玩家 ID</param>
         /// <returns>玩家的異動紀錄列表</returns>
         /// <response code="200">成功取得紀錄</response>
+        [Authorize(Policy = "遊戲系統_普通管理員")]
         [HttpGet("{id}/logs")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPlayerLogs(int id)
@@ -179,6 +185,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 遊戲前台：撈取玩家所有關卡的通關歷史紀錄
         /// </summary>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [HttpGet("{id}/game-history")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGameHistory(int id)
@@ -199,6 +206,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 遊戲前台：遊戲結算，儲存歷史進度並發放獎勵點數
         /// </summary>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [HttpPost("save-game-result")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> SaveGameResult([FromBody] GameResultSubmitDTO dto)
@@ -224,6 +232,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 遊戲前台：玩家編輯裝備造型
         /// </summary>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [HttpPut("{playerId}/equip-skin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -252,6 +261,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 遊戲前台：玩家購買造型
         /// </summary>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [HttpPost("{playerId}/buy-skin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -283,6 +293,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 遊戲前台：取得玩家收藏庫內容
         /// </summary>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [HttpGet("{playerId}/inventory")]
         [ProducesResponseType(typeof(List<PlayerSkinDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]

@@ -374,6 +374,7 @@ namespace PawsPort.Controllers
         /// <returns>玩家資料 (PlayerId、名稱、點數等)</returns>
         /// <response code="200">成功取得玩家資料</response>
         /// <response code="404">找不到對應的玩家</response>
+        [Authorize(Policy = "遊戲系統_一般成員")]
         [AllowAnonymous]
         [HttpGet("{userId}/player-profile")]
         [ProducesResponseType(typeof(PlayerListDTO), StatusCodes.Status200OK)]

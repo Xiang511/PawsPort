@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -6,6 +7,7 @@ using Serilog;
 
 namespace PawsPort.Controllers
 {
+    [Authorize(Policy = "遊戲系統_普通管理員")]
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]

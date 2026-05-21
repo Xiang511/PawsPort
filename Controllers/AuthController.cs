@@ -241,23 +241,28 @@ namespace PawsPort.Controllers
             var ipAddress = GetClientIpAddress();
             var userAgent = Request.Headers["User-Agent"].ToString();
 
-            if (model.UserEmail == null)
+            // 驗證輸入
+            if (string.IsNullOrWhiteSpace(model.UserEmail))
             {
-                // 記錄失敗的登入嘗試
+                // 記錄失敗的登入嘗試（無論如何都要記錄）
                 await _loginLogService.LogFailedLoginAsync(
-                    model.UserEmail ?? "unknown",
+                    "unknown",
                     ipAddress,
                     userAgent,
-                    "使用者不存在");
+                    "Email 為空");
 
-                return Failure("使用者不存在", "User_Not_Found", 404);
+                return Failure("Email 不可為空", "Invalid_Input", 400);
             }
 
+            // 查詢使用者資訊
             var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.UserEmail);
+
+            // 無論使用者是否存在，都嘗試驗證（避免時序攻擊）
             var token = await _authService.ValidateUser(model.UserEmail, model.Password);
 
-            if (!string.IsNullOrEmpty(token))
+            if (!string.IsNullOrEmpty(token) && userInfo != null)
             {
+                // 登入成功
                 Response.Cookies.Append("X-Access-Token", token, new CookieOptions
                 {
                     HttpOnly = true,
@@ -279,13 +284,16 @@ namespace PawsPort.Controllers
             }
             else
             {
-                // 記錄失敗的登入嘗試
+                // 登入失敗（無論是帳號不存在還是密碼錯誤，都記錄）
                 await _loginLogService.LogFailedLoginAsync(
                     model.UserEmail,
                     ipAddress,
                     userAgent,
                     "帳號或密碼錯誤");
 
+                Log.Debug("[AuthController] Login - 登入失敗, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
+
+                // 統一返回相同的錯誤訊息（避免洩漏帳號是否存在）
                 return Failure("帳號或密碼錯誤", "Invalid_Credentials", 401);
             }
         }

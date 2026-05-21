@@ -1,0 +1,41 @@
+﻿namespace PawsPort.Dtos
+{
+    public class ArticleDetailDTO
+    {
+        public int ArticleId { get; set; }
+
+        public DateTime CreateAt { get; set; }
+
+        public DateTime? LastEditTime { get; set; }
+
+        public string Title { get; set; }
+
+        public string Content { get; set; }
+
+        public int Status { get; set; }
+
+        public int ViewCount { get; set; }
+
+        public int ReportedCount { get; set; }
+
+        public DateTime? LastReported { get; set; }
+
+        public DateTime? EventStartDate { get; set; }
+
+        public DateTime? EventEndDate { get; set; }
+
+        public string EventLocation { get; set; }
+
+        public bool IsExist { get; set; }
+
+        public int UserId { get; set; }
+
+        public int CategoryId { get; set; }
+
+        public int? DeleteTypeId { get; set; }
+
+        public string DeleteNote { get; set; }
+
+        public bool IsActive { get; set; }
+    }
+}

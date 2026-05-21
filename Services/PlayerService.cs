@@ -458,18 +458,7 @@ namespace PawsPort.Services
                 UserName = player.UserName,
                 CurrentPoint = player.CurrentPoint ?? 0,
 
-                OwnedSkins = _db.Inventories
-                    .Where(i => i.PlayerId == player.PlayerId)
-                    .Join(_db.SkinShops,
-                        i => i.SkinId,
-                        s => s.SkinId,
-                        (i, s) => new PlayerSkinDTO
-                        {
-                            SkinId = s.SkinId,
-                            SkinName = s.SkinName,
-                            SkinImage = s.SkinImage,
-                            Enable = i.Enable
-                        }).ToList(),
+                OwnedSkins = GetPlayerSkinsWithDefault(player.PlayerId),
 
                 CreateTime = _db.Inventories
                     .Where(i => i.PlayerId == player.PlayerId)
@@ -539,18 +528,7 @@ namespace PawsPort.Services
                 UserName = player.UserName,
                 CurrentPoint = player.CurrentPoint ?? 0,
 
-                OwnedSkins = _db.Inventories
-                    .Where(i => i.PlayerId == player.PlayerId)
-                    .Join(_db.SkinShops,
-                        i => i.SkinId,
-                        s => s.SkinId,
-                        (i, s) => new PlayerSkinDTO
-                        {
-                            SkinId = s.SkinId,
-                            SkinName = s.SkinName,
-                            SkinImage = s.SkinImage,
-                            Enable = i.Enable
-                        }).ToList(),
+                OwnedSkins = GetPlayerSkinsWithDefault(player.PlayerId),
 
                 CreateTime = _db.Inventories
                     .Where(i => i.PlayerId == player.PlayerId)
@@ -578,6 +556,46 @@ namespace PawsPort.Services
                     .FirstOrDefault()
             };
         }
+
+        // 取得玩家造型列表，並自動加入預設造型 (SkinId=2)
+        private List<PlayerSkinDTO> GetPlayerSkinsWithDefault(int playerId)
+        {
+            // 1. 取得玩家已擁有的所有造型
+            var ownedSkins = _db.Inventories
+                .Where(i => i.PlayerId == playerId)
+                .Join(_db.SkinShops,
+                    i => i.SkinId,
+                    s => s.SkinId,
+                    (i, s) => new PlayerSkinDTO
+                    {
+                        SkinId = s.SkinId,
+                        SkinName = s.SkinName,
+                        SkinImage = s.SkinImage,
+                        Enable = i.Enable
+                    }).ToList();
+
+            // 2. 檢查是否已擁有預設造型 (SkinId=2)
+            var hasDefaultSkin = ownedSkins.Any(s => s.SkinId == 2);
+
+            // 3. 如果沒有預設造型，自動加入
+            if (!hasDefaultSkin)
+            {
+                var defaultSkin = _db.SkinShops.FirstOrDefault(s => s.SkinId == 2);
+                if (defaultSkin != null)
+                {
+                    ownedSkins.Insert(0, new PlayerSkinDTO
+                    {
+                        SkinId = defaultSkin.SkinId,
+                        SkinName = defaultSkin.SkinName,
+                        SkinImage = defaultSkin.SkinImage,
+                        Enable = false // 預設造型預設不裝備
+                    });
+                }
+            }
+
+            return ownedSkins;
+        }
+
 
 
     }

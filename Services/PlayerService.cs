@@ -440,7 +440,65 @@ namespace PawsPort.Services
 
             return (player.CurrentPoint.Value, skinId);
         }
+
+
+        /// 依 UserId 查詢對應的玩家資料
+        public async Task<PlayerListDTO> GetPlayerByUserIdAsync(int userId)
+        {
+            var player = await _db.PlayerProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (player == null)
+                return null;
+
+            // 使用與 GetPlayerListAsync 相同的邏輯來組建 DTO
+            return new PlayerListDTO
+            {
+                PlayerId = player.PlayerId,
+                UserName = player.UserName,
+                CurrentPoint = player.CurrentPoint ?? 0,
+
+                OwnedSkins = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .Join(_db.SkinShops,
+                        i => i.SkinId,
+                        s => s.SkinId,
+                        (i, s) => new PlayerSkinDTO
+                        {
+                            SkinId = s.SkinId,
+                            SkinName = s.SkinName,
+                            SkinImage = s.SkinImage,
+                            Enable = i.Enable
+                        }).ToList(),
+
+                CreateTime = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .OrderBy(i => i.CreateTime)
+                    .Select(i => i.CreateTime)
+                    .FirstOrDefault(),
+
+                SkinCount = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .Count(),
+
+                EnabledSkinId = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId && i.Enable)
+                    .Select(i => (int?)i.SkinId)
+                    .FirstOrDefault(),
+
+                MaxGameId = _db.GameHistories
+                    .Where(h => h.PlayerId == player.PlayerId)
+                    .Max(h => (int?)h.GameId) ?? 0,
+
+                LastPlayedDate = _db.GameHistories
+                    .Where(h => h.PlayerId == player.PlayerId)
+                    .OrderByDescending(h => h.LastPlayedDate)
+                    .Select(h => h.LastPlayedDate)
+                    .FirstOrDefault()
+            };
+        }
     }
+
 
     
 }

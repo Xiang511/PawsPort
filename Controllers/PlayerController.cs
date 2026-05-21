@@ -249,7 +249,6 @@ namespace PawsPort.Controllers
         }
 
         // POST /api/Player/{playerId}/buy-skin
-        // PUT /api/Player/{playerId}/equip-skin
         /// <summary>
         /// 遊戲前台：玩家購買造型
         /// </summary>
@@ -278,7 +277,30 @@ namespace PawsPort.Controllers
                 return Failure("BUY_SKIN_FAILED", "購買失敗", 500);
             }
         }
+
+
+        // GET /api/Player/{playerId}/inventory
+        /// <summary>
+        /// 遊戲前台：取得玩家收藏庫內容
+        /// </summary>
+        [HttpGet("{playerId}/inventory")]
+        [ProducesResponseType(typeof(List<PlayerSkinDTO>), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<IActionResult> GetInventory(int playerId)
+        {
+            try
+            {
+                var inventory = await _playerService.GetInventoryAsync(playerId);
+                return Success(inventory, "獲得玩家收藏庫成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 獲得玩家收藏庫失敗");
+                return Failure("GET_INVENTORY_FAILED", "獲得玩家收藏庫失敗", 500);
+            }
+        }
+
     }
-    
+
 }
     

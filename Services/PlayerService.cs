@@ -497,8 +497,34 @@ namespace PawsPort.Services
                     .FirstOrDefault()
             };
         }
+
+        // 查詢玩家收藏庫
+        public async Task<List<PlayerSkinDTO>> GetInventoryAsync(int playerId)
+        {
+            var player = await _db.PlayerProfiles
+                .FirstOrDefaultAsync(p => p.PlayerId == playerId);
+
+            if (player == null)
+                return new List<PlayerSkinDTO>();
+
+            // 取得該玩家擁有的所有造型詳細資訊
+            return await _db.Inventories
+                .Where(i => i.PlayerId == playerId)
+                .Join(_db.SkinShops,
+                    i => i.SkinId,
+                    s => s.SkinId,
+                    (i, s) => new PlayerSkinDTO
+                    {
+                        SkinId = s.SkinId,
+                        SkinName = s.SkinName,
+                        SkinImage = s.SkinImage,
+                        Enable = i.Enable
+                    })
+                .ToListAsync();
+        }
+
     }
 
 
-    
+
 }

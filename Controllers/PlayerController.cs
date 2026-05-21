@@ -177,7 +177,7 @@ namespace PawsPort.Controllers
 
         // GET /api/Player/{id}/game-history
         /// <summary>
-        /// 遊戲系統：撈取玩家所有關卡的通關歷史紀錄（用來回填大廳地圖）
+        /// 遊戲前台：撈取玩家所有關卡的通關歷史紀錄
         /// </summary>
         [HttpGet("{id}/game-history")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -197,7 +197,7 @@ namespace PawsPort.Controllers
 
         // POST /api/Player/save-game-result
         /// <summary>
-        /// 遊戲系統：小遊戲結算，儲存歷史進度並發放獎勵點數
+        /// 遊戲前台：遊戲結算，儲存歷史進度並發放獎勵點數
         /// </summary>
         [HttpPost("save-game-result")]
         [ProducesResponseType(StatusCodes.Status200OK)]
@@ -221,6 +221,9 @@ namespace PawsPort.Controllers
         }
 
         // PUT /api/Player/{playerId}/equip-skin
+        /// <summary>
+        /// 遊戲前台：玩家編輯裝備造型
+        /// </summary>
         [HttpPut("{playerId}/equip-skin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -246,6 +249,10 @@ namespace PawsPort.Controllers
         }
 
         // POST /api/Player/{playerId}/buy-skin
+        // PUT /api/Player/{playerId}/equip-skin
+        /// <summary>
+        /// 遊戲前台：玩家購買造型
+        /// </summary>
         [HttpPost("{playerId}/buy-skin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

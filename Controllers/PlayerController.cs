@@ -311,6 +311,31 @@ namespace PawsPort.Controllers
             }
         }
 
+        // GET /api/Player/{playerId}
+        /// <summary>
+        /// 遊戲前台：根據 PlayerId 取得玩家資料
+        /// </summary>
+        [Authorize(Policy = "遊戲系統_一般成員")]
+        [HttpGet("{playerId}")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        public async Task<IActionResult> GetPlayerById(int playerId)
+        {
+            try
+            {
+                var player = await _playerService.GetPlayerByIdAsync(playerId);
+                if (player == null)
+                    return Failure("PLAYER_NOT_FOUND", "玩家不存在", 404);
+
+                return Success(player, "成功取得玩家資料", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "PlayerController: 取得玩家資料失敗");
+                return Failure("GET_PLAYER_FAILED", "取得玩家資料失敗", 500);
+            }
+        }
+
+
     }
 
 }

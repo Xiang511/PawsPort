@@ -79,6 +79,11 @@ builder.Services.AddControllersWithViews();
 
 //auth
 builder.Services.AddScoped<AuthService>();
+builder.Services.AddScoped<LoginLogService>();
+builder.Services.AddScoped<GoogleOAuthService>();
+
+// 註冊 HttpClient
+builder.Services.AddHttpClient();
 
 
 

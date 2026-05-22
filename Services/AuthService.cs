@@ -101,7 +101,7 @@ namespace PawsPort.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public async Task<bool> RegisterUser(UserRegisterDTO model)
+        public async Task<(bool success, int userId)> RegisterUser(UserRegisterDTO model)
         {
             try
             {
@@ -111,7 +111,7 @@ namespace PawsPort.Services
 
                 if (existingUser)
                 {
-                    return false; // Email 已被註冊
+                    return (false, 0); // Email 已被註冊
                 }
 
                 // 2. 先建立 UserTable 實體並儲存以取得 UserId
@@ -144,11 +144,11 @@ namespace PawsPort.Services
                 _context.UserAuthTables.Add(userAuth);
                 await _context.SaveChangesAsync();
 
-                return true; // 註冊成功
+                return (true, userEntity.UserId); // 註冊成功，返回 UserId
             }
             catch (Exception)
             {
-                return false; // 註冊失敗
+                return (false, 0); // 註冊失敗
             }
         }
     }

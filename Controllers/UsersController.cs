@@ -20,9 +20,9 @@ namespace PawsPort.Controllers
         private readonly PetAdoptionService _petAdoptionService;
         private readonly PetPassportService _petPassportService;
         private readonly PlayerService _playerService;
+        private readonly ArticleService _articleService;
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService)
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PlayerService playerService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService,)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -531,6 +531,28 @@ namespace PawsPort.Controllers
                 return Failure("ERROR", "取得玩家資料失敗", 500);
             }
 
+
+        }
+        //取得所有文章
+        /// <summary>
+        /// 按照篩選條件取得所有文章
+        /// </summary>
+        /// <param name="queryDto">篩選條件</param>
+        /// <returns></returns>
+        /// <response code="200">取得所有文章成功</response>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpGet]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Tags("社群管理")]
+
+        public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
+        {
+            var result = await _articleService.GetAllArticlesAsync(
+                status: queryDto.Status,
+                isActive: queryDto.IsActive,
+                userId: queryDto.UserId
+                );
+            return Success(result, "取得所有文章成功", 200);
 
         }
     }

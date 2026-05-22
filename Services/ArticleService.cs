@@ -1,8 +1,10 @@
 ﻿
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
-using Microsoft.EntityFrameworkCore;
 using System.Diagnostics;
+using System.Text.RegularExpressions;
+
 
 namespace PawsPort.Services
 {
@@ -181,24 +183,28 @@ namespace PawsPort.Services
                 query = query.Where(x => x.a.UserId == userId.Value);
             }
             //
-            var ArticleList = await query.Select(x => new ArticleListDTO
+            var ArticleList = await query.Select(x => new
             {
-                ArticleId = x.a.ArticleId,
-                Title = x.a.Title,
-                //Summary = x.a.Content.Length > 100 ? x.a.Content.Substring(0, 100) + "..." : x.a.Content,
-                CreateAt = x.a.CreateAt,
-                LastEditTime = x.a.LastEditTime,
-                Status = x.a.Status,
-                ViewCount = x.a.ViewCount,
-                EventStartDate = x.a.EventStartDate,
-                EventEndDate = x.a.EventEndDate,
-                EventLocation = x.a.EventLocation,
-                CategoryName = x.c.CategoryName,
-                UserName = x.u.Name
+                DTO = new ArticleListDTO
+                {
+                    ArticleId = x.a.ArticleId,
+                    Title = x.a.Title,
+                    Summary = null,
+                    CreateAt = x.a.CreateAt,
+                    LastEditTime = x.a.LastEditTime,
+                    Status = x.a.Status,
+                    ViewCount = x.a.ViewCount,
+                    EventStartDate = x.a.EventStartDate,
+                    EventEndDate = x.a.EventEndDate,
+                    EventLocation = x.a.EventLocation,
+                    CategoryName = x.c.CategoryName,
+                    UserName = x.u.Name
+                },
+                OriginalContent = x.a.Content
             }).ToListAsync();
 
-            //從文章列表中撈出文章id
-            var ArticleIds = ArticleList.Select(a => a.ArticleId).ToList();
+            var finalArticleList = ArticleList.Select(x => x.DTO).ToList();
+            var ArticleIds = finalArticleList.Select(a => a.ArticleId).ToList();
 
             //撈出對應的tagid
             var Tags = await (from m in _context.ArticleTagMaps
@@ -210,14 +216,46 @@ namespace PawsPort.Services
                                   t.TagName
                               }).ToListAsync();
 
-            //把tagname塞回對應的文章裡
-            foreach (var a in ArticleList)
+            for (int i = 0; i < ArticleList.Count; i++)
             {
-                a.TagNames = Tags.Where(t => t.ArticleId == a.ArticleId).Select(t => t.TagName).ToList();
+                var item = ArticleList[i];
+
+                // 塞入標籤
+                item.DTO.TagNames = Tags.Where(t => t.ArticleId == item.DTO.ArticleId).Select(t => t.TagName).ToList();
+
+                // 處理 Summary：拿剛才順便查出來的內文，丟進小工具去標籤並截斷 60 字
+                item.DTO.Summary = GetTextSummary(item.OriginalContent, 60);
             }
-            return ArticleList;
+
+            return finalArticleList;
         }
 
+
+        //=====取得文章詳細(文章id)=====
+        public async Task<ArticleDetailDTO> GetArticleDetailAsync(int id)
+        {
+            var ArticleDetail = await _context.Articles.Where(a => a.ArticleId == id && a.IsExist == true)
+                .Select(a => new ArticleDetailDTO
+                {
+                    ArticleId = a.ArticleId,
+                    Title = a.Title,
+                    Content = a.Content,
+                    CreateAt = a.CreateAt,
+                    LastEditTime = a.LastEditTime,
+                    Status = a.Status,
+                    ViewCount = a.ViewCount,
+                    EventStartDate = a.EventStartDate,
+                    EventEndDate = a.EventEndDate,
+                    EventLocation = a.EventLocation,
+                    UserId = a.UserId,
+                    CategoryId = a.CategoryId,
+                    DeleteTypeId = a.DeleteTypeId,
+                    DeleteNote = a.DeleteNote,
+                    IsActive = a.IsActive
+                }).FirstOrDefaultAsync();
+
+            return ArticleDetail;
+        }
 
         //=====查詢文章(文章id)=====
 
@@ -240,8 +278,10 @@ namespace PawsPort.Services
 
             //去除空白和重複的標籤(不分大小寫)
             var UniqueTagNames = TagNames
-                .Select(t => t.Trim())
-                .Distinct(StringComparer.OrdinalIgnoreCase);
+                .Select(t => t.Replace("#", "").Trim())
+                .Where(t => !string.IsNullOrEmpty(t))
+                .Distinct(StringComparer.OrdinalIgnoreCase)
+                .ToList();
 
             //去資料庫撈出所有tag表中名稱有包含在輸入的tagnames裡的資料，轉換成list<tag>
             var ExistingTags = await _context.Tags
@@ -272,5 +312,25 @@ namespace PawsPort.Services
             return ExistingTags.Concat(NewTagsList).ToList();
         }
 
+        //處理ArticleList的summery
+        private string GetTextSummary(string htmlContent, int maxLength = 60)
+        {
+            if (string.IsNullOrEmpty(htmlContent))
+                return "無內文...";
+
+            // 用正規表達式把所有尖括號 <...> 裡面的東西換成空字串
+            string cleanText = Regex.Replace(htmlContent, "<[^>]*>", "");
+
+            // 去除前後多餘的空白
+            cleanText = cleanText.Trim();
+
+            // 如果洗乾淨的字串長度大於限制，就截斷並加上引號
+            if (cleanText.Length > maxLength)
+            {
+                return cleanText.Substring(0, maxLength) + "...";
+            }
+
+            return cleanText;
+        }
     }
 }

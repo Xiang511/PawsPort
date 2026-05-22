@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PawsPort.Authorization;
@@ -101,8 +101,10 @@ builder.Services.AddScoped<ShopService>();
 // pet
 builder.Services.AddScoped<PassPortService>();
 builder.Services.AddScoped<PetService>();
+builder.Services.AddScoped<PetAdoptionService>();
 builder.Services.AddScoped<AdoptionRecordService>();
 builder.Services.AddScoped<MissingReportsService>();
+builder.Services.AddScoped<PetPassportService>();
 
 // support
 builder.Services.AddScoped<FaqService>();

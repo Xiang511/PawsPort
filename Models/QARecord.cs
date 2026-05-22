@@ -25,7 +25,7 @@ public partial class QARecord
 
     public string Note { get; set; }
 
-    public DateTime ReplyDate { get; set; }
+    public DateTime? ReplyDate { get; set; }
 
     public int? Score { get; set; }
 }

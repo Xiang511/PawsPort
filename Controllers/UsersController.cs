@@ -377,7 +377,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>領養寵物列表 JSON</returns>
         /// <response code="200">成功取得領養寵物列表</response>
-        [Authorize(Policy = "寵物系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpGet("/api/users/pet/adoption")]
         [ProducesResponseType(typeof(List<PetAdoptionDTO>), StatusCodes.Status200OK)]
         [Tags("寵物領養")]
@@ -398,7 +398,7 @@ namespace PawsPort.Controllers
         /// <param name="dto">刊登送養資料</param>
         /// <returns>創建成功的寵物資料</returns>
         /// <response code="200">成功刊登送養寵物</response>
-        [Authorize(Policy = "會員系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpPost("/api/users/pet/adoption")]
         [ProducesResponseType(typeof(PetAdoptionDTO), StatusCodes.Status200OK)]
         [Tags("寵物領養")]
@@ -416,7 +416,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 取得目前登入會員的所有寵物健康護照清單
         /// </summary>
-        [Authorize(Policy = "寵物系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpGet("/api/users/pet/passports")]
         [ProducesResponseType(typeof(List<PetPassportDisplayDto>), StatusCodes.Status200OK)]
         [Tags("寵物健康護照")]
@@ -425,7 +425,7 @@ namespace PawsPort.Controllers
             Log.Debug("[UsersController] GetPetPassports GET - Entry");
 
             // 假設從 Token Claims 取出目前登入者的 UserId，此處以模擬 1 替代，實務上改用 User.FindFirstClaim 或現有機制
-            int currentUserId = 1;
+            int currentUserId = 108;
 
             var passports = await _petPassportService.GetPetPassportsAsync(currentUserId);
             Log.Debug("[UsersController] 取得寵物健康護照成功，共 {Count} 筆", passports.Count);
@@ -436,7 +436,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 取得特定單筆寵物健康護照明細以供編輯
         /// </summary>
-        [Authorize(Policy = "寵物系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpGet("/api/users/pet/passport/{id}")]
         [ProducesResponseType(typeof(PetPassportDetailDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -459,7 +459,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 變更/儲存特定寵物健康護照內容
         /// </summary>
-        [Authorize(Policy = "寵物系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpPut("/api/users/pet/passport/{id}")]
         [ProducesResponseType(typeof(bool), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -482,7 +482,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 新增一筆毛孩健康護照紀錄
         /// </summary>
-        [Authorize(Policy = "寵物系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpPost("/api/users/pet/passport")]
         [ProducesResponseType(typeof(PetPassportDetailDto), StatusCodes.Status200OK)]
         [Tags("寵物健康護照")]

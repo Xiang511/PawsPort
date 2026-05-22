@@ -141,6 +141,16 @@ namespace PawsPort.Services
             var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == EditDTO.PlayerId);
             if (player == null) throw new Exception("玩家不存在");
 
+            // 更新玩家名稱
+            if (!string.IsNullOrWhiteSpace(EditDTO.UserName))
+            {
+                // 驗證名字長度
+                if (EditDTO.UserName.Length > 50)
+                    throw new Exception("玩家名字不能超過 50 個字");
+
+                player.UserName = EditDTO.UserName.Trim();
+            }
+
             // 更新後台可修改的數值 (例如點數)
             player.CurrentPoint = EditDTO.Point;
 
@@ -169,7 +179,7 @@ namespace PawsPort.Services
             }
 
             await _db.SaveChangesAsync();
-            Log.Information("PlayerService: 玩家 {PlayerId} 的資料與造型 {SkinId} 狀態已更新", EditDTO.PlayerId, EditDTO.SkinId);
+            Log.Information("PlayerService: 玩家 {PlayerId} 的資料與造型 {SkinId} 狀態已更新，名字: {UserName}", EditDTO.PlayerId, EditDTO.SkinId, EditDTO.UserName);
         }
 
         public async Task DeletePlayerAsync(int id)
@@ -344,7 +354,252 @@ namespace PawsPort.Services
             await _db.SaveChangesAsync();
             return true;
         }
+
+        public async Task EquipSkinAsync(int playerId, int skinId)
+        {
+            // 1. 驗證玩家是否存在
+            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == playerId);
+            if (player == null) throw new Exception("玩家不存在");
+
+            // 2. 驗證玩家是否擁有該造型
+            var ownedSkin = await _db.Inventories
+                .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.SkinId == skinId);
+            if (ownedSkin == null) throw new Exception("玩家未擁有此造型");
+
+            // 3. 取消該玩家的所有其他 Enable 狀態
+            var otherEnabledSkins = _db.Inventories
+                .Where(i => i.PlayerId == playerId && i.Enable);
+
+            foreach (var skin in otherEnabledSkins)
+            {
+                skin.Enable = false;
+            }
+
+            // 4. 啟用新的造型
+            ownedSkin.Enable = true;
+
+            await _db.SaveChangesAsync();
+            Log.Information("玩家 {PlayerId} 裝備造型 {SkinId}", playerId, skinId);
+        }
+
+        public async Task<(int remainingPoints, int acquiredSkinId)> BuySkinAsync(int playerId, int skinId)
+        {
+            // 1. 驗證玩家
+            var player = await _db.PlayerProfiles.FirstOrDefaultAsync(p => p.PlayerId == playerId);
+            if (player == null) throw new Exception("玩家不存在");
+
+            // 2. 驗證造型
+            var skin = await _db.SkinShops.FirstOrDefaultAsync(s => s.SkinId == skinId && s.IsAvailable);
+            if (skin == null) throw new Exception("造型不存在或不可購買");
+
+            // 3. 檢查是否已擁有
+            var alreadyOwned = await _db.Inventories
+                .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.SkinId == skinId);
+            if (alreadyOwned != null) throw new Exception("玩家已擁有此造型");
+
+            // 4. 驗證點數
+            int currentPoints = player.CurrentPoint ?? 0;
+            if (currentPoints < skin.Price) throw new Exception("點數不足");
+
+            // 5. 扣除點數
+            player.CurrentPoint = currentPoints - skin.Price;
+
+            // 6. 添加到 Inventory
+            var newInventory = new Inventory
+            {
+                PlayerId = playerId,
+                SkinId = skinId,
+                Enable = false,
+                CreateTime = DateTime.Now
+            };
+            _db.Inventories.Add(newInventory);
+
+            // 7. 記錄獲取日誌
+            var acquisitionLog = new ItemAcquisitionLog
+            {
+                PlayerId = playerId,
+                SkinId = skinId,
+                CreateTime = DateTime.Now,
+                AcquireType = "Purchase"
+            };
+            _db.ItemAcquisitionLogs.Add(acquisitionLog);
+
+            // 8. 記錄點數交易
+            var pointTransaction = new PointTransaction
+            {
+                PlayerId = playerId,
+                SkinId = skinId,
+                Amount = -skin.Price,
+                TransactionType = "Skin Purchase",
+                TransactionDate = DateTime.Now
+            };
+            _db.PointTransactions.Add(pointTransaction);
+
+            await _db.SaveChangesAsync();
+            Log.Information("玩家 {PlayerId} 購買造型 {SkinId}，消費 {Price} 點", playerId, skinId, skin.Price);
+
+            return (player.CurrentPoint.Value, skinId);
+        }
+
+
+        /// 依 UserId 查詢對應的玩家資料
+        public async Task<PlayerListDTO> GetPlayerByUserIdAsync(int userId)
+        {
+            var player = await _db.PlayerProfiles
+                .FirstOrDefaultAsync(p => p.UserId == userId);
+
+            if (player == null)
+                return null;
+
+            // 使用與 GetPlayerListAsync 相同的邏輯來組建 DTO
+            return new PlayerListDTO
+            {
+                PlayerId = player.PlayerId,
+                UserName = player.UserName,
+                CurrentPoint = player.CurrentPoint ?? 0,
+
+                OwnedSkins = GetPlayerSkinsWithDefault(player.PlayerId),
+
+                CreateTime = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .OrderBy(i => i.CreateTime)
+                    .Select(i => i.CreateTime)
+                    .FirstOrDefault(),
+
+                SkinCount = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .Count(),
+
+                EnabledSkinId = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId && i.Enable)
+                    .Select(i => (int?)i.SkinId)
+                    .FirstOrDefault(),
+
+                MaxGameId = _db.GameHistories
+                    .Where(h => h.PlayerId == player.PlayerId)
+                    .Max(h => (int?)h.GameId) ?? 0,
+
+                LastPlayedDate = _db.GameHistories
+                    .Where(h => h.PlayerId == player.PlayerId)
+                    .OrderByDescending(h => h.LastPlayedDate)
+                    .Select(h => h.LastPlayedDate)
+                    .FirstOrDefault()
+            };
+        }
+
+        // 查詢玩家收藏庫
+        public async Task<List<PlayerSkinDTO>> GetInventoryAsync(int playerId)
+        {
+            var player = await _db.PlayerProfiles
+                .FirstOrDefaultAsync(p => p.PlayerId == playerId);
+
+            if (player == null)
+                return new List<PlayerSkinDTO>();
+
+            // 取得該玩家擁有的所有造型詳細資訊
+            return await _db.Inventories
+                .Where(i => i.PlayerId == playerId)
+                .Join(_db.SkinShops,
+                    i => i.SkinId,
+                    s => s.SkinId,
+                    (i, s) => new PlayerSkinDTO
+                    {
+                        SkinId = s.SkinId,
+                        SkinName = s.SkinName,
+                        SkinImage = s.SkinImage,
+                        Enable = i.Enable
+                    })
+                .ToListAsync();
+        }
+
+        // 根據 PlayerId 取得玩家資料
+        public async Task<PlayerListDTO> GetPlayerByIdAsync(int playerId)
+        {
+            var player = await _db.PlayerProfiles
+                .FirstOrDefaultAsync(p => p.PlayerId == playerId);
+
+            if (player == null)
+                return null;
+
+            // 使用與 GetPlayerListAsync 相同的邏輯來組建 DTO
+            return new PlayerListDTO
+            {
+                PlayerId = player.PlayerId,
+                UserName = player.UserName,
+                CurrentPoint = player.CurrentPoint ?? 0,
+
+                OwnedSkins = GetPlayerSkinsWithDefault(player.PlayerId),
+
+                CreateTime = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .OrderBy(i => i.CreateTime)
+                    .Select(i => i.CreateTime)
+                    .FirstOrDefault(),
+
+                SkinCount = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId)
+                    .Count(),
+
+                EnabledSkinId = _db.Inventories
+                    .Where(i => i.PlayerId == player.PlayerId && i.Enable)
+                    .Select(i => (int?)i.SkinId)
+                    .FirstOrDefault(),
+
+                MaxGameId = _db.GameHistories
+                    .Where(h => h.PlayerId == player.PlayerId)
+                    .Max(h => (int?)h.GameId) ?? 0,
+
+                LastPlayedDate = _db.GameHistories
+                    .Where(h => h.PlayerId == player.PlayerId)
+                    .OrderByDescending(h => h.LastPlayedDate)
+                    .Select(h => h.LastPlayedDate)
+                    .FirstOrDefault()
+            };
+        }
+
+        // 取得玩家造型列表，並自動加入預設造型 (SkinId=2)
+        private List<PlayerSkinDTO> GetPlayerSkinsWithDefault(int playerId)
+        {
+            // 1. 取得玩家已擁有的所有造型
+            var ownedSkins = _db.Inventories
+                .Where(i => i.PlayerId == playerId)
+                .Join(_db.SkinShops,
+                    i => i.SkinId,
+                    s => s.SkinId,
+                    (i, s) => new PlayerSkinDTO
+                    {
+                        SkinId = s.SkinId,
+                        SkinName = s.SkinName,
+                        SkinImage = s.SkinImage,
+                        Enable = i.Enable
+                    }).ToList();
+
+            // 2. 檢查是否已擁有預設造型 (SkinId=2)
+            var hasDefaultSkin = ownedSkins.Any(s => s.SkinId == 2);
+
+            // 3. 如果沒有預設造型，自動加入
+            if (!hasDefaultSkin)
+            {
+                var defaultSkin = _db.SkinShops.FirstOrDefault(s => s.SkinId == 2);
+                if (defaultSkin != null)
+                {
+                    ownedSkins.Insert(0, new PlayerSkinDTO
+                    {
+                        SkinId = defaultSkin.SkinId,
+                        SkinName = defaultSkin.SkinName,
+                        SkinImage = defaultSkin.SkinImage,
+                        Enable = false // 預設造型預設不裝備
+                    });
+                }
+            }
+
+            return ownedSkins;
+        }
+
+
+
     }
 
-    
+
+
 }

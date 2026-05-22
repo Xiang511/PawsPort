@@ -19,13 +19,16 @@ namespace PawsPort.Controllers
         private readonly MemberPermissionService _memberPermissionService;
         private readonly PetAdoptionService _petAdoptionService;
         private readonly PetPassportService _petPassportService;
+        private readonly PlayerService _playerService;
 
         public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PlayerService playerService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
             _petAdoptionService = petAdoptionService;
             _petPassportService = petPassportService;
+            _playerService = playerService;
         }
 
         /// <summary>
@@ -33,7 +36,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>會員列表 JSON</returns>
         /// <response code="200">成功取得會員列表</response>
-        
+
         [HttpGet]
         [ProducesResponseType(typeof(List<MemberUserDTO>), StatusCodes.Status200OK)]
         [Tags("會員管理")]
@@ -54,7 +57,7 @@ namespace PawsPort.Controllers
         /// <returns>會員詳細資料</returns>
         /// <response code="200">成功取得會員資料</response>
         /// <response code="404">找不到指定的會員</response>
-        
+
         [HttpGet("{id}")]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -64,7 +67,7 @@ namespace PawsPort.Controllers
             Log.Debug("[UsersController] Members GET by id - Entry, UserId: {UserId}", id);
 
             Log.Debug("[UsersController] 調用 MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
-            bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
+            bool exist = await _memberProfileService.CheckUserInfoAsync(id, null);
 
             if (!exist)
             {
@@ -109,7 +112,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <returns>會員統計數據，包含總數、月註冊數、認證比例、訂閱數等</returns>
         /// <response code="200">成功取得統計資訊</response>
-        
+
         [HttpGet("Summary")]
         [ProducesResponseType(typeof(MemberSummaryDTO), StatusCodes.Status200OK)]
         [Tags("會員管理")]
@@ -121,7 +124,7 @@ namespace PawsPort.Controllers
             Log.Debug("[UsersController] 調用 MemberProfileService.GetMemberSummaryAsync");
             var summary = await _memberProfileService.GetMemberSummaryAsync();
 
-            Log.Debug("[UsersController] 成功取得統計資訊, 會員總數: {MemberCount}, 月註冊數: {MonthSignUp}, 認證比例: {VerifyPercentage}, 訂閱電子報人數: {SubscribedCount}", 
+            Log.Debug("[UsersController] 成功取得統計資訊, 會員總數: {MemberCount}, 月註冊數: {MonthSignUp}, 認證比例: {VerifyPercentage}, 訂閱電子報人數: {SubscribedCount}",
                 summary.MemberCount,
                 summary.MemberMonthSignUp,
                 summary.VerifyPercentage,
@@ -140,7 +143,7 @@ namespace PawsPort.Controllers
         /// <response code="200">成功更新會員</response>
         /// <response code="400">會員 ID 不一致或資料格式錯誤</response>
         /// <response code="404">找不到指定的會員</response>
-        
+
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(MemberUserDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -157,7 +160,7 @@ namespace PawsPort.Controllers
             }
 
             Log.Debug("[UsersController] 調用 MemberProfileService.CheckUserInfoAsync, UserId: {UserId}", id);
-            bool exist = await _memberProfileService.CheckUserInfoAsync(id,null);
+            bool exist = await _memberProfileService.CheckUserInfoAsync(id, null);
 
             if (!exist)
             {
@@ -181,7 +184,7 @@ namespace PawsPort.Controllers
         /// <response code="204">成功刪除會員（軟刪除）</response>
         /// <response code="404">找不到指定會員</response>
         /// 
-        
+
         [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -383,7 +386,7 @@ namespace PawsPort.Controllers
 
             Log.Debug("[UsersController] 調用 PetAdoptionService.GetAdoptionPetsAsync");
             var pets = await _petAdoptionService.GetAdoptionPetsAsync();
-            
+
             Log.Debug("[UsersController] 取得寵物清單成功, 共 {Count} 隻", pets.Count);
             return Success(pets, "Success", 200);
         }
@@ -404,7 +407,7 @@ namespace PawsPort.Controllers
 
             Log.Debug("[UsersController] 調用 PetAdoptionService.CreateAdoptionPetAsync");
             var createdPet = await _petAdoptionService.CreateAdoptionPetAsync(dto);
-            
+
             Log.Debug("[UsersController] 刊登送養寵物成功, 名稱: {Name}, PetId: {PetId}", createdPet.Name, createdPet.PetId);
             return Success(createdPet, "成功刊登送養寵物", 200);
         }
@@ -491,6 +494,44 @@ namespace PawsPort.Controllers
             Log.Debug("[UsersController] 建立健康護照紀錄成功，新護照標記碼: {Id}", createdDetail.Id);
 
             return Success(createdDetail, "建立成功", 200);
+        }
+        /// <summary>
+        /// 依 UserId 取得對應的遊戲玩家資料
+        /// </summary>
+        /// <param name="userId">使用者 ID</param>
+        /// <returns>玩家資料 (PlayerId、名稱、點數等)</returns>
+        /// <response code="200">成功取得玩家資料</response>
+        /// <response code="404">找不到對應的玩家</response>
+        [Authorize(Policy = "遊戲系統_一般成員")]
+        [AllowAnonymous]
+        [HttpGet("{userId}/player-profile")]
+        [ProducesResponseType(typeof(PlayerListDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("會員管理")]
+        public async Task<IActionResult> GetPlayerByUserId(int userId)
+        {
+            Log.Debug("[UsersController] GetPlayerByUserId GET - Entry, UserId: {UserId}", userId);
+
+            try
+            {
+                var playerData = await _playerService.GetPlayerByUserIdAsync(userId);
+
+                if (playerData == null)
+                {
+                    Log.Warning("[UsersController] 找不到對應的玩家, UserId: {UserId}", userId);
+                    return Failure("PLAYER_NOT_FOUND", "找不到對應的玩家資料", 404);
+                }
+
+                Log.Debug("[UsersController] 成功取得玩家資料, UserId: {UserId}, PlayerId: {PlayerId}", userId, playerData.PlayerId);
+                return Success(playerData, "Success", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error("[UsersController] 取得玩家資料出錯, UserId: {UserId}, Error: {Error}", userId, ex.Message);
+                return Failure("ERROR", "取得玩家資料失敗", 500);
+            }
+
+
         }
     }
 }

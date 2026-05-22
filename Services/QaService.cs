@@ -1,6 +1,7 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
+using System.Data.Entity;
 
 
 namespace PawsPort.Services
@@ -70,6 +71,26 @@ namespace PawsPort.Services
         }
 
 
+        // 新增
+        public async Task<bool> CreateQaAsync(QaCreateDTO dto)
+        {
+            var newQa = new QARecord
+            {
+                UserId = dto.UserId,
+                QuestionType = dto.QuestionType,
+                ChiefComplaint = dto.ChiefComplaint,
+                ChatContent = dto.ChatContent,
+                QuestionDate = DateTime.Now
+            };
+
+            _db.QARecords.Add(newQa);
+            var result = await _db.SaveChangesAsync();
+
+            // 如果成功寫入資料庫，會回傳影響的行數(大於0代表成功)
+            return result > 0;
+        }
+
+
         public async Task<bool> UpdateQaAsync(int id, QaUpdateDTO dto)
         {
             var qaData = await _db.QARecords.FindAsync(id);
@@ -84,5 +105,7 @@ namespace PawsPort.Services
             await _db.SaveChangesAsync();
             return true;
         }
+
+
     }
 }

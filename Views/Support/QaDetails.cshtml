@@ -1,4 +1,4 @@
-﻿@model PawsPort.Models.QARecord
+@model PawsPort.Models.QARecord
 
 @{
     ViewData["Title"] = "QA查看";
@@ -77,7 +77,7 @@
         <div class="form-group row">
             <label class="col-sm-2 col-form-label font-weight-bold">．回覆時間</label>
             <div class="col-sm-10">
-                <input type="text" readonly class="form-control-plaintext" value="@(Model.ReplyDate.Year == 1 ? "尚未回覆" : Model.ReplyDate.ToString("yyyy/MM/dd HH:mm:ss"))">
+                <input type="text" readonly class="form-control-plaintext" value="@(Model.ReplyDate.HasValue ? Model.ReplyDate.Value.ToString("yyyy-MM-dd HH:mm") : "尚未回覆")">
             </div>
         </div>
 

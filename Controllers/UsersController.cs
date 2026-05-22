@@ -22,13 +22,14 @@ namespace PawsPort.Controllers
         private readonly PlayerService _playerService;
         private readonly ArticleService _articleService;
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService,)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
             _petAdoptionService = petAdoptionService;
             _petPassportService = petPassportService;
             _playerService = playerService;
+            _articleService = articleService;
         }
 
         /// <summary>

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,38 +37,44 @@ namespace PawsPort.Services
                 string ageStr = CalculateAge(pet.BirthDate);
 
                 // 取得醫療史
-                var medicals = await _context.MedicalHistories
-                    .Where(m => m.PassportId == hp.PassportId)
-                    .Select(m => new MedicalRecordDto
-                    {
-                        Disease = m.Disease,
-                        DiseaseTreatment = m.DiseaseTreatment,
-                        Location = m.Location,
-                        Time = m.Time.HasValue ? m.Time.Value.ToString("yyyy-MM-dd") : ""
-                    }).ToListAsync();
+                var medicalEntities = await _context.MedicalHistories
+                .Where(m => m.PassportId == hp.PassportId)
+                .ToListAsync();
+
+                var medicals = medicalEntities.Select(m => new MedicalRecordDto
+                {
+                    Disease = m.Disease,
+                    DiseaseTreatment = m.DiseaseTreatment,
+                    Location = m.Location,
+                    Time = m.Time.HasValue ? m.Time.Value.ToString("yyyy-MM-dd") : ""
+                }).ToList();
 
                 // 取得疫苗紀錄
-                var vaccines = await _context.VaccinationStatuses
-                    .Where(v => v.PassportId == hp.PassportId)
-                    .Select(v => new VaccinationDto
-                    {
-                        Type = v.Type,
-                        Location = v.Location,
-                        Time = v.Time.HasValue ? v.Time.Value.ToString("yyyy-MM-dd") : "",
-                        Forecast = v.Forecast.HasValue ? v.Forecast.Value.ToString("yyyy-MM-dd") : ""
-                    }).ToListAsync();
+                var vaccineEntities = await _context.VaccinationStatuses
+                 .Where(v => v.PassportId == hp.PassportId)
+                 .ToListAsync();
+
+                var vaccines = vaccineEntities.Select(v => new VaccinationDto
+                {
+                    Type = v.Type,
+                    Location = v.Location,
+                    Time = v.Time.HasValue ? v.Time.Value.ToString("yyyy-MM-dd") : "",
+                    Forecast = v.Forecast.HasValue ? v.Forecast.Value.ToString("yyyy-MM-dd") : ""
+                }).ToList();
 
                 // 取得該寵物歷史所有體重趨勢紀錄
-                var weights = await _context.HealthPassports
-                    .Where(h => h.PetId == hp.PetId && h.DeletedAt == null && h.Weight.HasValue)
-                    .OrderBy(h => h.RecordDate)
-                    .Select((h, index) => new WeightRecordDto
-                    {
-                        Id = index + 1,
-                        Date = h.RecordDate.HasValue ? h.RecordDate.Value.ToString("yyyy-MM-dd") : "",
-                        Weight = h.Weight.Value
-                    }).ToListAsync();
+                var weightEntities = await _context.HealthPassports
+                .Where(h => h.PetId == hp.PetId && h.DeletedAt == null && h.Weight.HasValue)
+                .OrderBy(h => h.RecordDate)
+                .ToListAsync();
 
+                // 2. 在記憶體中進行 Select，這時候就能用 index 和 ToString 了
+                var weights = weightEntities.Select((h, index) => new WeightRecordDto
+                {
+                    Id = index + 1,
+                    Date = h.RecordDate.HasValue ? h.RecordDate.Value.ToString("yyyy-MM-dd") : "",
+                    Weight = h.Weight.Value
+                }).ToList();
                 resultList.Add(new PetPassportDisplayDto
                 {
                     Id = hp.PassportId,

@@ -1,4 +1,4 @@
-﻿using PawsPort.Models;
+using PawsPort.Models;
 using PawsPort.Dtos;
 using Microsoft.EntityFrameworkCore;
 
@@ -48,7 +48,7 @@ namespace PawsPort.Services
         }
 
         // 2. 新增寵物
-        public async Task CreatePetAsync(PetCreateDto dto)
+        public async Task<int> CreatePetAsync(PetCreateDto dto)
         {
             Pet pet = new Pet
             {
@@ -67,6 +67,7 @@ namespace PawsPort.Services
 
             _db.Pets.Add(pet);
             await _db.SaveChangesAsync();
+            return pet.PetId;
         }
 
         // 3. 軟刪除邏輯 (不移除資料，僅標記時間)

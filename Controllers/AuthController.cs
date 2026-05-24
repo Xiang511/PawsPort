@@ -432,6 +432,120 @@ namespace PawsPort.Controllers
             return Success(true, "登出成功", 200);
         }
 
+        #region 忘記密碼功能
+
+        /// <summary>
+        /// 請求密碼重置 - 發送重置連結到郵箱
+        /// </summary>
+        /// <param name="model">包含用戶郵箱的請求</param>
+        /// <returns>成功消息</returns>
+        /// <response code="200">重置連結已發送（即使郵箱不存在也返回此消息以防止郵箱枚舉）</response>
+        /// <response code="400">請求格式錯誤</response>
+        [HttpPost("forgot-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO model)
+        {
+            Log.Debug("[AuthController] ForgotPassword - Email: {Email}", model.Email);
+
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                return Failure("Email 不可為空", "Invalid_Input", 400);
+            }
+
+            var (success, message) = await _authService.RequestPasswordResetAsync(model.Email);
+
+            // 無論成功或失敗，都返回相同的消息（安全考量）
+            return Success(new { Message = "如果該電子郵件存在於我們的系統中，您將收到密碼重置連結" });
+        }
+
+        /// <summary>
+        /// 驗證重置 Token 是否有效
+        /// </summary>
+        /// <param name="model">包含郵箱和 Token 的驗證請求</param>
+        /// <returns>Token 驗證結果</returns>
+        /// <response code="200">Token 有效</response>
+        /// <response code="400">Token 無效或已過期</response>
+        [HttpPost("verify-reset-token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> VerifyResetToken([FromBody] VerifyResetTokenDTO model)
+        {
+            Log.Debug("[AuthController] VerifyResetToken - Email: {Email}", model.Email);
+
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.ResetToken))
+            {
+                return Failure("Email 和 Token 不可為空", "Invalid_Input", 400);
+            }
+
+            var (isValid, message) = await _authService.VerifyResetTokenAsync(model.Email, model.ResetToken);
+
+            if (isValid)
+            {
+                return Success(new { Message = message, IsValid = true });
+            }
+            else
+            {
+                return Failure(message, "Invalid_Token", 400);
+            }
+        }
+
+        /// <summary>
+        /// 重置密碼
+        /// </summary>
+        /// <param name="model">包含郵箱、Token 和新密碼的重置請求</param>
+        /// <returns>密碼重置結果</returns>
+        /// <response code="200">密碼重置成功</response>
+        /// <response code="400">Token 無效、密碼不符合要求或密碼不匹配</response>
+        [HttpPost("reset-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO model)
+        {
+            Log.Debug("[AuthController] ResetPassword - Email: {Email}", model.Email);
+
+            // 驗證輸入
+            if (string.IsNullOrWhiteSpace(model.Email) || 
+                string.IsNullOrWhiteSpace(model.ResetToken) ||
+                string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                return Failure("所有欄位都不可為空", "Invalid_Input", 400);
+            }
+
+            // 驗證密碼長度
+            if (model.NewPassword.Length < 6)
+            {
+                return Failure("密碼長度不能少於 6 位", "Password_Too_Short", 400);
+            }
+
+            // 驗證密碼匹配
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return Failure("兩次輸入的密碼不一致", "Password_Mismatch", 400);
+            }
+
+            var (success, message) = await _authService.ResetPasswordAsync(
+                model.Email, 
+                model.ResetToken, 
+                model.NewPassword);
+
+            if (success)
+            {
+                Log.Information("[AuthController] ResetPassword - 密碼重置成功: {Email}", model.Email);
+                return Success(new { Message = message });
+            }
+            else
+            {
+                Log.Warning("[AuthController] ResetPassword - 密碼重置失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "Reset_Failed", 400);
+            }
+        }
+
+        #endregion
+
         /// <summary>
         /// Google OAuth 登入
         /// </summary>

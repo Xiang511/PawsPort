@@ -1,56 +1,85 @@
-﻿using PawsPort.Models;
+using PawsPort.Models;
 using Microsoft.AspNetCore.Http;
 using System.IO;
+using Microsoft.AspNetCore.Hosting;
 
 
 namespace PawsPort.Services
 {
     public class FileService
     {
-
-        IWebHostEnvironment _Env = null; //宣告一個變數來存放WebHostEnvironment的實例
-
+        private readonly IWebHostEnvironment _Env;
         public FileService(IWebHostEnvironment p)
         {
-            _Env = p; //將WebHostEnvironment的實例賦值給變數_env，以便在控制器中使用
+            _Env = p;
         }
 
-
         // 定義允許的副檔名白名單
-        string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif" };
+        private readonly string[] AllowedExtensions = { ".jpg", ".jpeg", ".png", ".gif", ".webp" };
 
         public bool IsValidImage(IFormFile File) //驗證上傳的檔案是否為有效的圖片
         {
-            if (File == null || File.Length == 0) // 1. 檢查檔案是否為空
+            if (File == null || File.Length == 0)
                 return false;
 
-            // 2. 取得檔案的副檔名
-            string Extension = Path.GetExtension(File.FileName).ToLower(); 
-
-            return AllowedExtensions.Contains(Extension); // 3. 檢查副檔名是否在允許的白名單中，如果在則返回true，否則返回false
-
+            string Extension = Path.GetExtension(File.FileName).ToLower();
+            return AllowedExtensions.Contains(Extension);
         }
 
-        public string SaveImage(IFormFile File)
-        {
 
+
+        // 配合 Quill 上傳圖片，改為非同步並傳入 HttpRequest 組合完整網址
+
+        public async Task<string> SaveImageForQuillAsync(IFormFile File, HttpRequest Request)
+        {
             bool IsValid = IsValidImage(File); // 1. 驗證檔案是否為有效的圖片
 
-            if (IsValid) // 2. 如果檔案有效，則進行儲存
+            try
             {
-                string ImageName = Guid.NewGuid().ToString() + Path.GetExtension(File.FileName); // 生成唯一的圖片名稱，並保留原始檔案的副檔名
-                
-                string SavePath = _Env.WebRootPath + "/Images/" + ImageName; // 3. 定義儲存路徑，將圖片儲存在wwwroot/Images資料夾中
-
-                using (FileStream stream = new FileStream(SavePath, FileMode.Create))
+                if (File == null || File.Length == 0 || !IsValid)
                 {
-                    File.CopyTo(stream); // 4. 使用CopyTo方法將上傳的檔案儲存到指定的路徑，FileMode.Create表示如果檔案已存在則覆蓋
+                    return string.Empty; // 失敗時回傳空字串，絕不回傳 null
                 }
-                    
+                //之後可以加上去擋太大的圖片
+                //if (File.Length > 5 * 1024 * 1024)
+                //{
+                //    return string.Empty;
+                //}
 
-                return ImageName; // 返回生成的圖片名稱
+                // 2. 確保 wwwroot/articleimages 資料夾存在
+                string ImagesFolder = Path.Combine(_Env.WebRootPath,"Images","articleimages");
+              
+                if (!Directory.Exists(ImagesFolder))
+                {
+                    Directory.CreateDirectory(ImagesFolder);
+                }
+
+                // 3. 生成唯一的圖片名稱（使用 GUID）
+                string ImageName = Guid.NewGuid().ToString() + Path.GetExtension(File.FileName);
+
+                // 4. 組合安全路徑
+                string SavePath = Path.Combine(ImagesFolder, ImageName);
+
+                // 5. 儲存檔案
+                await using (FileStream stream = new FileStream(SavePath, FileMode.Create))
+                {
+                    await File.CopyToAsync(stream);
+                }
+
+                string baseUrl = $"{Request.Scheme}://{Request.Host}";
+                string returnUrl = $"{baseUrl}/Images/articleimages/{ImageName}";
+
+                return returnUrl;
             }
-            return null; // 如果檔案無效，返回null
+            catch (Exception ex)
+            {
+                // 如果真的有其他意外（例如硬碟滿了），會安全地記錄在這裡，不會讓伺服器暴斃
+                Console.WriteLine($"====== 圖片儲存失敗 ======: {ex.Message}");
+                return string.Empty;
+            }
         }
+
     }
 }
+
+

@@ -87,7 +87,7 @@ namespace PawsPort.Controllers
                 Console.WriteLine($"解析 LINE 訊息失敗: {ex.Message}");
             }
 
-            return Ok();
+            return Success<object>(null, "Webhook 接收成功", 200);
         }
     }
 }

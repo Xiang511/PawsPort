@@ -1,7 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
-using System.Data.Entity;
 
 
 namespace PawsPort.Services
@@ -107,5 +106,36 @@ namespace PawsPort.Services
         }
 
 
+        //圖表
+        public async Task<QaDashboardDTO> GetDashboardDataAsync()
+        {
+            // 抓出最近30天的客服單
+            var thirtyDaysAgo = DateTime.Now.AddDays(-30);
+            var recentRecords = await _db.QARecords
+                .Where(q => q.QuestionDate >= thirtyDaysAgo)
+                .ToListAsync();
+
+            var dashboardData = new QaDashboardDTO
+            {
+                QuestionTypeStats = recentRecords
+                    .GroupBy(q => q.QuestionType)
+                    .ToDictionary(
+                        g => string.IsNullOrEmpty(g.Key) ? "未分類" : g.Key,
+                        g => g.Count()
+                    ),
+
+                StatusStats = recentRecords
+                    .GroupBy(q => q.Note)
+                    .ToDictionary(
+
+                        g => string.IsNullOrEmpty(g.Key) ? "未處理" : g.Key,
+                        g => g.Count()
+                    )
+            };
+
+            return dashboardData;
+
+
+        }
     }
 }

@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
 
@@ -154,6 +154,31 @@ namespace PawsPort.Services
             news.Status = "已刪除";
             await _db.SaveChangesAsync();
             return true;
+        }
+
+        //查詢單筆
+        public async Task<ENewsletterDTO?> GetNewsletterByIdAsync(int id)
+        {
+            var news = await _db.ENewsletters
+                .FirstOrDefaultAsync(n => n.NewsLetterId == id && n.Status != "已刪除");
+
+            if (news == null)
+            {
+                return null;
+            }
+
+            return new ENewsletterDTO
+            {
+                NewsLetterId = news.NewsLetterId,
+                Title = news.Title,
+                Summary = news.Summary,
+                Content = news.Content,
+                Category = news.Category,
+                Status = news.Status,
+                Note = news.Note,
+                PublishDate = news.PublishDate,
+                UserId = news.UserId
+            };
         }
     }
 }

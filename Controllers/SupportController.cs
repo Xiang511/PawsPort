@@ -183,5 +183,22 @@ namespace PawsPort.Controllers
             return Success<object>(null, "QA回覆成功", 200);
         }
 
+
+        // 取得數據儀表板
+        [HttpGet("Dashboard")]
+        [Tags("客服管理")]
+        public async Task<IActionResult> GetDashboard()
+        {
+            try
+            {
+                var dashboardData = await _qaService.GetDashboardDataAsync();
+
+                return Success(dashboardData, "取得客服數據成功", 200);
+            }
+            catch (Exception ex)
+            {
+                return Failure("GET_DASHBOARD_ERROR", $"取得數據失敗: {ex.Message}", 500);
+            }
+        }
     }
 }

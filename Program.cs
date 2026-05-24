@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using PawsPort.Authorization;
+using PawsPort.Hubs;
 using PawsPort.Middlewares;
 using PawsPort.Models;
 using PawsPort.Services;
@@ -75,6 +76,9 @@ builder.Services.AddCors(options =>
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
+
+// 註冊signalR
+builder.Services.AddSignalR();
 
 
 //auth
@@ -267,5 +271,8 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}")
     .WithStaticAssets();
 
+
+//開啟 AI 機器人的通訊端點
+app.MapHub<AIChatHub>("/aiChatHub");
 
 app.Run();

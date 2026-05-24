@@ -398,7 +398,7 @@ namespace PawsPort.Controllers
         /// <param name="dto">刊登送養資料</param>
         /// <returns>創建成功的寵物資料</returns>
         /// <response code="200">成功刊登送養寵物</response>
-        [Authorize(Policy = "會員系統_普通管理員")]
+        [Authorize(Policy = "寵物系統_一般成員")]
         [HttpPost("/api/users/pet/adoption")]
         [ProducesResponseType(typeof(PetAdoptionDTO), StatusCodes.Status200OK)]
         [Tags("寵物領養")]
@@ -424,8 +424,7 @@ namespace PawsPort.Controllers
         {
             Log.Debug("[UsersController] GetPetPassports GET - Entry");
 
-            // 假設從 Token Claims 取出目前登入者的 UserId，此處以模擬 1 替代，實務上改用 User.FindFirstClaim 或現有機制
-            int currentUserId = 1;
+            int currentUserId = GetCurrentUserId();
 
             var passports = await _petPassportService.GetPetPassportsAsync(currentUserId);
             Log.Debug("[UsersController] 取得寵物健康護照成功，共 {Count} 筆", passports.Count);
@@ -444,7 +443,7 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> GetPassportDetail(int id)
         {
             Log.Debug("[UsersController] GetPassportDetail GET - Id: {Id}", id);
-            int currentUserId = 1;
+            int currentUserId = GetCurrentUserId();
 
             var detail = await _petPassportService.GetPassportDetailAsync(id, currentUserId);
             if (detail == null)
@@ -467,7 +466,7 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> UpdatePassport(int id, [FromBody] PetPassportUpsertDto dto)
         {
             Log.Debug("[UsersController] UpdatePassport PUT - Id: {Id}", id);
-            int currentUserId = 1;
+            int currentUserId = GetCurrentUserId();
 
             var isUpdated = await _petPassportService.UpdatePassportAsync(id, dto, currentUserId);
             if (!isUpdated)
@@ -489,13 +488,56 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> CreatePassport([FromBody] PetPassportUpsertDto dto)
         {
             Log.Debug("[UsersController] CreatePassport POST - PetId: {PetId}", dto.PetId);
-            int currentUserId = 1;
+            int currentUserId = GetCurrentUserId();
 
             var createdDetail = await _petPassportService.CreatePassportAsync(dto, currentUserId);
             Log.Debug("[UsersController] 建立健康護照紀錄成功，新護照標記碼: {Id}", createdDetail.Id);
 
             return Success(createdDetail, "建立成功", 200);
         }
+        /// <summary>
+        /// 取得目前登入會員的所有寵物健康護照整合明細 (Unified GET)
+        /// </summary>
+        /// <returns>整合後的寵物護照與健康紀錄清單</returns>
+        /// <response code="200">成功取得整合寵物護照資料</response>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpGet("/api/users/pet/passport/unified")]
+        [ProducesResponseType(typeof(List<UnifiedPassportDTO>), StatusCodes.Status200OK)]
+        [Tags("寵物健康護照")]
+        public async Task<IActionResult> GetUnifiedPassports()
+        {
+            int userId = GetCurrentUserId(); // helper extracting userId from JWT
+            var dtos = await _petPassportService.GetUnifiedAsync(userId);
+            return Success(dtos, "Success", 200);
+        }
+
+        /// <summary>
+        /// 新增或修改寵物護照的單項健康明細 (Unified POST)
+        /// </summary>
+        /// <param name="dto">新增或修改的健康護照細節，由 DetailType 決定類別 (medical, vaccine, image, weight)</param>
+        /// <returns>新增或更新成功的狀態</returns>
+        /// <response code="201">成功新增或更新健康紀錄</response>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpPost("/api/users/pet/passport/unified")]
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [Tags("寵物健康護照")]
+        public async Task<IActionResult> UpsertUnifiedDetail([FromBody] CreateOrUpdatePassportDTO dto)
+        {
+            int userId = GetCurrentUserId();
+            await _petPassportService.UpsertUnifiedAsync(dto, userId);
+            return Created(string.Empty, null);
+        }
+
+        private int GetCurrentUserId()
+        {
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (string.IsNullOrEmpty(userIdClaim))
+            {
+                throw new UnauthorizedAccessException("使用者未登入或無效的 Token");
+            }
+            return int.Parse(userIdClaim);
+        }
+
         /// <summary>
         /// 依 UserId 取得對應的遊戲玩家資料
         /// </summary>

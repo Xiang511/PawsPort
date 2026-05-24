@@ -40,4 +40,6 @@ public partial class Pet
     public DateTime? DeletedAt { get; set; }
 
     public string Microchip { get; set; }
+
+    public int? UserId { get; set; }
 }

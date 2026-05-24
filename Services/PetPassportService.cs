@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -37,38 +37,44 @@ namespace PawsPort.Services
                 string ageStr = CalculateAge(pet.BirthDate);
 
                 // 取得醫療史
-                var medicals = await _context.MedicalHistories
-                    .Where(m => m.PassportId == hp.PassportId)
-                    .Select(m => new MedicalRecordDto
-                    {
-                        Disease = m.Disease,
-                        DiseaseTreatment = m.DiseaseTreatment,
-                        Location = m.Location,
-                        Time = m.Time.HasValue ? m.Time.Value.ToString("yyyy-MM-dd") : ""
-                    }).ToListAsync();
+                var medicalEntities = await _context.MedicalHistories
+                .Where(m => m.PassportId == hp.PassportId)
+                .ToListAsync();
+
+                var medicals = medicalEntities.Select(m => new MedicalRecordDto
+                {
+                    Disease = m.Disease,
+                    DiseaseTreatment = m.DiseaseTreatment,
+                    Location = m.Location,
+                    Time = m.Time.HasValue ? m.Time.Value.ToString("yyyy-MM-dd") : ""
+                }).ToList();
 
                 // 取得疫苗紀錄
-                var vaccines = await _context.VaccinationStatuses
-                    .Where(v => v.PassportId == hp.PassportId)
-                    .Select(v => new VaccinationDto
-                    {
-                        Type = v.Type,
-                        Location = v.Location,
-                        Time = v.Time.HasValue ? v.Time.Value.ToString("yyyy-MM-dd") : "",
-                        Forecast = v.Forecast.HasValue ? v.Forecast.Value.ToString("yyyy-MM-dd") : ""
-                    }).ToListAsync();
+                var vaccineEntities = await _context.VaccinationStatuses
+                 .Where(v => v.PassportId == hp.PassportId)
+                 .ToListAsync();
+
+                var vaccines = vaccineEntities.Select(v => new VaccinationDto
+                {
+                    Type = v.Type,
+                    Location = v.Location,
+                    Time = v.Time.HasValue ? v.Time.Value.ToString("yyyy-MM-dd") : "",
+                    Forecast = v.Forecast.HasValue ? v.Forecast.Value.ToString("yyyy-MM-dd") : ""
+                }).ToList();
 
                 // 取得該寵物歷史所有體重趨勢紀錄
-                var weights = await _context.HealthPassports
-                    .Where(h => h.PetId == hp.PetId && h.DeletedAt == null && h.Weight.HasValue)
-                    .OrderBy(h => h.RecordDate)
-                    .Select((h, index) => new WeightRecordDto
-                    {
-                        Id = index + 1,
-                        Date = h.RecordDate.HasValue ? h.RecordDate.Value.ToString("yyyy-MM-dd") : "",
-                        Weight = h.Weight.Value
-                    }).ToListAsync();
+                var weightEntities = await _context.HealthPassports
+                .Where(h => h.PetId == hp.PetId && h.DeletedAt == null && h.Weight.HasValue)
+                .OrderBy(h => h.RecordDate)
+                .ToListAsync();
 
+                // 2. 在記憶體中進行 Select，這時候就能用 index 和 ToString 了
+                var weights = weightEntities.Select((h, index) => new WeightRecordDto
+                {
+                    Id = index + 1,
+                    Date = h.RecordDate.HasValue ? h.RecordDate.Value.ToString("yyyy-MM-dd") : "",
+                    Weight = h.Weight.Value
+                }).ToList();
                 resultList.Add(new PetPassportDisplayDto
                 {
                     Id = hp.PassportId,
@@ -140,19 +146,54 @@ namespace PawsPort.Services
             return true;
         }
 
-        // 任務 3：新增護照資料
         public async Task<PetPassportDetailDto> CreatePassportAsync(PetPassportUpsertDto dto, int userId)
         {
+            int petId = dto.PetId ?? 0;
+
+            // 如果沒有傳入 PetId，或是 PetId 為 0，則自動為該使用者建立一隻新的寵物
+            if (petId == 0)
+            {
+                var newPet = new Pet
+                {
+                    Name = dto.Name ?? "新毛孩",
+                    Gender = dto.Gender,
+                    IsDesex = dto.IsDesex,
+                    BirthDate = dto.BirthDate,
+                    Photo = dto.Photo ?? "default_pet.jpg",
+                    UserId = userId,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.Pets.Add(newPet);
+                await _context.SaveChangesAsync();
+                petId = newPet.PetId;
+            }
+            else
+            {
+                // 如果傳入已有的 PetId，更新該寵物的健康狀態與基本資料
+                var pet = await _context.Pets.FirstOrDefaultAsync(p => p.PetId == petId);
+                if (pet != null)
+                {
+                    if (!string.IsNullOrEmpty(dto.Name)) pet.Name = dto.Name;
+                    if (dto.Gender.HasValue) pet.Gender = dto.Gender;
+                    pet.IsDesex = dto.IsDesex;
+                    if (dto.BirthDate.HasValue) pet.BirthDate = dto.BirthDate;
+                    if (!string.IsNullOrEmpty(dto.Photo)) pet.Photo = dto.Photo;
+                    pet.UpdatedAt = DateTime.UtcNow;
+                    _context.Pets.Update(pet);
+                }
+            }
+
             var hp = new HealthPassport
             {
-                PetId = dto.PetId.Value, // 這裡假設傳入時 PetId 一定有值
+                PetId = petId,
                 UserId = userId,
-               
-                RecordDate = dto.RecordDate,
+                RecordDate = dto.RecordDate ?? DateOnly.FromDateTime(DateTime.Today),
                 Weight = dto.Weight,
                 Note = dto.Note,
-                Photo = dto.Photo
-                // 若資料庫有其他必填欄位 (如 CreatedAt) 請在此一併補上
+                Photo = dto.Photo ?? "default_pet.jpg",
+                CreatedAt = DateTime.UtcNow,
+                UpdatedAt = DateTime.UtcNow
             };
             _context.HealthPassports.Add(hp);
             await _context.SaveChangesAsync();
@@ -182,6 +223,158 @@ namespace PawsPort.Services
 
             if (years <= 0) return $"{months}個月";
             return months == 0 ? $"{years}歲" : $"{years}歲{months}個月";
+        }
+
+        // 任務 4：取得合併的健康護照資料 (Unified GET)
+        public async Task<List<UnifiedPassportDTO>> GetUnifiedAsync(int userId)
+        {
+            var passports = await _context.HealthPassports
+                .Where(hp => hp.UserId == userId && hp.DeletedAt == null)
+                .ToListAsync();
+
+            var result = new List<UnifiedPassportDTO>();
+
+            foreach (var hp in passports)
+            {
+                var pet = await _context.Pets.FirstOrDefaultAsync(p => p.PetId == hp.PetId);
+                
+                // 取得醫療史
+                var medicalEntities = await _context.MedicalHistories
+                    .Where(m => m.PassportId == hp.PassportId)
+                    .ToListAsync();
+
+                var medicals = medicalEntities.Select(m => new MedicalDto
+                {
+                    MedicalDetailId = m.MedicalDetailId,
+                    Location = m.Location,
+                    Disease = m.Disease,
+                    DiseaseTreatment = m.DiseaseTreatment,
+                    Time = m.Time
+                }).ToList();
+
+                // 取得疫苗紀錄
+                var vaccineEntities = await _context.VaccinationStatuses
+                    .Where(v => v.PassportId == hp.PassportId)
+                    .ToListAsync();
+
+                var vaccines = vaccineEntities.Select(v => new VaccineDto
+                {
+                    HistoryId = v.HistoryId,
+                    Type = v.Type,
+                    Location = v.Location,
+                    Time = v.Time,
+                    Forecast = v.Forecast
+                }).ToList();
+
+                result.Add(new UnifiedPassportDTO
+                {
+                    PassportId = hp.PassportId,
+                    PetId = hp.PetId,
+                    PetName = pet?.Name ?? "未知毛孩",
+                    Gender = pet?.Gender == 1 ? "公" : pet?.Gender == 2 ? "母" : "未知",
+                    Age = pet != null ? CalculateAge(pet.BirthDate) : "未知年齡",
+                    Weight = hp.Weight,
+                    RecordDate = hp.RecordDate,
+                    Note = hp.Note,
+                    PhotoBase64 = hp.Photo,
+                    MedicalHistories = medicals,
+                    VaccinationStatuses = vaccines
+                });
+            }
+
+            return result;
+        }
+
+        // 任務 5：新增或更新合併的護照細節 (Unified POST)
+        public async Task UpsertUnifiedAsync(CreateOrUpdatePassportDTO dto, int userId)
+        {
+            int? passportId = dto.PassportId;
+            if (!passportId.HasValue || passportId == 0)
+            {
+                var passport = await _context.HealthPassports
+                    .FirstOrDefaultAsync(hp => hp.UserId == userId && hp.DeletedAt == null);
+                if (passport == null)
+                {
+                    throw new Exception("找不到該使用者的寵物健康護照紀錄");
+                }
+                passportId = passport.PassportId;
+            }
+
+            if (dto.DetailType == "medical")
+            {
+                var medical = new MedicalHistory
+                {
+                    PassportId = passportId,
+                    Location = dto.Location,
+                    Disease = dto.Disease,
+                    DiseaseTreatment = dto.DiseaseTreatment,
+                    Time = dto.Time,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.MedicalHistories.Add(medical);
+            }
+            else if (dto.DetailType == "vaccine")
+            {
+                var vaccine = new VaccinationStatus
+                {
+                    PassportId = passportId,
+                    Type = dto.VaccineType,
+                    Location = dto.VaccineLocation,
+                    Time = dto.VaccineTime,
+                    Forecast = dto.Forecast,
+                    CreatedAt = DateTime.UtcNow,
+                    UpdatedAt = DateTime.UtcNow
+                };
+                _context.VaccinationStatuses.Add(vaccine);
+            }
+            else if (dto.DetailType == "image")
+            {
+                var passport = await _context.HealthPassports
+                    .FirstOrDefaultAsync(hp => hp.PassportId == passportId && hp.DeletedAt == null);
+                if (passport != null)
+                {
+                    passport.Photo = dto.PhotoBase64;
+                    if (!string.IsNullOrEmpty(dto.PhotoNote))
+                    {
+                        passport.Note = dto.PhotoNote;
+                    }
+                    passport.UpdatedAt = DateTime.UtcNow;
+                    _context.HealthPassports.Update(passport);
+                }
+            }
+            else if (dto.DetailType == "weight")
+            {
+                var mainPassport = await _context.HealthPassports
+                    .FirstOrDefaultAsync(hp => hp.PassportId == passportId && hp.DeletedAt == null);
+                if (mainPassport != null)
+                {
+                    // 如果原本的主護照已經有體重，且與新輸入的日期不同，則將舊的體重備份為一筆獨立的歷史紀錄
+                    if (mainPassport.Weight.HasValue && mainPassport.RecordDate.HasValue && mainPassport.RecordDate != dto.RecordDate)
+                    {
+                        var historyWeight = new HealthPassport
+                        {
+                            PetId = mainPassport.PetId,
+                            UserId = null, // 留空，避免產生重複的寵物護照主卡片
+                            RecordDate = mainPassport.RecordDate.Value,
+                            Weight = mainPassport.Weight.Value,
+                            Note = mainPassport.Note,
+                            CreatedAt = mainPassport.UpdatedAt ?? mainPassport.CreatedAt ?? DateTime.UtcNow,
+                            UpdatedAt = DateTime.UtcNow
+                        };
+                        _context.HealthPassports.Add(historyWeight);
+                    }
+
+                    // 更新主護照的最新體重資訊，這樣在護照清單首頁能直接看到最新的體重
+                    if (dto.Weight.HasValue) mainPassport.Weight = dto.Weight;
+                    if (dto.RecordDate.HasValue) mainPassport.RecordDate = dto.RecordDate;
+                    if (!string.IsNullOrEmpty(dto.Note)) mainPassport.Note = dto.Note;
+                    mainPassport.UpdatedAt = DateTime.UtcNow;
+                    _context.HealthPassports.Update(mainPassport);
+                }
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }

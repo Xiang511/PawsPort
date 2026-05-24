@@ -458,6 +458,9 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.QuestionType)
                 .IsRequired()
                 .HasMaxLength(20);
+            entity.Property(e => e.ReplyContent).HasMaxLength(500);
+            entity.Property(e => e.ReplyDate).HasColumnType("datetime");
+            entity.Property(e => e.Status).HasMaxLength(20);
         });
 
         modelBuilder.Entity<LoginActivity>(entity =>
@@ -530,6 +533,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.LostCity).HasMaxLength(20);
             entity.Property(e => e.LostDistrict).HasMaxLength(20);
             entity.Property(e => e.LostLocation).HasMaxLength(255);
+            entity.Property(e => e.Name).HasMaxLength(100);
             entity.Property(e => e.Photo).HasMaxLength(100);
             entity.Property(e => e.Size).HasMaxLength(20);
             entity.Property(e => e.Species).HasMaxLength(20);
@@ -728,6 +732,8 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.EmailConfirmationToken).HasMaxLength(255);
+            entity.Property(e => e.EmailTokenExpiry).HasColumnType("datetime");
             entity.Property(e => e.Password)
                 .IsRequired()
                 .HasMaxLength(255);

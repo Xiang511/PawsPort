@@ -38,4 +38,6 @@ public partial class MissingReport
     public string LostCity { get; set; }
 
     public string LostDistrict { get; set; }
+
+    public string Name { get; set; }
 }

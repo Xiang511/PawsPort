@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace PawsPort.Dtos
@@ -46,23 +46,25 @@ namespace PawsPort.Dtos
     public class PetPassportDetailDto
     {
         public int Id { get; set; } // PassportId
-        public string Name { get; set; } // 唯讀或同步顯示
+        public string? Name { get; set; } // 唯讀或同步顯示
         public int? Gender { get; set; }
         public DateOnly? BirthDate { get; set; } // yyyy-MM-dd
         public bool IsDesex { get; set; }
-        public string RecordDate { get; set; } // yyyy-MM-dd
+        public string? RecordDate { get; set; } // yyyy-MM-dd
         public decimal? Weight { get; set; }
-        public string Note { get; set; }
-        public string Photo { get; set; }
+        public string? Note { get; set; }
+        public string? Photo { get; set; }
     }
 
     public class PetPassportUpsertDto
     {
         public int? PetId { get; set; } // 新增時綁定特定的毛孩
+        public string? Name { get; set; } // 寵物姓名
+        public DateOnly? BirthDate { get; set; } // 出生日期
         public DateOnly? RecordDate { get; set; } // yyyy-MM-dd
         public decimal? Weight { get; set; }
-        public string Note { get; set; }
-        public string Photo { get; set; }
+        public string? Note { get; set; }
+        public string? Photo { get; set; }
         // 允許同步更新 Pet 的部分基本健康狀態
         public int? Gender { get; set; }
         public bool IsDesex { get; set; }

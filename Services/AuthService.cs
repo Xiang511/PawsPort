@@ -148,10 +148,25 @@ namespace PawsPort.Services
                 _context.UserAuthTables.Add(userAuth);
                 await _context.SaveChangesAsync();
 
+                // 5. 為新用戶建立 PlayerProfile
+                var playerProfile = new PlayerProfile
+                {
+                    UserId = userEntity.UserId,
+                    CurrentPoint = 0,
+                    UserName = model.Name
+                };
+
+                _context.PlayerProfiles.Add(playerProfile);
+                await _context.SaveChangesAsync();
+
+                Log.Information("[AuthService] RegisterUser - 註冊成功，已建立 PlayerProfile: UserId={UserId}, UserName={UserName}", 
+                    userEntity.UserId, model.Name);
+
                 return (true, userEntity.UserId); // 註冊成功，返回 UserId
             }
-            catch (Exception)
+            catch (Exception ex)
             {
+                Log.Error(ex, "[AuthService] RegisterUser - 註冊失敗: Email={Email}", model.Email);
                 return (false, 0); // 註冊失敗
             }
         }

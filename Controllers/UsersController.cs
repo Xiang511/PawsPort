@@ -33,6 +33,7 @@ namespace PawsPort.Controllers
             _petAdoptionService = petAdoptionService;
             _petPassportService = petPassportService;
             _playerService = playerService;
+            _articleService = articleService;
             _fileService = fileService;
             _Env = env;
         }
@@ -544,7 +545,7 @@ namespace PawsPort.Controllers
         /// <summary>
         /// 首頁使用：按照篩選條件取得全站所有文章
         /// </summary>
-        [Authorize(Policy = "allowanymouse")]
+        [AllowAnonymous]
         [HttpGet("articles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Tags("社群管理")]
@@ -618,13 +619,79 @@ namespace PawsPort.Controllers
             }
             catch (Exception ex)
             {
-                
+
                 // 這樣做能確保後端發生任何不可預期的內部錯誤時，只會優雅地回傳 500，而「黑色的命令提示字元視窗」絕對不會自己關掉！
                 Log.Error(ex, "[UsersController] Upload - 圖片上傳期間發生未預期致命錯誤: {Message}", ex.Message);
 
                 return StatusCode(StatusCodes.Status500InternalServerError, new { message = "伺服器內部錯誤，圖片上傳失敗" });
             }
         }
+
+        //新增文章
+        /// <summary>
+        /// 新增文章
+        /// </summary>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
+        /// <response code="400">資料驗證失敗</response>
+        /// <response code="200">文章建立成功</response>
+        /// <response code="500">伺服器內部錯誤</response>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPost("articles")]
+        [Tags("社群管理")]
+
+        public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
+            }
+            try
+            {
+                var result = await _articleService.CreateArticleAsync(articleDto);
+                return Success(result, "文章建立成功", 200);
+                //**跳轉到文章詳細頁面
+                
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", "伺服器內部錯誤", 500);
+            }
+        }
+
+        //=====取得文章詳細(文章id)=====
+        /// <summary>
+        /// 取得文章詳細
+        /// </summary>
+        /// <param name="id">文章 ID</param>
+        /// <returns>文章詳細資料</returns>
+        /// <response code="404">找不到文章</response>
+        /// <response code="200">取得文章詳細成功</response>
+        /// <response code="500">伺服器內部錯誤</response>
+        [AllowAnonymous]
+        [HttpGet("articles/{id}")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetArticleDetail(int id)
+        {
+            try
+            {
+                var result = await _articleService.GetArticleDetailAsync(id);
+
+                if (result == null)
+                {
+                    return Failure("ARTICLE_NOT_FOUND", "找不到文章", 404);
+                }
+
+                return Success(result, "取得文章詳細成功", 200);
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[UsersController] GetArticleDetail 發生錯誤, ArticleId: {ArticleId}", id);
+
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
 
 
     }

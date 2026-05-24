@@ -1,4 +1,4 @@
-﻿
+
 using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
@@ -232,10 +232,34 @@ namespace PawsPort.Services
 
 
         //=====取得文章詳細(文章id)=====
-        public async Task<ArticleDetailDTO> GetArticleDetailAsync(int id)
+        public async Task<ArticleDetailDTO?> GetArticleDetailAsync(int id)
         {
-            var ArticleDetail = await _context.Articles.Where(a => a.ArticleId == id && a.IsExist == true)
-                .Select(a => new ArticleDetailDTO
+            Console.WriteLine($"開始取得文章詳細：{id}");
+            // 先把實體文章撈出來，將資料庫的 ViewCount 真正 +1 並儲存
+            var articleEntity = await _context.Articles
+                .FirstOrDefaultAsync(a => a.ArticleId == id && a.IsExist == true);
+
+            if (articleEntity == null)
+            {
+                return null; // 文章不存在就直接結束，省去後面不必要的 Join 查詢
+            }
+          
+           
+            
+           
+          
+            articleEntity.ViewCount += 1;
+            await _context.SaveChangesAsync(); 
+
+            // 1. 先查文章主體 + Category + UserTable
+            var articleDetail = await (
+                from a in _context.Articles
+                join c in _context.Categories
+                    on a.CategoryId equals c.CategoryId
+                join u in _context.UserTables
+                    on a.UserId equals u.UserId
+                where a.ArticleId == id && a.IsExist == true
+                select new ArticleDetailDTO
                 {
                     ArticleId = a.ArticleId,
                     Title = a.Title,
@@ -243,18 +267,68 @@ namespace PawsPort.Services
                     CreateAt = a.CreateAt,
                     LastEditTime = a.LastEditTime,
                     Status = a.Status,
-                    ViewCount = a.ViewCount,
+                    ViewCount = a.ViewCount, // 💡 這裡直接拿 a.ViewCount 即可，因為上面已經更新過了
+                    ReportedCount = a.ReportedCount,
+                    LastReported = a.LastReported,
                     EventStartDate = a.EventStartDate,
                     EventEndDate = a.EventEndDate,
                     EventLocation = a.EventLocation,
+                    IsExist = a.IsExist,
                     UserId = a.UserId,
                     CategoryId = a.CategoryId,
                     DeleteTypeId = a.DeleteTypeId,
                     DeleteNote = a.DeleteNote,
-                    IsActive = a.IsActive
-                }).FirstOrDefaultAsync();
+                    IsActive = a.IsActive,
 
-            return ArticleDetail;
+                    // Category
+                    CategoryName = c.CategoryName,
+
+                    // UserTable
+                    UserName = u.Name,
+                    UserPhoto = u.Photo,
+
+                    // 下面先給預設，等等再補
+                    BookmarkCount = 0,
+                    CoverImageUrl = null,
+                    ImageUrls = new List<string>(),
+                    Tags = new List<string>()
+                }
+            ).FirstOrDefaultAsync();
+
+            Console.WriteLine("主文章查詢完成");
+            // 理論上前面查得到，這裡一定不為 null，但留著做安全檢查
+            if (articleDetail == null)
+            {
+                return null;
+            }
+
+            // 2. 查收藏數 Bookmark
+            articleDetail.BookmarkCount = await _context.Bookmarks
+                .CountAsync(b => b.ArticleId == id && b.IsExist == true); // 加上 IsExist 判斷，避免算到已被取消收藏的
+            Console.WriteLine("收藏數查詢完成");
+            // 3. 查封面圖 ArticleImage
+            articleDetail.CoverImageUrl = await _context.ArticleImages
+                .Where(img => img.ArticleId == id && img.SortOrder == 1 && img.IsExist == true)
+                .Select(img => img.ImageUrl)
+                .FirstOrDefaultAsync();
+            Console.WriteLine("封面圖查詢完成");
+            // 4. 查全部圖片 ArticleImage
+            articleDetail.ImageUrls = await _context.ArticleImages
+                .Where(img => img.ArticleId == id && img.IsExist == true)
+                .OrderBy(img => img.SortOrder)
+                .Select(img => img.ImageUrl)
+                .ToListAsync();
+            Console.WriteLine("圖片清單查詢完成");
+            // 5. 查標籤 ArticleTagMap
+            articleDetail.Tags = await (
+                from map in _context.ArticleTagMaps
+                join tag in _context.Tags
+                    on map.TagId equals tag.TagId
+                where map.ArticleId == id && map.IsExist == true
+                select tag.TagName
+            ).ToListAsync();
+            Console.WriteLine("標籤查詢完成");
+            return articleDetail;
         }
 
         //=====查詢文章(文章id)=====

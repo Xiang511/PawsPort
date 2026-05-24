@@ -1,4 +1,4 @@
-﻿namespace PawsPort.Dtos
+namespace PawsPort.Dtos
 {
     public class ArticleDetailDTO
     {
@@ -37,5 +37,32 @@
         public string DeleteNote { get; set; }
 
         public bool IsActive { get; set; }
+
+        //
+        public string CategoryName { get; set; } = string.Empty;
+
+        public string UserName { get; set; } = string.Empty;
+
+        public string? UserPhoto { get; set; }
+
+        public List<string> Tags { get; set; } = new();
+
+        public int BookmarkCount { get; set; }
+
+        public int LikeCount { get; set; }
+
+        public int CommentCount { get; set; }
+
+        public bool IsBookmarked { get; set; }
+
+        public bool IsLiked { get; set; }
+
+        public bool IsFollowingAuthor { get; set; }
+
+        public List<ArticleCommentDTO> Comments { get; set; } = new();
+        public string? CoverImageUrl { get; set; }
+
+        public List<string> ImageUrls { get; set; } = new();
+
     }
 }

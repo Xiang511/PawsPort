@@ -595,7 +595,7 @@ namespace PawsPort.Controllers
             if (file == null || file.Length == 0)
             {
                 Log.Warning("[UsersController] Upload - 未接收到檔案或檔案大小為 0");
-                return BadRequest(new { message = "未接收到檔案" });
+                return Failure("FILE_EMPTY", "未接收到檔案", 400);
             }
 
             try
@@ -609,13 +609,13 @@ namespace PawsPort.Controllers
                 if (string.IsNullOrEmpty(imageUrl))
                 {
                     Log.Warning("[UsersController] Upload - 圖片儲存失敗，副檔名不符或儲存程序異常");
-                    return BadRequest(new { message = "檔案格式不正確或圖片儲存失敗" });
+                    return Failure("INVALID_FILE_FORMAT", "檔案格式不正確或圖片儲存失敗", 400);
                 }
 
                 Log.Debug("[UsersController] Upload - 圖片上傳成功，網址: {Url}", imageUrl);
 
                 // 4. 成功後回傳 Quill 認得的物件格式 { url: "https://..." }
-                return Ok(new { url = imageUrl });
+                return Success(new { url = imageUrl }, "Success", 200);
             }
             catch (Exception ex)
             {
@@ -623,7 +623,8 @@ namespace PawsPort.Controllers
                 // 這樣做能確保後端發生任何不可預期的內部錯誤時，只會優雅地回傳 500，而「黑色的命令提示字元視窗」絕對不會自己關掉！
                 Log.Error(ex, "[UsersController] Upload - 圖片上傳期間發生未預期致命錯誤: {Message}", ex.Message);
 
-                return StatusCode(StatusCodes.Status500InternalServerError, new { message = "伺服器內部錯誤，圖片上傳失敗" });
+                return Failure("INTERNAL_ERROR", "伺服器內部錯誤，圖片上傳失敗", 500);
+                
             }
         }
 
@@ -686,8 +687,6 @@ namespace PawsPort.Controllers
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[UsersController] GetArticleDetail 發生錯誤, ArticleId: {ArticleId}", id);
-
                 return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }

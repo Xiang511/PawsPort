@@ -26,7 +26,7 @@ namespace PawsPort.Controllers
         {
             if (file == null)
             {
-                return BadRequest(new { message = "未接收到檔案" });
+                return Failure("FILE_NULL", "未接收到檔案", 400);
             }
 
             // 呼叫 Service 進行驗證、存檔，並傳入目前請求的 HttpContext.Request 組合網址
@@ -34,11 +34,11 @@ namespace PawsPort.Controllers
 
             if (string.IsNullOrEmpty(imageUrl))
             {
-                return BadRequest(new { message = "檔案格式不正確或圖片無效" });
+                return Failure("INVALID_FILE_FORMAT", "檔案格式不正確或圖片無效", 400);
             }
 
             // 成功後回傳 { url: "https://..." }是 Quill 認得的格式
-            return Ok(new { url = imageUrl });
+            return Success(new { url = imageUrl }, "Success", 200);
         }
 
     }

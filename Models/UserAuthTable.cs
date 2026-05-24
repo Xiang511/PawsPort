@@ -18,4 +18,8 @@ public partial class UserAuthTable
     public string PasswordResetToken { get; set; }
 
     public int UserId { get; set; }
+
+    public string EmailConfirmationToken { get; set; }
+
+    public DateTime? EmailTokenExpiry { get; set; }
 }

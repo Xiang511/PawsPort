@@ -40,4 +40,14 @@ public partial class MissingReport
     public string LostDistrict { get; set; }
 
     public string Name { get; set; }
+
+    public string ContactPhone { get; set; }
+
+    public string ContactEmail { get; set; }
+
+    public string Features { get; set; }
+
+    public string Gender { get; set; }
+
+    public string Note { get; set; }
 }

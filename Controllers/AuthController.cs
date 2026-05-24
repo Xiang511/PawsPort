@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Services;
@@ -162,141 +162,262 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// 使用者註冊
+        /// 使用者註冊 - 步驟1：送出註冊資料，發送 Email 驗證碼
         /// </summary>
         /// <param name="model">註冊資訊，包含 Email、姓名和密碼</param>
-        /// <returns>註冊成功訊息</returns>
-        /// <response code="200">註冊成功</response>
-        /// <response code="400">Email 已存在</response>
-        /// <response code="500">註冊失敗</response>
+        /// <returns>驗證碼已發送訊息</returns>
+        /// <response code="200">驗證碼已發送，請至信箱完成驗證</response>
+        /// <response code="400">Email 已存在或輸入有誤</response>
+        /// <response code="500">系統錯誤</response>
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Tags("身分驗證")]
-
         public async Task<IActionResult> Register([FromBody] UserRegisterDTO model)
         {
             Log.Debug("[AuthController] Register POST - Entry, Email: {Email}, Name: {Name}", model.Email, model.Name);
 
-            // 檢查 Email 是否已存在
-            var isEmailExist = await _memberProfileService.GetUserInfoByEmailAsync(model.Email);
+            var (success, message) = await _authService.RegisterUser(model);
 
-            if (isEmailExist != null)
+            if (success)
             {
-                Log.Warning("[AuthController] Register - Email 已存在: {Email}", model.Email);
-                return Failure("EMAIL_EXISTS", "Email 已存在", 400);
+                Log.Debug("[AuthController] Register - 驗證碼已發送: {Email}", model.Email);
+                return Success(new { Message = message, Email = model.Email });
+            }
+            else
+            {
+                Log.Warning("[AuthController] Register - 註冊失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "REGISTRATION_FAILED", 400);
+            }
+        }
+
+        /// <summary>
+        /// 使用者註冊 - 步驟2：驗證 Email 驗證碼，完成帳號建立
+        /// </summary>
+        /// <param name="model">Email 和驗證碼</param>
+        /// <returns>註冊成功訊息</returns>
+        /// <response code="200">Email 驗證成功，帳號已啟用</response>
+        /// <response code="400">驗證碼錯誤或已過期</response>
+        [HttpPost("register/verify-email")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> VerifyRegisterEmail([FromBody] RegisterVerifyDTO model)
+        {
+            Log.Debug("[AuthController] VerifyRegisterEmail POST - Email: {Email}", model.Email);
+
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.VerificationCode))
+            {
+                return Failure("Email 和驗證碼不可為空", "INVALID_INPUT", 400);
             }
 
-            // 呼叫 RegisterUser（密碼雜湊在 Service 中處理）
-            var result = await _authService.RegisterUser(model);
+            var (success, message, userId) = await _authService.VerifyRegisterEmailAsync(model.Email, model.VerificationCode);
 
-            if (result.success)
+            if (success)
             {
-                Log.Debug("[AuthController] Register - 註冊成功, Email: {Email}, UserId: {UserId}", model.Email, result.userId);
+                Log.Debug("[AuthController] VerifyRegisterEmail - 驗證成功: {Email}, UserId: {UserId}", model.Email, userId);
 
-                // 為新用戶分配除會員系統外的所有系統一般成員權限
-                // 寵物系統(2), 遊戲系統(3), 客服系統(4), 社群系統(5) - 都設為一般成員(3)
-                var systemsToAssign = new[] { 2, 3, 4, 5 }; // 除了會員系統(1)外的所有系統
-                var generalMemberRoleId = 3; // 一般成員
+                // 為新用戶分配各系統一般成員權限
+                // 寵物系統(2), 遊戲系統(3), 客服系統(4), 社群系統(5)
+                var systemsToAssign = new[] { 2, 3, 4, 5 };
+                var generalMemberRoleId = 3;
 
                 foreach (var systemId in systemsToAssign)
                 {
                     var permissionDto = new MemberUserSystemRoleDTO
                     {
-                        UserId = result.userId,
+                        UserId = userId,
                         SystemId = systemId,
                         RoleId = generalMemberRoleId
                     };
 
                     await _memberPermissionService.CreateMemberPermissionAsync(permissionDto);
-                    Log.Debug("[AuthController] Register - 已分配權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", 
-                        result.userId, systemId, generalMemberRoleId);
+                    Log.Debug("[AuthController] VerifyRegisterEmail - 已分配權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}",
+                        userId, systemId, generalMemberRoleId);
                 }
 
-                return Success(new { Message = "註冊成功", Email = model.Email, UserId = result.userId });
+                return Success(new { Message = message, Email = model.Email, UserId = userId });
             }
             else
             {
-                Log.Warning("[AuthController] Register - 註冊失敗, Email: {Email}", model.Email);
-                return Failure("REGISTRATION_FAILED", "註冊失敗，請稍後再試", 500);
+                Log.Warning("[AuthController] VerifyRegisterEmail - 驗證失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "VERIFY_FAILED", 400);
             }
         }
         /// <summary>
-        /// 使用者登入
+        /// 使用者登入 - 步驟1：驗證帳號密碼並發送驗證碼
         /// </summary>
         /// <param name="model">登入資訊，包含 Email 和密碼</param>
-        /// <returns>登入成功返回 Token 和使用者資訊</returns>
-        /// <response code="200">登入成功</response>
+        /// <returns>發送驗證碼成功</returns>
+        /// <response code="200">驗證碼已發送</response>
         /// <response code="401">帳號或密碼錯誤</response>
-        /// <response code="404">使用者不存在</response>
-        [HttpPost("login")]
+        [HttpPost("login/request-code")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Tags("身分驗證")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO model)
+        public async Task<IActionResult> RequestLoginVerificationCode([FromBody] RequestVerificationCodeDTO model)
         {
-            // 取得客戶端 IP 和 User Agent
             var ipAddress = GetClientIpAddress();
             var userAgent = Request.Headers["User-Agent"].ToString();
 
-            // 驗證輸入
-            if (string.IsNullOrWhiteSpace(model.UserEmail))
-            {
-                // 記錄失敗的登入嘗試（無論如何都要記錄）
-                await _loginLogService.LogFailedLoginAsync(
-                    "unknown",
-                    ipAddress,
-                    userAgent,
-                    "Email 為空");
+            Log.Debug("[AuthController] RequestLoginVerificationCode - Email: {Email}, IP: {IP}", model.Email, ipAddress);
 
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                await _loginLogService.LogFailedLoginAsync("unknown", ipAddress, userAgent, "Email 為空");
                 return Failure("Email 不可為空", "Invalid_Input", 400);
             }
 
-            // 查詢使用者資訊
-            var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.UserEmail);
+            // 調用服務發送驗證碼
+            var (success, message) = await _authService.SendLoginVerificationCodeAsync(model.Email, model.Password);
 
-            // 無論使用者是否存在，都嘗試驗證（避免時序攻擊）
-            var token = await _authService.ValidateUser(model.UserEmail, model.Password);
-
-            if (!string.IsNullOrEmpty(token) && userInfo != null)
+            if (success)
             {
-                // 登入成功
-                Response.Cookies.Append("X-Access-Token", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = Request.IsHttps,
-                    SameSite = SameSiteMode.Lax,
-                    Path = "/",
-                    Expires = DateTimeOffset.UtcNow.AddHours(2)
-                });
-
-                // 記錄成功的登入
-                await _loginLogService.LogUserLoginAsync(
-                    userInfo.UserId,
-                    model.UserEmail,
-                    ipAddress,
-                    userAgent);
-
-                Log.Debug("[AuthController] Login - 成功登入, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
-                return Success(new { Token = token, User = userInfo });
+                Log.Information("[AuthController] RequestLoginVerificationCode - 驗證碼已發送: {Email}", model.Email);
+                return Success(new { Message = message, Email = model.Email });
             }
             else
             {
-                // 登入失敗（無論是帳號不存在還是密碼錯誤，都記錄）
-                await _loginLogService.LogFailedLoginAsync(
-                    model.UserEmail,
-                    ipAddress,
-                    userAgent,
-                    "帳號或密碼錯誤");
-
-                Log.Debug("[AuthController] Login - 登入失敗, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
-
-                // 統一返回相同的錯誤訊息（避免洩漏帳號是否存在）
-                return Failure("帳號或密碼錯誤", "Invalid_Credentials", 401);
+                // 記錄失敗的登入嘗試
+                await _loginLogService.LogFailedLoginAsync(model.Email, ipAddress, userAgent, message);
+                Log.Warning("[AuthController] RequestLoginVerificationCode - 失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "Authentication_Failed", 401);
             }
         }
+
+        /// <summary>
+        /// 使用者登入 - 步驟2：驗證驗證碼並完成登入
+        /// </summary>
+        /// <param name="model">驗證碼驗證資訊</param>
+        /// <returns>登入成功返回 Token 和使用者資訊</returns>
+        /// <response code="200">登入成功</response>
+        /// <response code="401">驗證碼錯誤或已過期</response>
+        [HttpPost("login/verify-code")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> VerifyLoginCode([FromBody] VerifyCodeDTO model)
+        {
+            var ipAddress = GetClientIpAddress();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+
+            Log.Debug("[AuthController] VerifyLoginCode - Email: {Email}, IP: {IP}", model.Email, ipAddress);
+
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.VerificationCode))
+            {
+                return Failure("Email 和驗證碼不可為空", "Invalid_Input", 400);
+            }
+
+            // 驗證驗證碼
+            var (success, token, message) = await _authService.VerifyLoginCodeAsync(model.Email, model.VerificationCode);
+
+            if (success)
+            {
+                // 獲取使用者資訊
+                var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.Email);
+
+                if (userInfo != null)
+                {
+                    // 設置 Cookie
+                    Response.Cookies.Append("X-Access-Token", token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsHttps,
+                        SameSite = SameSiteMode.Lax,
+                        Path = "/",
+                        Expires = DateTimeOffset.UtcNow.AddHours(2)
+                    });
+
+                    // 記錄成功的登入
+                    await _loginLogService.LogUserLoginAsync(userInfo.UserId, model.Email, ipAddress, userAgent);
+
+                    Log.Information("[AuthController] VerifyLoginCode - 登入成功: {Email}, IP: {IP}", model.Email, ipAddress);
+                    return Success(new { Token = token, User = userInfo, Message = message });
+                }
+            }
+
+            // 驗證失敗
+            await _loginLogService.LogFailedLoginAsync(model.Email, ipAddress, userAgent, message);
+            Log.Warning("[AuthController] VerifyLoginCode - 驗證失敗: {Email}, 原因: {Message}", model.Email, message);
+            return Failure(message, "Verification_Failed", 401);
+        }
+
+        ///// <summary>
+        ///// 使用者登入（舊方法，保留用於向後相容）
+        ///// </summary>
+        ///// <param name="model">登入資訊，包含 Email 和密碼</param>
+        ///// <returns>登入成功返回 Token 和使用者資訊</returns>
+        ///// <response code="200">登入成功</response>
+        ///// <response code="401">帳號或密碼錯誤</response>
+        ///// <response code="404">使用者不存在</response>
+        //[HttpPost("login")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[Tags("身分驗證")]
+        //public async Task<IActionResult> Login([FromBody] LoginDTO model)
+        //{
+        //    // 取得客戶端 IP 和 User Agent
+        //    var ipAddress = GetClientIpAddress();
+        //    var userAgent = Request.Headers["User-Agent"].ToString();
+
+        //    // 驗證輸入
+        //    if (string.IsNullOrWhiteSpace(model.UserEmail))
+        //    {
+        //        // 記錄失敗的登入嘗試（無論如何都要記錄）
+        //        await _loginLogService.LogFailedLoginAsync(
+        //            "unknown",
+        //            ipAddress,
+        //            userAgent,
+        //            "Email 為空");
+
+        //        return Failure("Email 不可為空", "Invalid_Input", 400);
+        //    }
+
+        //    // 查詢使用者資訊
+        //    var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.UserEmail);
+
+        //    // 無論使用者是否存在，都嘗試驗證（避免時序攻擊）
+        //    var token = await _authService.ValidateUser(model.UserEmail, model.Password);
+
+        //    if (!string.IsNullOrEmpty(token) && userInfo != null)
+        //    {
+        //        // 登入成功
+        //        Response.Cookies.Append("X-Access-Token", token, new CookieOptions
+        //        {
+        //            HttpOnly = true,
+        //            Secure = Request.IsHttps,
+        //            SameSite = SameSiteMode.Lax,
+        //            Path = "/",
+        //            Expires = DateTimeOffset.UtcNow.AddHours(2)
+        //        });
+
+        //        // 記錄成功的登入
+        //        await _loginLogService.LogUserLoginAsync(
+        //            userInfo.UserId,
+        //            model.UserEmail,
+        //            ipAddress,
+        //            userAgent);
+
+        //        Log.Debug("[AuthController] Login - 成功登入, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
+        //        return Success(new { Token = token, User = userInfo });
+        //    }
+        //    else
+        //    {
+        //        // 登入失敗（無論是帳號不存在還是密碼錯誤，都記錄）
+        //        await _loginLogService.LogFailedLoginAsync(
+        //            model.UserEmail,
+        //            ipAddress,
+        //            userAgent,
+        //            "帳號或密碼錯誤");
+
+        //        Log.Debug("[AuthController] Login - 登入失敗, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
+
+        //        // 統一返回相同的錯誤訊息（避免洩漏帳號是否存在）
+        //        return Failure("帳號或密碼錯誤", "Invalid_Credentials", 401);
+        //    }
+        //}
 
 
         /// <summary>
@@ -333,6 +454,120 @@ namespace PawsPort.Controllers
             Log.Debug("[AuthController] Logout POST - Exit");
             return Success(true, "登出成功", 200);
         }
+
+        #region 忘記密碼功能
+
+        /// <summary>
+        /// 請求密碼重置 - 發送重置連結到郵箱
+        /// </summary>
+        /// <param name="model">包含用戶郵箱的請求</param>
+        /// <returns>成功消息</returns>
+        /// <response code="200">重置連結已發送（即使郵箱不存在也返回此消息以防止郵箱枚舉）</response>
+        /// <response code="400">請求格式錯誤</response>
+        [HttpPost("forgot-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> ForgotPassword([FromBody] ForgotPasswordDTO model)
+        {
+            Log.Debug("[AuthController] ForgotPassword - Email: {Email}", model.Email);
+
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                return Failure("Email 不可為空", "Invalid_Input", 400);
+            }
+
+            var (success, message) = await _authService.RequestPasswordResetAsync(model.Email);
+
+            // 無論成功或失敗，都返回相同的消息（安全考量）
+            return Success(new { Message = "如果該電子郵件存在於我們的系統中，您將收到密碼重置連結" });
+        }
+
+        /// <summary>
+        /// 驗證重置 Token 是否有效
+        /// </summary>
+        /// <param name="model">包含郵箱和 Token 的驗證請求</param>
+        /// <returns>Token 驗證結果</returns>
+        /// <response code="200">Token 有效</response>
+        /// <response code="400">Token 無效或已過期</response>
+        [HttpPost("verify-reset-token")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> VerifyResetToken([FromBody] VerifyResetTokenDTO model)
+        {
+            Log.Debug("[AuthController] VerifyResetToken - Email: {Email}", model.Email);
+
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.ResetToken))
+            {
+                return Failure("Email 和 Token 不可為空", "Invalid_Input", 400);
+            }
+
+            var (isValid, message) = await _authService.VerifyResetTokenAsync(model.Email, model.ResetToken);
+
+            if (isValid)
+            {
+                return Success(new { Message = message, IsValid = true });
+            }
+            else
+            {
+                return Failure(message, "Invalid_Token", 400);
+            }
+        }
+
+        /// <summary>
+        /// 重置密碼
+        /// </summary>
+        /// <param name="model">包含郵箱、Token 和新密碼的重置請求</param>
+        /// <returns>密碼重置結果</returns>
+        /// <response code="200">密碼重置成功</response>
+        /// <response code="400">Token 無效、密碼不符合要求或密碼不匹配</response>
+        [HttpPost("reset-password")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordDTO model)
+        {
+            Log.Debug("[AuthController] ResetPassword - Email: {Email}", model.Email);
+
+            // 驗證輸入
+            if (string.IsNullOrWhiteSpace(model.Email) || 
+                string.IsNullOrWhiteSpace(model.ResetToken) ||
+                string.IsNullOrWhiteSpace(model.NewPassword))
+            {
+                return Failure("所有欄位都不可為空", "Invalid_Input", 400);
+            }
+
+            // 驗證密碼長度
+            if (model.NewPassword.Length < 6)
+            {
+                return Failure("密碼長度不能少於 6 位", "Password_Too_Short", 400);
+            }
+
+            // 驗證密碼匹配
+            if (model.NewPassword != model.ConfirmPassword)
+            {
+                return Failure("兩次輸入的密碼不一致", "Password_Mismatch", 400);
+            }
+
+            var (success, message) = await _authService.ResetPasswordAsync(
+                model.Email, 
+                model.ResetToken, 
+                model.NewPassword);
+
+            if (success)
+            {
+                Log.Information("[AuthController] ResetPassword - 密碼重置成功: {Email}", model.Email);
+                return Success(new { Message = message });
+            }
+            else
+            {
+                Log.Warning("[AuthController] ResetPassword - 密碼重置失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "Reset_Failed", 400);
+            }
+        }
+
+        #endregion
 
         /// <summary>
         /// Google OAuth 登入

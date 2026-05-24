@@ -732,6 +732,8 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.Email)
                 .IsRequired()
                 .HasMaxLength(50);
+            entity.Property(e => e.EmailConfirmationToken).HasMaxLength(255);
+            entity.Property(e => e.EmailTokenExpiry).HasColumnType("datetime");
             entity.Property(e => e.Password)
                 .IsRequired()
                 .HasMaxLength(255);

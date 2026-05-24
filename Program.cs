@@ -85,6 +85,7 @@ builder.Services.AddSignalR();
 builder.Services.AddScoped<AuthService>();
 builder.Services.AddScoped<LoginLogService>();
 builder.Services.AddScoped<GoogleOAuthService>();
+builder.Services.AddScoped<EmailService>();
 
 // 註冊 HttpClient
 builder.Services.AddHttpClient();

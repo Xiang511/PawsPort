@@ -21,8 +21,9 @@ namespace PawsPort.Controllers
         private readonly PetPassportService _petPassportService;
         private readonly PlayerService _playerService;
         private readonly ArticleService _articleService;
+        private readonly ClientMissingPetService _clientMissingPetService;
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -30,6 +31,7 @@ namespace PawsPort.Controllers
             _petPassportService = petPassportService;
             _playerService = playerService;
             _articleService = articleService;
+            _clientMissingPetService = clientMissingPetService;
         }
 
         /// <summary>
@@ -597,6 +599,52 @@ namespace PawsPort.Controllers
                 );
             return Success(result, "取得所有文章成功", 200);
 
+        }
+        
+
+        /// <summary>
+        /// 取得所有公開協尋中的遺失寵物列表
+        /// </summary>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpGet("/api/users/missing-pets")]
+        [ProducesResponseType(typeof(List<MissingPetListDTO>), StatusCodes.Status200OK)]
+        [Tags("遺失協尋")]
+        public async Task<IActionResult> GetMissingPets()
+        {
+            var dtos = await _clientMissingPetService.GetMissingPetsAsync();
+            return Success(dtos, "取得遺失協尋列表成功", 200);
+        }
+
+        /// <summary>
+        /// 取得單筆遺失寵物詳細資料
+        /// </summary>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpGet("/api/users/missing-pets/{id}")]
+        [ProducesResponseType(typeof(MissingPetDetailDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("遺失協尋")]
+        public async Task<IActionResult> GetMissingPetDetail(int id)
+        {
+            var dto = await _clientMissingPetService.GetMissingPetDetailAsync(id);
+            if (dto == null) return Failure("NOT_FOUND", "找不到指定的遺失紀錄", 404);
+
+            return Success(dto, "取得遺失詳細資料成功", 200);
+        }
+
+        /// <summary>
+        /// 新增一筆遺失寵物協尋紀錄
+        /// </summary>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpPost("/api/users/missing-pets")]
+        [ProducesResponseType(typeof(MissingPetDetailDTO), StatusCodes.Status201Created)]
+        [Tags("遺失協尋")]
+        public async Task<IActionResult> CreateMissingPet([FromBody] CreateMissingPetDTO dto)
+        {
+            int userId = GetCurrentUserId();
+            var result = await _clientMissingPetService.CreateMissingPetAsync(dto, userId);
+            
+            // 使用 Success() 並修改 Status Code 模擬 201，或直接回傳 JSON
+            return Success(result, "刊登遺失紀錄成功", 201);
         }
     }
 }

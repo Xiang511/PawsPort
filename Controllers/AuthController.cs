@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Services;
@@ -223,80 +223,178 @@ namespace PawsPort.Controllers
             }
         }
         /// <summary>
-        /// 使用者登入
+        /// 使用者登入 - 步驟1：驗證帳號密碼並發送驗證碼
         /// </summary>
         /// <param name="model">登入資訊，包含 Email 和密碼</param>
-        /// <returns>登入成功返回 Token 和使用者資訊</returns>
-        /// <response code="200">登入成功</response>
+        /// <returns>發送驗證碼成功</returns>
+        /// <response code="200">驗證碼已發送</response>
         /// <response code="401">帳號或密碼錯誤</response>
-        /// <response code="404">使用者不存在</response>
-        [HttpPost("login")]
+        [HttpPost("login/request-code")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Tags("身分驗證")]
-        public async Task<IActionResult> Login([FromBody] LoginDTO model)
+        public async Task<IActionResult> RequestLoginVerificationCode([FromBody] RequestVerificationCodeDTO model)
         {
-            // 取得客戶端 IP 和 User Agent
             var ipAddress = GetClientIpAddress();
             var userAgent = Request.Headers["User-Agent"].ToString();
 
-            // 驗證輸入
-            if (string.IsNullOrWhiteSpace(model.UserEmail))
-            {
-                // 記錄失敗的登入嘗試（無論如何都要記錄）
-                await _loginLogService.LogFailedLoginAsync(
-                    "unknown",
-                    ipAddress,
-                    userAgent,
-                    "Email 為空");
+            Log.Debug("[AuthController] RequestLoginVerificationCode - Email: {Email}, IP: {IP}", model.Email, ipAddress);
 
+            if (string.IsNullOrWhiteSpace(model.Email))
+            {
+                await _loginLogService.LogFailedLoginAsync("unknown", ipAddress, userAgent, "Email 為空");
                 return Failure("Email 不可為空", "Invalid_Input", 400);
             }
 
-            // 查詢使用者資訊
-            var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.UserEmail);
+            // 調用服務發送驗證碼
+            var (success, message) = await _authService.SendLoginVerificationCodeAsync(model.Email, model.Password);
 
-            // 無論使用者是否存在，都嘗試驗證（避免時序攻擊）
-            var token = await _authService.ValidateUser(model.UserEmail, model.Password);
-
-            if (!string.IsNullOrEmpty(token) && userInfo != null)
+            if (success)
             {
-                // 登入成功
-                Response.Cookies.Append("X-Access-Token", token, new CookieOptions
-                {
-                    HttpOnly = true,
-                    Secure = Request.IsHttps,
-                    SameSite = SameSiteMode.Lax,
-                    Path = "/",
-                    Expires = DateTimeOffset.UtcNow.AddHours(2)
-                });
-
-                // 記錄成功的登入
-                await _loginLogService.LogUserLoginAsync(
-                    userInfo.UserId,
-                    model.UserEmail,
-                    ipAddress,
-                    userAgent);
-
-                Log.Debug("[AuthController] Login - 成功登入, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
-                return Success(new { Token = token, User = userInfo });
+                Log.Information("[AuthController] RequestLoginVerificationCode - 驗證碼已發送: {Email}", model.Email);
+                return Success(new { Message = message, Email = model.Email });
             }
             else
             {
-                // 登入失敗（無論是帳號不存在還是密碼錯誤，都記錄）
-                await _loginLogService.LogFailedLoginAsync(
-                    model.UserEmail,
-                    ipAddress,
-                    userAgent,
-                    "帳號或密碼錯誤");
-
-                Log.Debug("[AuthController] Login - 登入失敗, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
-
-                // 統一返回相同的錯誤訊息（避免洩漏帳號是否存在）
-                return Failure("帳號或密碼錯誤", "Invalid_Credentials", 401);
+                // 記錄失敗的登入嘗試
+                await _loginLogService.LogFailedLoginAsync(model.Email, ipAddress, userAgent, message);
+                Log.Warning("[AuthController] RequestLoginVerificationCode - 失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "Authentication_Failed", 401);
             }
         }
+
+        /// <summary>
+        /// 使用者登入 - 步驟2：驗證驗證碼並完成登入
+        /// </summary>
+        /// <param name="model">驗證碼驗證資訊</param>
+        /// <returns>登入成功返回 Token 和使用者資訊</returns>
+        /// <response code="200">登入成功</response>
+        /// <response code="401">驗證碼錯誤或已過期</response>
+        [HttpPost("login/verify-code")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> VerifyLoginCode([FromBody] VerifyCodeDTO model)
+        {
+            var ipAddress = GetClientIpAddress();
+            var userAgent = Request.Headers["User-Agent"].ToString();
+
+            Log.Debug("[AuthController] VerifyLoginCode - Email: {Email}, IP: {IP}", model.Email, ipAddress);
+
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.VerificationCode))
+            {
+                return Failure("Email 和驗證碼不可為空", "Invalid_Input", 400);
+            }
+
+            // 驗證驗證碼
+            var (success, token, message) = await _authService.VerifyLoginCodeAsync(model.Email, model.VerificationCode);
+
+            if (success)
+            {
+                // 獲取使用者資訊
+                var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.Email);
+
+                if (userInfo != null)
+                {
+                    // 設置 Cookie
+                    Response.Cookies.Append("X-Access-Token", token, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsHttps,
+                        SameSite = SameSiteMode.Lax,
+                        Path = "/",
+                        Expires = DateTimeOffset.UtcNow.AddHours(2)
+                    });
+
+                    // 記錄成功的登入
+                    await _loginLogService.LogUserLoginAsync(userInfo.UserId, model.Email, ipAddress, userAgent);
+
+                    Log.Information("[AuthController] VerifyLoginCode - 登入成功: {Email}, IP: {IP}", model.Email, ipAddress);
+                    return Success(new { Token = token, User = userInfo, Message = message });
+                }
+            }
+
+            // 驗證失敗
+            await _loginLogService.LogFailedLoginAsync(model.Email, ipAddress, userAgent, message);
+            Log.Warning("[AuthController] VerifyLoginCode - 驗證失敗: {Email}, 原因: {Message}", model.Email, message);
+            return Failure(message, "Verification_Failed", 401);
+        }
+
+        ///// <summary>
+        ///// 使用者登入（舊方法，保留用於向後相容）
+        ///// </summary>
+        ///// <param name="model">登入資訊，包含 Email 和密碼</param>
+        ///// <returns>登入成功返回 Token 和使用者資訊</returns>
+        ///// <response code="200">登入成功</response>
+        ///// <response code="401">帳號或密碼錯誤</response>
+        ///// <response code="404">使用者不存在</response>
+        //[HttpPost("login")]
+        //[ProducesResponseType(StatusCodes.Status200OK)]
+        //[ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        //[ProducesResponseType(StatusCodes.Status404NotFound)]
+        //[Tags("身分驗證")]
+        //public async Task<IActionResult> Login([FromBody] LoginDTO model)
+        //{
+        //    // 取得客戶端 IP 和 User Agent
+        //    var ipAddress = GetClientIpAddress();
+        //    var userAgent = Request.Headers["User-Agent"].ToString();
+
+        //    // 驗證輸入
+        //    if (string.IsNullOrWhiteSpace(model.UserEmail))
+        //    {
+        //        // 記錄失敗的登入嘗試（無論如何都要記錄）
+        //        await _loginLogService.LogFailedLoginAsync(
+        //            "unknown",
+        //            ipAddress,
+        //            userAgent,
+        //            "Email 為空");
+
+        //        return Failure("Email 不可為空", "Invalid_Input", 400);
+        //    }
+
+        //    // 查詢使用者資訊
+        //    var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.UserEmail);
+
+        //    // 無論使用者是否存在，都嘗試驗證（避免時序攻擊）
+        //    var token = await _authService.ValidateUser(model.UserEmail, model.Password);
+
+        //    if (!string.IsNullOrEmpty(token) && userInfo != null)
+        //    {
+        //        // 登入成功
+        //        Response.Cookies.Append("X-Access-Token", token, new CookieOptions
+        //        {
+        //            HttpOnly = true,
+        //            Secure = Request.IsHttps,
+        //            SameSite = SameSiteMode.Lax,
+        //            Path = "/",
+        //            Expires = DateTimeOffset.UtcNow.AddHours(2)
+        //        });
+
+        //        // 記錄成功的登入
+        //        await _loginLogService.LogUserLoginAsync(
+        //            userInfo.UserId,
+        //            model.UserEmail,
+        //            ipAddress,
+        //            userAgent);
+
+        //        Log.Debug("[AuthController] Login - 成功登入, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
+        //        return Success(new { Token = token, User = userInfo });
+        //    }
+        //    else
+        //    {
+        //        // 登入失敗（無論是帳號不存在還是密碼錯誤，都記錄）
+        //        await _loginLogService.LogFailedLoginAsync(
+        //            model.UserEmail,
+        //            ipAddress,
+        //            userAgent,
+        //            "帳號或密碼錯誤");
+
+        //        Log.Debug("[AuthController] Login - 登入失敗, Email: {Email}, IP: {IP}", model.UserEmail, ipAddress);
+
+        //        // 統一返回相同的錯誤訊息（避免洩漏帳號是否存在）
+        //        return Failure("帳號或密碼錯誤", "Invalid_Credentials", 401);
+        //    }
+        //}
 
 
         /// <summary>

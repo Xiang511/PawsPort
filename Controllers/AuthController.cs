@@ -162,64 +162,87 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// 使用者註冊
+        /// 使用者註冊 - 步驟1：送出註冊資料，發送 Email 驗證碼
         /// </summary>
         /// <param name="model">註冊資訊，包含 Email、姓名和密碼</param>
-        /// <returns>註冊成功訊息</returns>
-        /// <response code="200">註冊成功</response>
-        /// <response code="400">Email 已存在</response>
-        /// <response code="500">註冊失敗</response>
+        /// <returns>驗證碼已發送訊息</returns>
+        /// <response code="200">驗證碼已發送，請至信箱完成驗證</response>
+        /// <response code="400">Email 已存在或輸入有誤</response>
+        /// <response code="500">系統錯誤</response>
         [HttpPost("register")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [Tags("身分驗證")]
-
         public async Task<IActionResult> Register([FromBody] UserRegisterDTO model)
         {
             Log.Debug("[AuthController] Register POST - Entry, Email: {Email}, Name: {Name}", model.Email, model.Name);
 
-            // 檢查 Email 是否已存在
-            var isEmailExist = await _memberProfileService.GetUserInfoByEmailAsync(model.Email);
+            var (success, message) = await _authService.RegisterUser(model);
 
-            if (isEmailExist != null)
+            if (success)
             {
-                Log.Warning("[AuthController] Register - Email 已存在: {Email}", model.Email);
-                return Failure("EMAIL_EXISTS", "Email 已存在", 400);
+                Log.Debug("[AuthController] Register - 驗證碼已發送: {Email}", model.Email);
+                return Success(new { Message = message, Email = model.Email });
+            }
+            else
+            {
+                Log.Warning("[AuthController] Register - 註冊失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "REGISTRATION_FAILED", 400);
+            }
+        }
+
+        /// <summary>
+        /// 使用者註冊 - 步驟2：驗證 Email 驗證碼，完成帳號建立
+        /// </summary>
+        /// <param name="model">Email 和驗證碼</param>
+        /// <returns>註冊成功訊息</returns>
+        /// <response code="200">Email 驗證成功，帳號已啟用</response>
+        /// <response code="400">驗證碼錯誤或已過期</response>
+        [HttpPost("register/verify-email")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [Tags("身分驗證")]
+        public async Task<IActionResult> VerifyRegisterEmail([FromBody] RegisterVerifyDTO model)
+        {
+            Log.Debug("[AuthController] VerifyRegisterEmail POST - Email: {Email}", model.Email);
+
+            if (string.IsNullOrWhiteSpace(model.Email) || string.IsNullOrWhiteSpace(model.VerificationCode))
+            {
+                return Failure("Email 和驗證碼不可為空", "INVALID_INPUT", 400);
             }
 
-            // 呼叫 RegisterUser（密碼雜湊在 Service 中處理）
-            var result = await _authService.RegisterUser(model);
+            var (success, message, userId) = await _authService.VerifyRegisterEmailAsync(model.Email, model.VerificationCode);
 
-            if (result.success)
+            if (success)
             {
-                Log.Debug("[AuthController] Register - 註冊成功, Email: {Email}, UserId: {UserId}", model.Email, result.userId);
+                Log.Debug("[AuthController] VerifyRegisterEmail - 驗證成功: {Email}, UserId: {UserId}", model.Email, userId);
 
-                // 為新用戶分配除會員系統外的所有系統一般成員權限
-                // 寵物系統(2), 遊戲系統(3), 客服系統(4), 社群系統(5) - 都設為一般成員(3)
-                var systemsToAssign = new[] { 2, 3, 4, 5 }; // 除了會員系統(1)外的所有系統
-                var generalMemberRoleId = 3; // 一般成員
+                // 為新用戶分配各系統一般成員權限
+                // 寵物系統(2), 遊戲系統(3), 客服系統(4), 社群系統(5)
+                var systemsToAssign = new[] { 2, 3, 4, 5 };
+                var generalMemberRoleId = 3;
 
                 foreach (var systemId in systemsToAssign)
                 {
                     var permissionDto = new MemberUserSystemRoleDTO
                     {
-                        UserId = result.userId,
+                        UserId = userId,
                         SystemId = systemId,
                         RoleId = generalMemberRoleId
                     };
 
                     await _memberPermissionService.CreateMemberPermissionAsync(permissionDto);
-                    Log.Debug("[AuthController] Register - 已分配權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}", 
-                        result.userId, systemId, generalMemberRoleId);
+                    Log.Debug("[AuthController] VerifyRegisterEmail - 已分配權限: UserId={UserId}, SystemId={SystemId}, RoleId={RoleId}",
+                        userId, systemId, generalMemberRoleId);
                 }
 
-                return Success(new { Message = "註冊成功", Email = model.Email, UserId = result.userId });
+                return Success(new { Message = message, Email = model.Email, UserId = userId });
             }
             else
             {
-                Log.Warning("[AuthController] Register - 註冊失敗, Email: {Email}", model.Email);
-                return Failure("REGISTRATION_FAILED", "註冊失敗，請稍後再試", 500);
+                Log.Warning("[AuthController] VerifyRegisterEmail - 驗證失敗: {Email}, 原因: {Message}", model.Email, message);
+                return Failure(message, "VERIFY_FAILED", 400);
             }
         }
         /// <summary>

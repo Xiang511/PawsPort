@@ -105,20 +105,41 @@ namespace PawsPort.Services
             return tokenHandler.WriteToken(token);
         }
 
-        public async Task<(bool success, int userId)> RegisterUser(UserRegisterDTO model)
+        public async Task<(bool success, string message)> RegisterUser(UserRegisterDTO model)
         {
             try
             {
-                // 1. 檢查 Email 是否已存在
-                var existingUser = await _context.UserAuthTables
-                    .AnyAsync(x => x.Email == model.Email);
+                // 1. 檢查 Email 是否已被已驗證的帳號使用
+                var existingVerified = await _context.UserAuthTables
+                    .Join(_context.UserTables,
+                        auth => auth.UserId,
+                        user => user.UserId,
+                        (auth, user) => new { auth, user })
+                    .AnyAsync(x => x.auth.Email == model.Email && x.user.IsVerify == true);
 
-                if (existingUser)
+                if (existingVerified)
                 {
-                    return (false, 0); // Email 已被註冊
+                    return (false, "此 Email 已被註冊");
                 }
 
-                // 2. 先建立 UserTable 實體並儲存以取得 UserId
+                // 2. 若此 Email 有殘留的未驗證帳號，先刪除（允許重新註冊）
+                var existingUnverified = await _context.UserAuthTables
+                    .Join(_context.UserTables,
+                        auth => auth.UserId,
+                        user => user.UserId,
+                        (auth, user) => new { auth, user })
+                    .Where(x => x.auth.Email == model.Email && x.user.IsVerify == false)
+                    .FirstOrDefaultAsync();
+
+                if (existingUnverified != null)
+                {
+                    _context.UserAuthTables.Remove(existingUnverified.auth);
+                    _context.UserTables.Remove(existingUnverified.user);
+                    await _context.SaveChangesAsync();
+                    Log.Information("[AuthService] RegisterUser - 已清除舊的未驗證帳號: {Email}", model.Email);
+                }
+
+                // 3. 建立 UserTable，IsVerify 設為 false（等待 Email 驗證）
                 var userEntity = new UserTable
                 {
                     Name = model.Name,
@@ -132,42 +153,132 @@ namespace PawsPort.Services
                 };
 
                 _context.UserTables.Add(userEntity);
-                await _context.SaveChangesAsync(); // 儲存後 userEntity.UserId 會被自動填入
+                await _context.SaveChangesAsync();
 
-                // 3. 將明文密碼進行 BCrypt 雜湊（自動加鹽）
+                // 4. 將明文密碼進行 BCrypt 雜湊
                 string hashedPassword = BCrypt.Net.BCrypt.HashPassword(model.Password);
 
-                // 4. 使用取得的 UserId 建立 UserAuthTable 實體
+                // 5. 生成 Email 驗證碼（6 位數），有效期 10 分鐘
+                var verificationCode = GenerateVerificationCode();
+
+                // 6. 建立 UserAuthTable，儲存驗證碼與到期時間
                 var userAuth = new UserAuthTable
                 {
                     Email = model.Email,
                     Password = hashedPassword,
-                    UserId = userEntity.UserId // 使用新增的 UserId
+                    UserId = userEntity.UserId,
+                    EmailConfirmationToken = verificationCode,
+                    EmailTokenExpiry = DateTime.Now.AddMinutes(10)
                 };
 
                 _context.UserAuthTables.Add(userAuth);
                 await _context.SaveChangesAsync();
 
-                // 5. 為新用戶建立 PlayerProfile
+                // 7. 發送 Email 驗證碼郵件
+                var emailSent = await _emailService.SendRegisterVerificationCodeAsync(
+                    model.Email, verificationCode, model.Name);
+
+                if (!emailSent)
+                {
+                    Log.Error("[AuthService] RegisterUser - 驗證碼郵件發送失敗: {Email}", model.Email);
+                    return (false, "驗證碼郵件發送失敗，請稍後再試");
+                }
+
+                Log.Information("[AuthService] RegisterUser - 已建立未驗證帳號並發送驗證碼: {Email}", model.Email);
+                return (true, "驗證碼已發送至您的電子郵件，請於 10 分鐘內完成驗證");
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[AuthService] RegisterUser - 註冊失敗: Email={Email}", model.Email);
+                return (false, "系統錯誤，請稍後再試");
+            }
+        }
+
+        /// <summary>
+        /// 步驟2：驗證 Email 驗證碼，驗證通過後正式完成帳號建立
+        /// </summary>
+        /// <param name="email">用戶郵箱</param>
+        /// <param name="verificationCode">6 位數驗證碼</param>
+        /// <returns>(success, message, userId)</returns>
+        public async Task<(bool success, string message, int userId)> VerifyRegisterEmailAsync(string email, string verificationCode)
+        {
+            try
+            {
+                // 1. 查詢尚未驗證的帳號
+                var userAuth = await _context.UserAuthTables
+                    .Where(x => x.Email == email)
+                    .FirstOrDefaultAsync();
+
+                if (userAuth == null)
+                {
+                    return (false, "找不到此 Email 的註冊紀錄，請重新註冊", 0);
+                }
+
+                var userEntity = await _context.UserTables
+                    .Where(u => u.UserId == userAuth.UserId)
+                    .FirstOrDefaultAsync();
+
+                if (userEntity == null)
+                {
+                    return (false, "帳號資料異常，請重新註冊", 0);
+                }
+
+                // 2. 若已驗證，不需重複操作
+                if (userEntity.IsVerify == true)
+                {
+                    return (false, "此 Email 已完成驗證，請直接登入", 0);
+                }
+
+                // 3. 檢查驗證碼是否存在
+                if (string.IsNullOrEmpty(userAuth.EmailConfirmationToken))
+                {
+                    return (false, "找不到驗證碼，請重新發送驗證碼", 0);
+                }
+
+                // 4. 檢查驗證碼是否過期
+                if (userAuth.EmailTokenExpiry == null || userAuth.EmailTokenExpiry < DateTime.Now)
+                {
+                    Log.Warning("[AuthService] VerifyRegisterEmail - 驗證碼已過期: {Email}", email);
+                    // 清除過期的驗證碼
+                    userAuth.EmailConfirmationToken = null;
+                    userAuth.EmailTokenExpiry = null;
+                    await _context.SaveChangesAsync();
+                    return (false, "驗證碼已過期，請重新發送驗證碼", 0);
+                }
+
+                // 5. 比對驗證碼
+                if (userAuth.EmailConfirmationToken != verificationCode)
+                {
+                    Log.Warning("[AuthService] VerifyRegisterEmail - 驗證碼錯誤: {Email}", email);
+                    return (false, "驗證碼錯誤，請重新確認", 0);
+                }
+
+                // 6. 驗證通過：更新帳號狀態為已驗證，清除驗證碼
+                userEntity.IsVerify = true;
+                userEntity.UpdatedAt = DateTime.Now;
+                userAuth.EmailConfirmationToken = null;
+                userAuth.EmailTokenExpiry = null;
+
+                // 7. 建立 PlayerProfile
                 var playerProfile = new PlayerProfile
                 {
                     UserId = userEntity.UserId,
                     CurrentPoint = 0,
-                    UserName = model.Name
+                    UserName = userEntity.Name
                 };
 
                 _context.PlayerProfiles.Add(playerProfile);
                 await _context.SaveChangesAsync();
 
-                Log.Information("[AuthService] RegisterUser - 註冊成功，已建立 PlayerProfile: UserId={UserId}, UserName={UserName}", 
-                    userEntity.UserId, model.Name);
+                Log.Information("[AuthService] VerifyRegisterEmail - Email 驗證成功，帳號已啟用: {Email}, UserId={UserId}",
+                    email, userEntity.UserId);
 
-                return (true, userEntity.UserId); // 註冊成功，返回 UserId
+                return (true, "Email 驗證成功，帳號已啟用", userEntity.UserId);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "[AuthService] RegisterUser - 註冊失敗: Email={Email}", model.Email);
-                return (false, 0); // 註冊失敗
+                Log.Error(ex, "[AuthService] VerifyRegisterEmail - 驗證失敗: {Email}", email);
+                return (false, "系統錯誤，請稍後再試", 0);
             }
         }
 

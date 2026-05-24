@@ -24,9 +24,9 @@ namespace PawsPort.Controllers
         private readonly PlayerService _playerService;
         private readonly ArticleService _articleService;
         private readonly FileService _fileService;
-        private readonly IWebHostEnvironment _Env;
+        
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, FileService fileService, IWebHostEnvironment env)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, FileService fileService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -35,7 +35,7 @@ namespace PawsPort.Controllers
             _playerService = playerService;
             _articleService = articleService;
             _fileService = fileService;
-            _Env = env;
+            
         }
 
         /// <summary>

@@ -58,6 +58,7 @@ namespace PawsPort.Dtos
 
     public class PetPassportUpsertDto
     {
+        public int UserId { get; set; } // 前端傳遞的 UserId
         public int? PetId { get; set; } // 新增時綁定特定的毛孩
         public string? Name { get; set; } // 寵物姓名
         public DateOnly? BirthDate { get; set; } // 出生日期

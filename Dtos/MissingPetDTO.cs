@@ -31,6 +31,7 @@ namespace PawsPort.Dtos
     // 供 PostMissingPetView.vue 刊登使用
     public class CreateMissingPetDTO
     {
+        public int UserId { get; set; } // 必填：前端傳遞的發布者 UserId
         public string PetName { get; set; } // 必填：寵物名稱 (對應 Name)
         public string PetType { get; set; } // 必填：動物類別 (對應 Species)
         public string Gender { get; set; } // 選填：性別

@@ -11,7 +11,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("¹CÀ¸¨t²Î")]
+    [Tags("éŠæˆ²ç³»çµ±")]
     public class PlayerController : ApiControllerBase
     {
         private readonly PlayerService _playerService;
@@ -23,12 +23,12 @@ namespace PawsPort.Controllers
 
         // GET /api/Player
         /// <summary>
-        /// ¨ú±oª±®a¦Cªí¡]¤À­¶¡^
+        /// å–å¾—ç©å®¶åˆ—è¡¨ï¼ˆåˆ†é ï¼‰
         /// </summary>
-        /// <param name="page">­¶½X¡]¹w³]¬° 1¡^</param>
-        /// <returns>¤À­¶«áªºª±®a¦Cªí»PÁ`µ§¼Æ</returns>
-        /// <response code="200">¦¨¥\¨ú±oª±®a¦Cªí</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="page">é ç¢¼ï¼ˆé è¨­ç‚º 1ï¼‰</param>
+        /// <returns>åˆ†é å¾Œçš„ç©å®¶åˆ—è¡¨èˆ‡ç¸½ç­†æ•¸</returns>
+        /// <response code="200">æˆåŠŸå–å¾—ç©å®¶åˆ—è¡¨</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(int page = 1)
@@ -45,95 +45,95 @@ namespace PawsPort.Controllers
                     Data = pagedList,
                     CurrentPage = page,
                     TotalCount = allPlayers.Count
-                }, "¨ú±oª±®a¦Cªí¦¨¥\", 200);
+                }, "å–å¾—ç©å®¶åˆ—è¡¨æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: ¨ú±o¦Cªí¥¢±Ñ");
-                return Failure("PLAYER_LIST_FAILED", "¦øªA¾¹Åª¨úª±®a¸ê®Æ¥¢±Ñ", 500);
+                Log.Error(ex, "PlayerController: å–å¾—åˆ—è¡¨å¤±æ•—");
+                return Failure("PLAYER_LIST_FAILED", "ä¼ºæœå™¨è®€å–ç©å®¶è³‡æ–™å¤±æ•—", 500);
             }
         }
 
         // PUT /api/Player/{id}
         /// <summary>
-        /// §ó·sª±®a¸ê°T»P®w¦s¸ê®Æ
+        /// æ›´æ–°ç©å®¶è³‡è¨Šèˆ‡åº«å­˜è³‡æ–™
         /// </summary>
-        /// <param name="id">ª±®a ID</param>
-        /// <param name="EditDTO">§ó·sªºª±®a¸ê®Æ DTO</param>
-        /// <returns>§ó·s«áªºª±®a¸ê®Æ</returns>
-        /// <response code="200">¦¨¥\§ó·sª±®a¸ê°T</response>
-        /// <response code="400">¸ê®Æ®æ¦¡¿ù»~©Î ID ¤£¤@­P</response>
-        /// <response code="404">§ä¤£¨ì¸Óª±®a©Î¹ïÀ³®w¦s</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="id">ç©å®¶ ID</param>
+        /// <param name="EditDTO">æ›´æ–°çš„ç©å®¶è³‡æ–™ DTO</param>
+        /// <returns>æ›´æ–°å¾Œçš„ç©å®¶è³‡æ–™</returns>
+        /// <response code="200">æˆåŠŸæ›´æ–°ç©å®¶è³‡è¨Š</response>
+        /// <response code="400">è³‡æ–™æ ¼å¼éŒ¯èª¤æˆ– ID ä¸ä¸€è‡´</response>
+        /// <response code="404">æ‰¾ä¸åˆ°è©²ç©å®¶æˆ–å°æ‡‰åº«å­˜</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(PlayerEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Edit(int id, [FromBody] PlayerEditDTO EditDTO)
         {
-            if (EditDTO == null) return Failure("BAD_REQUEST", "¦¬¨ìªº¸ê®Æ¬°ªÅ", 400);
-            if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "ºô§} ID »P¸ê®Æ ID ¤£²Å", 400);
+            if (EditDTO == null) return Failure("BAD_REQUEST", "æ”¶åˆ°çš„è³‡æ–™ç‚ºç©º", 400);
+            if (id != EditDTO.PlayerId) return Failure("PLAYER_ID_MISMATCH", "ç¶²å€ ID èˆ‡è³‡æ–™ ID ä¸ç¬¦", 400);
 
             try
             {
                 await _playerService.UpdatePlayerAsync(EditDTO);
-                return Success(EditDTO, "§ó·s¦¨¥\", 200);
+                return Success(EditDTO, "æ›´æ–°æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message == "ª±®a¤£¦s¦b" || ex.Message == "®w¦s¤£¦s¦b")
+                if (ex.Message == "ç©å®¶ä¸å­˜åœ¨" || ex.Message == "åº«å­˜ä¸å­˜åœ¨")
                     return Failure("PLAYER_NOT_FOUND", ex.Message, 404);
 
-                Log.Error(ex, "PlayerController: §ó·sª±®a {id} ¥¢±Ñ", id);
-                return Failure("PLAYER_UPDATE_FAILED", "§ó·s¹Lµ{µo¥Í¿ù»~", 500);
+                Log.Error(ex, "PlayerController: æ›´æ–°ç©å®¶ {id} å¤±æ•—", id);
+                return Failure("PLAYER_UPDATE_FAILED", "æ›´æ–°éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // DELETE /api/Player/{id}
         /// <summary>
-        /// §R°£«ü©wª±®a
+        /// åˆªé™¤æŒ‡å®šç©å®¶
         /// </summary>
-        /// <param name="id">ª±®a ID</param>
-        /// <response code="200">¦¨¥\§R°£ª±®a</response>
-        /// <response code="404">§ä¤£¨ì¸Óª±®a</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="id">ç©å®¶ ID</param>
+        /// <response code="200">æˆåŠŸåˆªé™¤ç©å®¶</response>
+        /// <response code="404">æ‰¾ä¸åˆ°è©²ç©å®¶</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> Delete(int id)
         {
-            Log.Information("¥¿¦b·Ç³Æ§R°£ª±®a ID: {id}", id);
+            Log.Information("æ­£åœ¨æº–å‚™åˆªé™¤ç©å®¶ ID: {id}", id);
             try
             {
                 await _playerService.DeletePlayerAsync(id);
-                return Success(id, "§R°£¦¨¥\", 200);
+                return Success(id, "åˆªé™¤æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message == "ª±®a¤£¦s¦b")
-                    return Failure("PLAYER_NOT_FOUND", "§ä¤£¨ìª±®a", 404);
+                if (ex.Message == "ç©å®¶ä¸å­˜åœ¨")
+                    return Failure("PLAYER_NOT_FOUND", "æ‰¾ä¸åˆ°ç©å®¶", 404);
 
-                Log.Error(ex, "PlayerController: §R°£ª±®a {id} ¥¢±Ñ", id);
-                return Failure("PLAYER_DELETE_FAILED", "§R°£¹Lµ{µo¥Í¿ù»~", 500);
+                Log.Error(ex, "PlayerController: åˆªé™¤ç©å®¶ {id} å¤±æ•—", id);
+                return Failure("PLAYER_DELETE_FAILED", "åˆªé™¤éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // GET /api/Player/search?query=xxx&page=1
         /// <summary>
-        /// ·j´Mª±®a
+        /// æœå°‹ç©å®¶
         /// </summary>
-        /// <param name="query">·j´MÃöÁä¦r¡]¦WºÙ©Î¬ÛÃö¸ê°T¡^</param>
-        /// <param name="page">­¶½X¡]¹w³]¬° 1¡^</param>
-        /// <returns>·j´Mµ²ªG²M³æ</returns>
-        /// <response code="200">¦¨¥\§¹¦¨·j´M</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="query">æœå°‹é—œéµå­—ï¼ˆåç¨±æˆ–ç›¸é—œè³‡è¨Šï¼‰</param>
+        /// <param name="page">é ç¢¼ï¼ˆé è¨­ç‚º 1ï¼‰</param>
+        /// <returns>æœå°‹çµæœæ¸…å–®</returns>
+        /// <response code="200">æˆåŠŸå®Œæˆæœå°‹</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpGet("search")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Search([FromQuery] string query, int page = 1)
         {
             try
             {
-                // 1. ©I¥s Service ¨ú±o·j´M«áªºµ²ªG¡A¦¹®É searchResults ¤w¸g¬O List<PlayerListDTO>
+                // 1. å‘¼å« Service å–å¾—æœå°‹å¾Œçš„çµæœï¼Œæ­¤æ™‚ searchResults å·²ç¶“æ˜¯ List<PlayerListDTO>
                 var searchResults = await _playerService.SearchPlayersAsync(query);
 
                 int pageSize = 10;
@@ -147,23 +147,23 @@ namespace PawsPort.Controllers
                     Data = pagedList,      
                     CurrentPage = page,
                     TotalCount = searchResults.Count
-                }, $"·j´M¡u{query}¡v¦¨¥\", 200);
+                }, $"æœå°‹ã€Œ{query}ã€æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: ·j´Mª±®a¥¢±Ñ");
-                return Failure("PLAYER_SEARCH_FAILED", "·j´M¹Lµ{µo¥Í¿ù»~", 500);
+                Log.Error(ex, "PlayerController: æœå°‹ç©å®¶å¤±æ•—");
+                return Failure("PLAYER_SEARCH_FAILED", "æœå°‹éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // GET /api/Player/{id}/logs
         /// <summary>
-        /// ¨ú±oª±®a¬ÛÃö¬ö¿ı¡]¦p²§°Ê¤é»x¡^
+        /// å–å¾—ç©å®¶ç›¸é—œç´€éŒ„ï¼ˆå¦‚ç•°å‹•æ—¥èªŒï¼‰
         /// </summary>
-        /// <param name="id">ª±®a ID</param>
-        /// <returns>ª±®aªº²§°Ê¬ö¿ı¦Cªí</returns>
-        /// <response code="200">¦¨¥\¨ú±o¬ö¿ı</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="id">ç©å®¶ ID</param>
+        /// <returns>ç©å®¶çš„ç•°å‹•ç´€éŒ„åˆ—è¡¨</returns>
+        /// <response code="200">æˆåŠŸå–å¾—ç´€éŒ„</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpGet("{id}/logs")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPlayerLogs(int id)
@@ -171,21 +171,21 @@ namespace PawsPort.Controllers
             try
             {
                 var records = await _playerService.GetPlayerRecordsAsync(id);
-                return Success(records, "¨ú±oª±®a¬ö¿ı¦¨¥\", 200);
+                return Success(records, "å–å¾—ç©å®¶ç´€éŒ„æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "¨ú±o¬ö¿ı¥¢±Ñ");
-                return Failure("GET_LOGS_FAILED", "¦øªA¾¹¿ù»~", 500);
+                Log.Error(ex, "å–å¾—ç´€éŒ„å¤±æ•—");
+                return Failure("GET_LOGS_FAILED", "ä¼ºæœå™¨éŒ¯èª¤", 500);
             }
         }
 
 
         // GET /api/Player/{id}/game-history
         /// <summary>
-        /// ¹CÀ¸«e¥x¡G¼´¨úª±®a©Ò¦³Ãö¥dªº³qÃö¾ú¥v¬ö¿ı
+        /// éŠæˆ²å‰å°ï¼šæ’ˆå–ç©å®¶æ‰€æœ‰é—œå¡çš„é€šé—œæ­·å²ç´€éŒ„
         /// </summary>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpGet("{id}/game-history")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGameHistory(int id)
@@ -193,46 +193,46 @@ namespace PawsPort.Controllers
             try
             {
                 var history = await _playerService.GetPlayerGameHistoryAsync(id);
-                return Success(history, "¦¨¥\¨ú±o¹CÀ¸¾ú¥v¬ö¿ı", 200); // ±Ä¥Î§A­Ìªº²Î¤@¦^¶Ç®æ¦¡
+                return Success(history, "æˆåŠŸå–å¾—éŠæˆ²æ­·å²ç´€éŒ„", 200); // æ¡ç”¨ä½ å€‘çš„çµ±ä¸€å›å‚³æ ¼å¼
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: ¨ú±o¹CÀ¸¾ú¥v¬ö¿ı¥¢±Ñ");
-                return Failure("GAME_HISTORY_GET_FAILED", "¨ú±o¬ö¿ıµo¥Í¿ù»~", 500);
+                Log.Error(ex, "PlayerController: å–å¾—éŠæˆ²æ­·å²ç´€éŒ„å¤±æ•—");
+                return Failure("GAME_HISTORY_GET_FAILED", "å–å¾—ç´€éŒ„ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // POST /api/Player/save-game-result
         /// <summary>
-        /// ¹CÀ¸«e¥x¡G¹CÀ¸µ²ºâ¡AÀx¦s¾ú¥v¶i«×¨Ãµo©ñ¼úÀyÂI¼Æ
+        /// éŠæˆ²å‰å°ï¼šéŠæˆ²çµç®—ï¼Œå„²å­˜æ­·å²é€²åº¦ä¸¦ç™¼æ”¾çå‹µé»æ•¸
         /// </summary>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpPost("save-game-result")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> SaveGameResult([FromBody] GameResultSubmitDTO dto)
         {
             try
             {
-                if (dto == null) return Failure("INVALID_DATA", "¶Ç¤J¸ê®Æ¤£¯à¬°ªÅ", 400);
+                if (dto == null) return Failure("INVALID_DATA", "å‚³å…¥è³‡æ–™ä¸èƒ½ç‚ºç©º", 400);
 
                 bool result = await _playerService.SaveGameProgressAsync(
                     dto.PlayerId, dto.GameId, dto.IsVictory, dto.BonusPoints
                 );
 
-                return Success(new { Success = true }, "¤p¹CÀ¸µ²ºâ¦¨¥\¡A¤w¦P¨B¦Ü¸ê®Æ®w¡I", 200);
+                return Success(new { Success = true }, "å°éŠæˆ²çµç®—æˆåŠŸï¼Œå·²åŒæ­¥è‡³è³‡æ–™åº«ï¼", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: Àx¦s¤p¹CÀ¸µ²ºâ¥¢±Ñ");
-                return Failure("GAME_RESULT_SAVE_FAILED", "Àx¦sµ²ºâ¸ê®Æµo¥Í¿ù»~", 500);
+                Log.Error(ex, "PlayerController: å„²å­˜å°éŠæˆ²çµç®—å¤±æ•—");
+                return Failure("GAME_RESULT_SAVE_FAILED", "å„²å­˜çµç®—è³‡æ–™ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // PUT /api/Player/{playerId}/equip-skin
         /// <summary>
-        /// ¹CÀ¸«e¥x¡Gª±®a½s¿è¸Ë³Æ³y«¬
+        /// éŠæˆ²å‰å°ï¼šç©å®¶ç·¨è¼¯è£å‚™é€ å‹
         /// </summary>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpPut("{playerId}/equip-skin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -240,28 +240,28 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> EquipSkin(int playerId, [FromBody] EquipSkinDTO dto)
         {
             if (dto == null || dto.SkinId <= 0)
-                return Failure("INVALID_DATA", "³y«¬ ID ¤£¯à¬°ªÅ", 400);
+                return Failure("INVALID_DATA", "é€ å‹ ID ä¸èƒ½ç‚ºç©º", 400);
 
             try
             {
                 await _playerService.EquipSkinAsync(playerId, dto.SkinId);
-                return Success(new { Success = true }, "³y«¬¸Ë³Æ¦¨¥\", 200);
+                return Success(new { Success = true }, "é€ å‹è£å‚™æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("¤£¦s¦b") || ex.Message.Contains("¥¼¾Ö¦³"))
+                if (ex.Message.Contains("ä¸å­˜åœ¨") || ex.Message.Contains("æœªæ“æœ‰"))
                     return Failure("EQUIP_SKIN_FAILED", ex.Message, 404);
 
-                Log.Error(ex, "PlayerController: ¸Ë³Æ³y«¬¥¢±Ñ");
-                return Failure("EQUIP_SKIN_FAILED", "¸Ë³Æ³y«¬¥¢±Ñ", 500);
+                Log.Error(ex, "PlayerController: è£å‚™é€ å‹å¤±æ•—");
+                return Failure("EQUIP_SKIN_FAILED", "è£å‚™é€ å‹å¤±æ•—", 500);
             }
         }
 
         // POST /api/Player/{playerId}/buy-skin
         /// <summary>
-        /// ¹CÀ¸«e¥x¡Gª±®aÁÊ¶R³y«¬
+        /// éŠæˆ²å‰å°ï¼šç©å®¶è³¼è²·é€ å‹
         /// </summary>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpPost("{playerId}/buy-skin")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -269,31 +269,31 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> BuySkin(int playerId, [FromBody] BuySkinDTO dto)
         {
             if (dto == null || dto.SkinId <= 0)
-                return Failure("INVALID_DATA", "³y«¬ ID ¤£¯à¬°ªÅ", 400);
+                return Failure("INVALID_DATA", "é€ å‹ ID ä¸èƒ½ç‚ºç©º", 400);
 
             try
             {
                 var (remainingPoints, acquiredSkinId) = await _playerService.BuySkinAsync(playerId, dto.SkinId);
-                return Success(new { remainingPoints, acquiredSkinId }, "ÁÊ¶R¦¨¥\¡A¤w²K¥[¨ì¦¬ÂÃ", 200);
+                return Success(new { remainingPoints, acquiredSkinId }, "è³¼è²·æˆåŠŸï¼Œå·²æ·»åŠ åˆ°æ”¶è—", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("¤£¦s¦b") || ex.Message.Contains("¤w¾Ö¦³"))
+                if (ex.Message.Contains("ä¸å­˜åœ¨") || ex.Message.Contains("å·²æ“æœ‰"))
                     return Failure("BUY_SKIN_FAILED", ex.Message, 404);
-                if (ex.Message.Contains("ÂI¼Æ¤£¨¬"))
-                    return Failure("INSUFFICIENT_POINTS", "ÂI¼Æ¤£¨¬", 400);
+                if (ex.Message.Contains("é»æ•¸ä¸è¶³"))
+                    return Failure("INSUFFICIENT_POINTS", "é»æ•¸ä¸è¶³", 400);
 
-                Log.Error(ex, "PlayerController: ÁÊ¶R³y«¬¥¢±Ñ");
-                return Failure("BUY_SKIN_FAILED", "ÁÊ¶R¥¢±Ñ", 500);
+                Log.Error(ex, "PlayerController: è³¼è²·é€ å‹å¤±æ•—");
+                return Failure("BUY_SKIN_FAILED", "è³¼è²·å¤±æ•—", 500);
             }
         }
 
 
         // GET /api/Player/{playerId}/inventory
         /// <summary>
-        /// ¹CÀ¸«e¥x¡G¨ú±oª±®a¦¬ÂÃ®w¤º®e
+        /// éŠæˆ²å‰å°ï¼šå–å¾—ç©å®¶æ”¶è—åº«å…§å®¹
         /// </summary>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpGet("{playerId}/inventory")]
         [ProducesResponseType(typeof(List<PlayerSkinDTO>), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -302,20 +302,20 @@ namespace PawsPort.Controllers
             try
             {
                 var inventory = await _playerService.GetInventoryAsync(playerId);
-                return Success(inventory, "Àò±oª±®a¦¬ÂÃ®w¦¨¥\", 200);
+                return Success(inventory, "ç²å¾—ç©å®¶æ”¶è—åº«æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: Àò±oª±®a¦¬ÂÃ®w¥¢±Ñ");
-                return Failure("GET_INVENTORY_FAILED", "Àò±oª±®a¦¬ÂÃ®w¥¢±Ñ", 500);
+                Log.Error(ex, "PlayerController: ç²å¾—ç©å®¶æ”¶è—åº«å¤±æ•—");
+                return Failure("GET_INVENTORY_FAILED", "ç²å¾—ç©å®¶æ”¶è—åº«å¤±æ•—", 500);
             }
         }
 
         // GET /api/Player/{playerId}
         /// <summary>
-        /// ¹CÀ¸«e¥x¡G®Ú¾Ú PlayerId ¨ú±oª±®a¸ê®Æ
+        /// éŠæˆ²å‰å°ï¼šæ ¹æ“š PlayerId å–å¾—ç©å®¶è³‡æ–™
         /// </summary>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpGet("{playerId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetPlayerById(int playerId)
@@ -324,14 +324,14 @@ namespace PawsPort.Controllers
             {
                 var player = await _playerService.GetPlayerByIdAsync(playerId);
                 if (player == null)
-                    return Failure("PLAYER_NOT_FOUND", "ª±®a¤£¦s¦b", 404);
+                    return Failure("PLAYER_NOT_FOUND", "ç©å®¶ä¸å­˜åœ¨", 404);
 
-                return Success(player, "¦¨¥\¨ú±oª±®a¸ê®Æ", 200);
+                return Success(player, "æˆåŠŸå–å¾—ç©å®¶è³‡æ–™", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "PlayerController: ¨ú±oª±®a¸ê®Æ¥¢±Ñ");
-                return Failure("GET_PLAYER_FAILED", "¨ú±oª±®a¸ê®Æ¥¢±Ñ", 500);
+                Log.Error(ex, "PlayerController: å–å¾—ç©å®¶è³‡æ–™å¤±æ•—");
+                return Failure("GET_PLAYER_FAILED", "å–å¾—ç©å®¶è³‡æ–™å¤±æ•—", 500);
             }
         }
 

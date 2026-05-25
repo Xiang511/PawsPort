@@ -102,6 +102,7 @@ builder.Services.AddScoped<MemberBlockListService>();
 builder.Services.AddScoped<ArticleService>();
 builder.Services.AddScoped<CategoryService>();
 builder.Services.AddScoped<CommentService>();
+builder.Services.AddScoped<FileService>();
 
 // game
 builder.Services.AddScoped<PlayerService>();
@@ -250,6 +251,22 @@ app.MapScalarApiReference(options =>
 });
 app.UseStaticFiles();
 
+// 開放讀取 API：讓瀏覽器可以直接透過網址讀取實體圖片
+var articleImagesPath = Path.Combine(
+    builder.Environment.WebRootPath,
+    "Images",
+    "articleimages"
+);
+if (!Directory.Exists(articleImagesPath))
+{
+    Directory.CreateDirectory(articleImagesPath);
+}
+
+app.UseStaticFiles(new StaticFileOptions
+{
+    FileProvider = new Microsoft.Extensions.FileProviders.PhysicalFileProvider(articleImagesPath),
+    RequestPath = "/Images/articleimages"// 圖片的讀取 API 路徑
+});
 
 app.UseSerilogRequestLogging();
 

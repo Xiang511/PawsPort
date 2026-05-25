@@ -4,6 +4,8 @@ using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
 using Serilog;
+
+
 using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Controllers
@@ -21,8 +23,10 @@ namespace PawsPort.Controllers
         private readonly PetPassportService _petPassportService;
         private readonly PlayerService _playerService;
         private readonly ArticleService _articleService;
+        private readonly FileService _fileService;
+        
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, FileService fileService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -30,6 +34,8 @@ namespace PawsPort.Controllers
             _petPassportService = petPassportService;
             _playerService = playerService;
             _articleService = articleService;
+            _fileService = fileService;
+            
         }
 
         /// <summary>
@@ -576,27 +582,158 @@ namespace PawsPort.Controllers
 
 
         }
-        //取得所有文章
+
+
         /// <summary>
-        /// 按照篩選條件取得所有文章
+        /// 首頁使用：按照篩選條件取得全站所有文章
         /// </summary>
-        /// <param name="queryDto">篩選條件</param>
-        /// <returns></returns>
-        /// <response code="200">取得所有文章成功</response>
-        [Authorize(Policy = "社群系統_一般成員")]
-        [HttpGet]
+        [AllowAnonymous]
+        [HttpGet("articles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Tags("社群管理")]
+        public async Task<IActionResult> GetAllArticleList([FromQuery] ArticleQueryDTO queryDto)
+        {
+            // 首頁撈取時，不限定單一使用者（除非前端特別傳入 ?userId=xxx 撈特定人的公開文）
+            var result = await _articleService.GetAllArticlesAsync(
+                status: queryDto.Status,     // 通常首頁只撈公開的 (Status = 1)
+                isActive: queryDto.IsActive, // 通常首頁只撈未刪除的 (IsActive = true)
+                userId: queryDto.UserId
+            );
+            return Success(result, "取得全站文章成功", 200);
+        }
 
-        public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
+        // 取得特定使用者的所有文章
+        /// <summary>
+        /// 取得特定使用者的所有文章
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="queryDto"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpGet("users/{userId}/articles")]
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [Tags("社群管理")]
+        public async Task<IActionResult> ArticleList([FromRoute] int userId, [FromQuery] ArticleQueryDTO queryDto)
         {
             var result = await _articleService.GetAllArticlesAsync(
                 status: queryDto.Status,
                 isActive: queryDto.IsActive,
-                userId: queryDto.UserId
+                userId: userId
                 );
-            return Success(result, "取得所有文章成功", 200);
-
+            return Success(result, "取得使用者文章成功", 200);
         }
+
+        /// <summary>
+        /// 提供給 Quill 編輯器上傳圖片的專用接口
+        /// </summary>
+        /// <param name="file">前端傳入的圖片檔案</param>
+        /// <returns>回傳 JSON 格式的圖片網址</returns>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPost("community/upload")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> Upload([FromForm] IFormFile file)
+        {
+            // 1. 防呆：確保有收到檔案
+            if (file == null || file.Length == 0)
+            {
+                Log.Warning("[UsersController] Upload - 未接收到檔案或檔案大小為 0");
+                return Failure("FILE_EMPTY", "未接收到檔案", 400);
+            }
+
+            try
+            {
+                Log.Debug("[UsersController] Upload - 開始呼叫 FileService 儲存圖片");
+
+                // 2. 呼叫 Service 進行驗證與安全存檔（此時 FileService 內部已改用 await using 與正確路徑）
+                string imageUrl = await _fileService.SaveImageForQuillAsync(file, HttpContext.Request);
+
+                // 3. 檢查 Service 回傳結果
+                if (string.IsNullOrEmpty(imageUrl))
+                {
+                    Log.Warning("[UsersController] Upload - 圖片儲存失敗，副檔名不符或儲存程序異常");
+                    return Failure("INVALID_FILE_FORMAT", "檔案格式不正確或圖片儲存失敗", 400);
+                }
+
+                Log.Debug("[UsersController] Upload - 圖片上傳成功，網址: {Url}", imageUrl);
+
+                // 4. 成功後回傳 Quill 認得的物件格式 { url: "https://..." }
+                return Success(new { url = imageUrl }, "Success", 200);
+            }
+            catch (Exception ex)
+            {
+
+                // 這樣做能確保後端發生任何不可預期的內部錯誤時，只會優雅地回傳 500，而「黑色的命令提示字元視窗」絕對不會自己關掉！
+                Log.Error(ex, "[UsersController] Upload - 圖片上傳期間發生未預期致命錯誤: {Message}", ex.Message);
+
+                return Failure("INTERNAL_ERROR", "伺服器內部錯誤，圖片上傳失敗", 500);
+                
+            }
+        }
+
+        //新增文章
+        /// <summary>
+        /// 新增文章
+        /// </summary>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
+        /// <response code="400">資料驗證失敗</response>
+        /// <response code="200">文章建立成功</response>
+        /// <response code="500">伺服器內部錯誤</response>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPost("articles")]
+        [Tags("社群管理")]
+
+        public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
+        {
+            if (!ModelState.IsValid)
+            {
+                return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
+            }
+            try
+            {
+                var result = await _articleService.CreateArticleAsync(articleDto);
+                return Success(result, "文章建立成功", 200);
+                //**跳轉到文章詳細頁面
+                
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", "伺服器內部錯誤", 500);
+            }
+        }
+
+        //=====取得文章詳細(文章id)=====
+        /// <summary>
+        /// 取得文章詳細
+        /// </summary>
+        /// <param name="id">文章 ID</param>
+        /// <returns>文章詳細資料</returns>
+        /// <response code="404">找不到文章</response>
+        /// <response code="200">取得文章詳細成功</response>
+        /// <response code="500">伺服器內部錯誤</response>
+        [AllowAnonymous]
+        [HttpGet("articles/{id}")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetArticleDetail(int id)
+        {
+            try
+            {
+                var result = await _articleService.GetArticleDetailAsync(id);
+
+                if (result == null)
+                {
+                    return Failure("ARTICLE_NOT_FOUND", "找不到文章", 404);
+                }
+
+                return Success(result, "取得文章詳細成功", 200);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
+
+
     }
 }

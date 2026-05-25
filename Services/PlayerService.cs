@@ -1,4 +1,4 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using Serilog;
@@ -366,18 +366,21 @@ namespace PawsPort.Services
                 .FirstOrDefaultAsync(i => i.PlayerId == playerId && i.SkinId == skinId);
             if (ownedSkin == null) throw new Exception("玩家未擁有此造型");
 
-            // 3. 取消該玩家的所有其他 Enable 狀態
-            var otherEnabledSkins = _db.Inventories
-                .Where(i => i.PlayerId == playerId && i.Enable);
+            // 3. 取消該玩家的所有「其他」Enable 狀態（排除目前要啟用的 skinId）
+            var otherEnabledSkins = await _db.Inventories
+                .Where(i => i.PlayerId == playerId && i.SkinId != skinId && i.Enable)
+                .ToListAsync(); // 加上 ToListAsync 確保先撈出資料，避免影響後續操作
 
             foreach (var skin in otherEnabledSkins)
             {
                 skin.Enable = false;
+                Log.Information("其他造型已關閉, SkinId: {SkinId}", skin.SkinId);
             }
 
             // 4. 啟用新的造型
             ownedSkin.Enable = true;
 
+            // 5. 儲存變更
             await _db.SaveChangesAsync();
             Log.Information("玩家 {PlayerId} 裝備造型 {SkinId}", playerId, skinId);
         }

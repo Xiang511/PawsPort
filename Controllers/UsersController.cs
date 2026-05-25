@@ -626,7 +626,7 @@ namespace PawsPort.Controllers
         /// </summary>
         /// <param name="file">前端傳入的圖片檔案</param>
         /// <returns>回傳 JSON 格式的圖片網址</returns>
-        [Authorize(Policy = "社群系統_一般成員")]
+        [AllowAnonymous]
         [HttpPost("community/upload")]
         [Tags("社群管理")]
         public async Task<IActionResult> Upload([FromForm] IFormFile file)

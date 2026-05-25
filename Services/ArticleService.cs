@@ -188,6 +188,7 @@ namespace PawsPort.Services
                 DTO = new ArticleListDTO
                 {
                     ArticleId = x.a.ArticleId,
+                    CategoryId = x.c.CategoryId,
                     Title = x.a.Title,
                     Summary = null,
                     CreateAt = x.a.CreateAt,

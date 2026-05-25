@@ -422,13 +422,11 @@ namespace PawsPort.Controllers
         [HttpGet("/api/users/pet/passports")]
         [ProducesResponseType(typeof(List<PetPassportDisplayDto>), StatusCodes.Status200OK)]
         [Tags("寵物健康護照")]
-        public async Task<IActionResult> GetPetPassports()
+        public async Task<IActionResult> GetPetPassports([FromQuery] int userId)
         {
             Log.Debug("[UsersController] GetPetPassports GET - Entry");
 
-            int currentUserId = GetCurrentUserId();
-
-            var passports = await _petPassportService.GetPetPassportsAsync(currentUserId);
+            var passports = await _petPassportService.GetPetPassportsAsync(userId);
             Log.Debug("[UsersController] 取得寵物健康護照成功，共 {Count} 筆", passports.Count);
 
             return Success(passports, "Success", 200);
@@ -442,12 +440,11 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(PetPassportDetailDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Tags("寵物健康護照")]
-        public async Task<IActionResult> GetPassportDetail(int id)
+        public async Task<IActionResult> GetPassportDetail(int id, [FromQuery] int userId)
         {
             Log.Debug("[UsersController] GetPassportDetail GET - Id: {Id}", id);
-            int currentUserId = GetCurrentUserId();
 
-            var detail = await _petPassportService.GetPassportDetailAsync(id, currentUserId);
+            var detail = await _petPassportService.GetPassportDetailAsync(id, userId);
             if (detail == null)
             {
                 Log.Warning("[UsersController] 找不到指定的寵物護照紀錄，Id: {Id}", id);
@@ -468,7 +465,7 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> UpdatePassport(int id, [FromBody] PetPassportUpsertDto dto)
         {
             Log.Debug("[UsersController] UpdatePassport PUT - Id: {Id}", id);
-            int currentUserId = GetCurrentUserId();
+            int currentUserId = dto.UserId;
 
             var isUpdated = await _petPassportService.UpdatePassportAsync(id, dto, currentUserId);
             if (!isUpdated)
@@ -490,7 +487,7 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> CreatePassport([FromBody] PetPassportUpsertDto dto)
         {
             Log.Debug("[UsersController] CreatePassport POST - PetId: {PetId}", dto.PetId);
-            int currentUserId = GetCurrentUserId();
+            int currentUserId = dto.UserId;
 
             var createdDetail = await _petPassportService.CreatePassportAsync(dto, currentUserId);
             Log.Debug("[UsersController] 建立健康護照紀錄成功，新護照標記碼: {Id}", createdDetail.Id);
@@ -506,9 +503,8 @@ namespace PawsPort.Controllers
         [HttpGet("/api/users/pet/passport/unified")]
         [ProducesResponseType(typeof(List<UnifiedPassportDTO>), StatusCodes.Status200OK)]
         [Tags("寵物健康護照")]
-        public async Task<IActionResult> GetUnifiedPassports()
+        public async Task<IActionResult> GetUnifiedPassports([FromQuery] int userId)
         {
-            int userId = GetCurrentUserId(); // helper extracting userId from JWT
             var dtos = await _petPassportService.GetUnifiedAsync(userId);
             return Success(dtos, "Success", 200);
         }
@@ -525,7 +521,7 @@ namespace PawsPort.Controllers
         [Tags("寵物健康護照")]
         public async Task<IActionResult> UpsertUnifiedDetail([FromBody] CreateOrUpdatePassportDTO dto)
         {
-            int userId = GetCurrentUserId();
+            int userId = dto.UserId;
             await _petPassportService.UpsertUnifiedAsync(dto, userId);
             return Created(string.Empty, null);
         }
@@ -640,7 +636,7 @@ namespace PawsPort.Controllers
         [Tags("遺失協尋")]
         public async Task<IActionResult> CreateMissingPet([FromBody] CreateMissingPetDTO dto)
         {
-            int userId = GetCurrentUserId();
+            int userId = dto.UserId;
             var result = await _clientMissingPetService.CreateMissingPetAsync(dto, userId);
             
             // 使用 Success() 並修改 Status Code 模擬 201，或直接回傳 JSON

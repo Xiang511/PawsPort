@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Controllers
 {
-    [Authorize(Policy = "會員系統_普通管理員")]
+    
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -23,10 +23,11 @@ namespace PawsPort.Controllers
         private readonly PetPassportService _petPassportService;
         private readonly PlayerService _playerService;
         private readonly ArticleService _articleService;
+        private readonly ClientMissingPetService _clientMissingPetService;
         private readonly FileService _fileService;
-        
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, FileService fileService)
+
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -34,8 +35,9 @@ namespace PawsPort.Controllers
             _petPassportService = petPassportService;
             _playerService = playerService;
             _articleService = articleService;
+            _clientMissingPetService = clientMissingPetService;
             _fileService = fileService;
-            
+
         }
 
         /// <summary>
@@ -426,13 +428,11 @@ namespace PawsPort.Controllers
         [HttpGet("/api/users/pet/passports")]
         [ProducesResponseType(typeof(List<PetPassportDisplayDto>), StatusCodes.Status200OK)]
         [Tags("寵物健康護照")]
-        public async Task<IActionResult> GetPetPassports()
+        public async Task<IActionResult> GetPetPassports([FromQuery] int userId)
         {
             Log.Debug("[UsersController] GetPetPassports GET - Entry");
 
-            int currentUserId = GetCurrentUserId();
-
-            var passports = await _petPassportService.GetPetPassportsAsync(currentUserId);
+            var passports = await _petPassportService.GetPetPassportsAsync(userId);
             Log.Debug("[UsersController] 取得寵物健康護照成功，共 {Count} 筆", passports.Count);
 
             return Success(passports, "Success", 200);
@@ -446,12 +446,11 @@ namespace PawsPort.Controllers
         [ProducesResponseType(typeof(PetPassportDetailDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
         [Tags("寵物健康護照")]
-        public async Task<IActionResult> GetPassportDetail(int id)
+        public async Task<IActionResult> GetPassportDetail(int id, [FromQuery] int userId)
         {
             Log.Debug("[UsersController] GetPassportDetail GET - Id: {Id}", id);
-            int currentUserId = GetCurrentUserId();
 
-            var detail = await _petPassportService.GetPassportDetailAsync(id, currentUserId);
+            var detail = await _petPassportService.GetPassportDetailAsync(id, userId);
             if (detail == null)
             {
                 Log.Warning("[UsersController] 找不到指定的寵物護照紀錄，Id: {Id}", id);
@@ -472,7 +471,7 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> UpdatePassport(int id, [FromBody] PetPassportUpsertDto dto)
         {
             Log.Debug("[UsersController] UpdatePassport PUT - Id: {Id}", id);
-            int currentUserId = GetCurrentUserId();
+            int currentUserId = dto.UserId;
 
             var isUpdated = await _petPassportService.UpdatePassportAsync(id, dto, currentUserId);
             if (!isUpdated)
@@ -494,7 +493,7 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> CreatePassport([FromBody] PetPassportUpsertDto dto)
         {
             Log.Debug("[UsersController] CreatePassport POST - PetId: {PetId}", dto.PetId);
-            int currentUserId = GetCurrentUserId();
+            int currentUserId = dto.UserId;
 
             var createdDetail = await _petPassportService.CreatePassportAsync(dto, currentUserId);
             Log.Debug("[UsersController] 建立健康護照紀錄成功，新護照標記碼: {Id}", createdDetail.Id);
@@ -510,9 +509,8 @@ namespace PawsPort.Controllers
         [HttpGet("/api/users/pet/passport/unified")]
         [ProducesResponseType(typeof(List<UnifiedPassportDTO>), StatusCodes.Status200OK)]
         [Tags("寵物健康護照")]
-        public async Task<IActionResult> GetUnifiedPassports()
+        public async Task<IActionResult> GetUnifiedPassports([FromQuery] int userId)
         {
-            int userId = GetCurrentUserId(); // helper extracting userId from JWT
             var dtos = await _petPassportService.GetUnifiedAsync(userId);
             return Success(dtos, "Success", 200);
         }
@@ -529,7 +527,7 @@ namespace PawsPort.Controllers
         [Tags("寵物健康護照")]
         public async Task<IActionResult> UpsertUnifiedDetail([FromBody] CreateOrUpdatePassportDTO dto)
         {
-            int userId = GetCurrentUserId();
+            int userId = dto.UserId;
             await _petPassportService.UpsertUnifiedAsync(dto, userId);
             return Created(string.Empty, null);
         }
@@ -666,7 +664,7 @@ namespace PawsPort.Controllers
                 Log.Error(ex, "[UsersController] Upload - 圖片上傳期間發生未預期致命錯誤: {Message}", ex.Message);
 
                 return Failure("INTERNAL_ERROR", "伺服器內部錯誤，圖片上傳失敗", 500);
-                
+
             }
         }
 
@@ -694,7 +692,7 @@ namespace PawsPort.Controllers
                 var result = await _articleService.CreateArticleAsync(articleDto);
                 return Success(result, "文章建立成功", 200);
                 //**跳轉到文章詳細頁面
-                
+
             }
             catch (Exception ex)
             {
@@ -732,8 +730,52 @@ namespace PawsPort.Controllers
                 return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }
+        /// <summary>
+        /// 取得所有公開協尋中的遺失寵物列表
+        /// </summary>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpGet("/api/users/missing-pets")]
+        [ProducesResponseType(typeof(List<MissingPetListDTO>), StatusCodes.Status200OK)]
+        [Tags("遺失協尋")]
+        public async Task<IActionResult> GetMissingPets()
+        {
+            var dtos = await _clientMissingPetService.GetMissingPetsAsync();
+            return Success(dtos, "取得遺失協尋列表成功", 200);
+        }
 
+        /// <summary>
+        /// 取得單筆遺失寵物詳細資料
+        /// </summary>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpGet("/api/users/missing-pets/{id}")]
+        [ProducesResponseType(typeof(MissingPetDetailDTO), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [Tags("遺失協尋")]
+        public async Task<IActionResult> GetMissingPetDetail(int id)
+        {
+            var dto = await _clientMissingPetService.GetMissingPetDetailAsync(id);
+            if (dto == null) return Failure("NOT_FOUND", "找不到指定的遺失紀錄", 404);
 
+            return Success(dto, "取得遺失詳細資料成功", 200);
+        }
 
+        /// <summary>
+        /// 新增一筆遺失寵物協尋紀錄
+        /// </summary>
+        [Authorize(Policy = "寵物系統_一般成員")]
+        [HttpPost("/api/users/missing-pets")]
+        [ProducesResponseType(typeof(MissingPetDetailDTO), StatusCodes.Status201Created)]
+        [Tags("遺失協尋")]
+        public async Task<IActionResult> CreateMissingPet([FromBody] CreateMissingPetDTO dto)
+        {
+            int userId = dto.UserId;
+            var result = await _clientMissingPetService.CreateMissingPetAsync(dto, userId);
+
+            // 使用 Success() 並修改 Status Code 模擬 201，或直接回傳 JSON
+            return Success(result, "刊登遺失紀錄成功", 201);
+        }
     }
+
+
 }
+

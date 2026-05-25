@@ -7,6 +7,8 @@ namespace PawsPort.Dtos
         // Discriminator to decide which sub‑entity to handle
         public string DetailType { get; set; }   // "medical" | "vaccine" | "image" | "weight"
 
+        public int UserId { get; set; }
+
         // Common optional field – if omitted the service will resolve passport from JWT
         public int? PassportId { get; set; }
 

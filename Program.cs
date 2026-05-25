@@ -115,6 +115,7 @@ builder.Services.AddScoped<PetService>();
 builder.Services.AddScoped<PetAdoptionService>();
 builder.Services.AddScoped<AdoptionRecordService>();
 builder.Services.AddScoped<MissingReportsService>();
+builder.Services.AddScoped<ClientMissingPetService>();
 builder.Services.AddScoped<PetPassportService>();
 
 // support

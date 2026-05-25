@@ -525,8 +525,12 @@ public partial class PetDbContext : DbContext
         {
             entity.HasKey(e => e.ReportId).HasName("PK__MissingR__D5BD48059F8ABD5D");
 
+            entity.Property(e => e.ContactEmail).HasMaxLength(100);
+            entity.Property(e => e.ContactPhone).HasMaxLength(20);
             entity.Property(e => e.CreatedAt).HasColumnType("datetime");
             entity.Property(e => e.DeletedAt).HasColumnType("datetime");
+            entity.Property(e => e.Features).HasMaxLength(255);
+            entity.Property(e => e.Gender).HasMaxLength(10);
             entity.Property(e => e.LastSeenDate).HasColumnType("datetime");
             entity.Property(e => e.LastSeenLat).HasColumnType("decimal(9, 6)");
             entity.Property(e => e.LastSeenLng).HasColumnType("decimal(9, 6)");
@@ -534,6 +538,7 @@ public partial class PetDbContext : DbContext
             entity.Property(e => e.LostDistrict).HasMaxLength(20);
             entity.Property(e => e.LostLocation).HasMaxLength(255);
             entity.Property(e => e.Name).HasMaxLength(100);
+            entity.Property(e => e.Note).HasMaxLength(255);
             entity.Property(e => e.Photo).HasMaxLength(100);
             entity.Property(e => e.Size).HasMaxLength(20);
             entity.Property(e => e.Species).HasMaxLength(20);

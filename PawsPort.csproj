@@ -47,6 +47,9 @@
 
   <ItemGroup>
     <Folder Include="wwwroot\Images\articleimages\" />
+    <Folder Include="wwwroot\images\missingreports\" />
+    <Folder Include="wwwroot\images\passports\" />
+    <Folder Include="wwwroot\images\pets\" />
     <Folder Include="wwwroot\images\skins\" />
   </ItemGroup>
 

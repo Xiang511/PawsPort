@@ -42,7 +42,8 @@ namespace PawsPort.Services
                     Status = n.Status,
                     Note = n.Note,
                     PublishDate = n.PublishDate,
-                    UserId = n.UserId
+                    UserId = n.UserId,
+                    Image = n.Image
                 })
                     .ToList();
 
@@ -99,7 +100,8 @@ namespace PawsPort.Services
                 Status = newNews.Status,
                 Note = newNews.Note,
                 PublishDate = newNews.PublishDate,
-                UserId = newNews.UserId
+                UserId = newNews.UserId,
+                Image = newNews.Image
             };
         }
 
@@ -177,7 +179,8 @@ namespace PawsPort.Services
                 Status = news.Status,
                 Note = news.Note,
                 PublishDate = news.PublishDate,
-                UserId = news.UserId
+                UserId = news.UserId,
+                Image = news.Image
             };
         }
     }

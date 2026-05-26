@@ -1,4 +1,4 @@
-﻿namespace PawsPort.Dtos
+namespace PawsPort.Dtos
 {
     public class ENewsletterDTO
     {
@@ -11,5 +11,6 @@
         public string Note { get; set; }
         public DateTime? PublishDate { get; set; }
         public int? UserId { get; set; }
+        public string? Image { get; set; }
     }
 }

@@ -297,9 +297,15 @@ namespace PawsPort.Services
         }
 
         /// <summary>
-        /// 驗證用戶密碼並發送驗證碼
+        /// 驗證用戶密碼並發送驗證碼。
+        /// 若上次成功登入距今不超過 20 分鐘，則跳過 Email 驗證，直接回傳 JWT Token。
         /// </summary>
-        public async Task<(bool success, string message)> SendLoginVerificationCodeAsync(string email, string password)
+        /// <returns>
+        /// (success, message, token, skipVerification)
+        /// - skipVerification = true 時，token 為有效 JWT，前端可直接完成登入；
+        /// - skipVerification = false 時，token 為空，前端需進行驗證碼步驟。
+        /// </returns>
+        public async Task<(bool success, string message, string token, bool skipVerification)> SendLoginVerificationCodeAsync(string email, string password)
         {
             try
             {
@@ -311,7 +317,7 @@ namespace PawsPort.Services
                 if (userAuth == null)
                 {
                     Log.Warning("[AuthService] SendLoginVerificationCode - 用戶不存在: {Email}", email);
-                    return (false, "帳號或密碼錯誤");
+                    return (false, "帳號或密碼錯誤", string.Empty, false);
                 }
 
                 // 2. 驗證密碼
@@ -319,41 +325,65 @@ namespace PawsPort.Services
                 if (!isPasswordValid)
                 {
                     Log.Warning("[AuthService] SendLoginVerificationCode - 密碼錯誤: {Email}", email);
-                    return (false, "帳號或密碼錯誤");
+                    return (false, "帳號或密碼錯誤", string.Empty, false);
                 }
 
-                // 3. 生成驗證碼
+                // 3. 檢查上次成功登入時間，若距今 ≤ 20 分鐘則跳過 Email 驗證
+                var recentLoginCutoff = DateTime.Now.AddMinutes(-20);
+                var hasRecentLogin = await _context.LoginActivities
+                    .Where(x => x.UserId == userAuth.UserId && x.Status == true && x.LoginTime >= recentLoginCutoff)
+                    .AnyAsync();
+
+                if (hasRecentLogin)
+                {
+                    // 取得用戶權限並直接簽發 JWT Token
+                    var userPermissions = await _context.UserSystemRoles
+                        .Where(x => x.UserId == userAuth.UserId)
+                        .Select(usr => new MemberPermissionUpdateRoleDTO
+                        {
+                            SystemId = usr.SystemId,
+                            RoleId = usr.RoleId
+                        })
+                        .ToListAsync();
+
+                    var directToken = GenerateJwtToken(email, userAuth.UserId, userPermissions);
+
+                    Log.Information("[AuthService] SendLoginVerificationCode - 距上次登入未超過 20 分鐘，跳過 Email 驗證: {Email}", email);
+                    return (true, "登入成功", directToken, true);
+                }
+
+                // 4. 生成驗證碼
                 var verificationCode = GenerateVerificationCode();
                 var expiryTime = DateTime.Now.AddMinutes(5); // 5 分鐘有效期
 
-                // 4. 保存驗證碼到資料庫
+                // 5. 保存驗證碼到資料庫
                 userAuth.EmailConfirmationToken = verificationCode;
                 userAuth.EmailTokenExpiry = expiryTime;
                 await _context.SaveChangesAsync();
 
-                // 5. 獲取用戶名
+                // 6. 獲取用戶名
                 var user = await _context.UserTables
                     .Where(u => u.UserId == userAuth.UserId)
                     .FirstOrDefaultAsync();
 
                 var userName = user?.Name ?? "用戶";
 
-                // 6. 發送驗證碼郵件
+                // 7. 發送驗證碼郵件
                 var emailSent = await _emailService.SendVerificationCodeAsync(email, verificationCode, userName);
 
                 if (!emailSent)
                 {
                     Log.Error("[AuthService] SendLoginVerificationCode - 郵件發送失敗: {Email}", email);
-                    return (false, "驗證碼發送失敗，請稍後再試");
+                    return (false, "驗證碼發送失敗，請稍後再試", string.Empty, false);
                 }
 
                 Log.Information("[AuthService] SendLoginVerificationCode - 驗證碼已發送: {Email}", email);
-                return (true, "驗證碼已發送至您的電子郵件");
+                return (true, "驗證碼已發送至您的電子郵件", string.Empty, false);
             }
             catch (Exception ex)
             {
                 Log.Error(ex, "[AuthService] SendLoginVerificationCode - 發送驗證碼失敗: {Email}", email);
-                return (false, "系統錯誤，請稍後再試");
+                return (false, "系統錯誤，請稍後再試", string.Empty, false);
             }
         }
 

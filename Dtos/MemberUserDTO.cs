@@ -1,4 +1,4 @@
-﻿namespace PawsPort.Dtos
+namespace PawsPort.Dtos
 {
     public class MemberUserDTO
     {
@@ -31,6 +31,8 @@
         public DateTime? CreatedAt { get; set; }
 
         public DateTime? UpdatedAt { get; set; }
+
+        public string Email { get; set; }
 
     }
 }

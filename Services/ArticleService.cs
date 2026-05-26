@@ -238,19 +238,15 @@ namespace PawsPort.Services
             Console.WriteLine($"開始取得文章詳細：{id}");
             // 先把實體文章撈出來，將資料庫的 ViewCount 真正 +1 並儲存
             var articleEntity = await _context.Articles
-                .FirstOrDefaultAsync(a => a.ArticleId == id && a.IsExist == true);
+                .FirstOrDefaultAsync(a => a.ArticleId == id && a.IsExist == true && a.Status == 1);
 
             if (articleEntity == null)
             {
                 return null; // 文章不存在就直接結束，省去後面不必要的 Join 查詢
             }
-          
-           
-            
-           
-          
+
             articleEntity.ViewCount += 1;
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
             // 1. 先查文章主體 + Category + UserTable
             var articleDetail = await (
@@ -267,19 +263,12 @@ namespace PawsPort.Services
                     Content = a.Content,
                     CreateAt = a.CreateAt,
                     LastEditTime = a.LastEditTime,
-                    Status = a.Status,
-                    ViewCount = a.ViewCount, // 💡 這裡直接拿 a.ViewCount 即可，因為上面已經更新過了
-                    ReportedCount = a.ReportedCount,
-                    LastReported = a.LastReported,
+                    ViewCount = a.ViewCount, 
                     EventStartDate = a.EventStartDate,
                     EventEndDate = a.EventEndDate,
                     EventLocation = a.EventLocation,
-                    IsExist = a.IsExist,
                     UserId = a.UserId,
                     CategoryId = a.CategoryId,
-                    DeleteTypeId = a.DeleteTypeId,
-                    DeleteNote = a.DeleteNote,
-                    IsActive = a.IsActive,
 
                     // Category
                     CategoryName = c.CategoryName,

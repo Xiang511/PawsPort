@@ -25,9 +25,9 @@ namespace PawsPort.Controllers
         private readonly ArticleService _articleService;
         private readonly ClientMissingPetService _clientMissingPetService;
         private readonly FileService _fileService;
+        private readonly CommentService _commentService;
 
-
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService,CommentService commentService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -37,7 +37,7 @@ namespace PawsPort.Controllers
             _articleService = articleService;
             _clientMissingPetService = clientMissingPetService;
             _fileService = fileService;
-
+            _commentService = commentService;
         }
 
         /// <summary>
@@ -730,6 +730,34 @@ namespace PawsPort.Controllers
                 return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }
+
+        //留言列表
+        /// <summary>
+        /// 取得某篇文章的留言列表
+        /// </summary>
+        /// <param name="articleId">文章 ID</param>
+        /// <returns>留言列表</returns>
+        [AllowAnonymous]
+        [HttpGet("articles/{articleId}/comments")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetCommentsByArticleId(int articleId)
+        {
+            if (articleId <= 0)
+            {
+                return Failure("INVALID_ARTICLE_ID", "無效的文章編號", 400);
+            }
+
+            try
+            {
+                var result = await _commentService.GetCommentsByArticleIdAsync(articleId);
+                return Success(result, "留言列表取得成功", 200);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
         /// <summary>
         /// 取得所有公開協尋中的遺失寵物列表
         /// </summary>

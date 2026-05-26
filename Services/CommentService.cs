@@ -1,4 +1,4 @@
-﻿using PawsPort.Dtos;
+using PawsPort.Dtos;
 using PawsPort.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Identity.Client;
@@ -13,6 +13,37 @@ namespace PawsPort.Services
         public CommentService(PetDbContext context)
         {
             _context = context;
+        }
+
+        
+        //取得某篇文章的留言列表
+        public async Task<List<CommentListDTO>> GetCommentsByArticleIdAsync(int articleId)
+        {
+            var comments = await (
+                from c in _context.Comments
+                join u in _context.UserTables
+                    on c.UserId equals u.UserId
+                where c.ArticleId == articleId
+                      && c.IsExist == true
+                      && c.IsActive == true
+                       && c.Status == 1
+                orderby c.CreateAt ascending
+                select new CommentListDTO
+                {
+                    CommentId = c.CommentId,
+                    ArticleId = c.ArticleId,
+                    UserId = c.UserId,
+                    UserName = u.Name,
+                    UserPhoto = u.Photo,
+                    Content = c.Content,
+                    CreateAt = c.CreateAt,
+                    LastEditTime = c.LastEditTime,
+                    ImageUrl = c.ImageUrl,
+                    ParentId = c.ParentId
+                }
+            ).ToListAsync();
+
+            return comments;
         }
 
         //新增留言

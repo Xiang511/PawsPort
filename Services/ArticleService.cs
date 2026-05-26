@@ -194,8 +194,10 @@ namespace PawsPort.Services
             var query = from a in _context.Articles
                         join u in _context.UserTables on a.UserId equals u.UserId
                         join c in _context.Categories on a.CategoryId equals c.CategoryId
+                        join pc in _context.Categories on c.ParentId equals pc.CategoryId into parentCategoryGroup
+                        from pc in parentCategoryGroup.DefaultIfEmpty()
                         where a.IsExist == true
-                        select new { a, u, c };
+                        select new { a, u, c, pc };
             //加上篩選條件
             if (status.HasValue)
             {
@@ -216,11 +218,12 @@ namespace PawsPort.Services
                 var keywordText = keyword.Trim();
 
                 query = query.Where(x =>
-                    x.a.Title.Contains(keywordText) ||
-                    x.a.Content.Contains(keywordText) ||
-                    x.c.CategoryName.Contains(keywordText) ||
-                    x.u.Name.Contains(keywordText)
-                );
+                x.a.Title.Contains(keywordText) ||
+                x.a.Content.Contains(keywordText) ||
+                x.c.CategoryName.Contains(keywordText) ||
+                (x.pc != null && x.pc.CategoryName.Contains(keywordText)) ||
+                x.u.Name.Contains(keywordText)
+);
             }
             //
             var ArticleList = await query.Select(x => new

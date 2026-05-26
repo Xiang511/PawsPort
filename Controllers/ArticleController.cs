@@ -13,10 +13,10 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("ªÀ¸sºŞ²z")]
+    [Tags("ç¤¾ç¾¤ç®¡ç†")]
     public class ArticleController : ApiControllerBase
     {
-        //ª`¤J¸ê®Æ®w©Mservice
+        //æ³¨å…¥è³‡æ–™åº«å’Œservice
         private readonly PetDbContext _context;
         private readonly ArticleService _articleService;
 
@@ -29,16 +29,16 @@ namespace PawsPort.Controllers
             _articleService = articleService;
         }
 
-        //¨ú±o©Ò¦³¤å³¹
+        //å–å¾—æ‰€æœ‰æ–‡ç« 
         /// <summary>
-        /// «ö·Ó¿z¿ï±ø¥ó¨ú±o©Ò¦³¤å³¹
+        /// æŒ‰ç…§ç¯©é¸æ¢ä»¶å–å¾—æ‰€æœ‰æ–‡ç« 
         /// </summary>
-        /// <param name="queryDto">¿z¿ï±ø¥ó</param>
+        /// <param name="queryDto">ç¯©é¸æ¢ä»¶</param>
         /// <returns></returns>
-        /// <response code="200">¨ú±o©Ò¦³¤å³¹¦¨¥\</response>
+        /// <response code="200">å–å¾—æ‰€æœ‰æ–‡ç« æˆåŠŸ</response>
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
 
         public async Task<IActionResult> ArticleList([FromQuery] ArticleQueryDTO queryDto)
         {
@@ -47,104 +47,104 @@ namespace PawsPort.Controllers
                 isActive: queryDto.IsActive,
                 userId: queryDto.UserId
                 );
-            return Success(result, "¨ú±o©Ò¦³¤å³¹¦¨¥\", 200);
+            return Success(result, "å–å¾—æ‰€æœ‰æ–‡ç« æˆåŠŸ", 200);
 
         }
 
-        //·s¼W¤å³¹
+        //æ–°å¢æ–‡ç« 
         /// <summary>
-        /// ·s¼W¤å³¹
+        /// æ–°å¢æ–‡ç« 
         /// </summary>
         /// <param name="articleDto"></param>
         /// <returns></returns>
-        /// <response code="400">¸ê®ÆÅçÃÒ¥¢±Ñ</response>
-        /// <response code="200">¤å³¹«Ø¥ß¦¨¥\</response>
-        /// <response code="500">¦øªA¾¹¤º³¡¿ù»~</response>
+        /// <response code="400">è³‡æ–™é©—è­‰å¤±æ•—</response>
+        /// <response code="200">æ–‡ç« å»ºç«‹æˆåŠŸ</response>
+        /// <response code="500">ä¼ºæœå™¨å…§éƒ¨éŒ¯èª¤</response>
         [HttpPost]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
 
         public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ", 400);
+                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—", 400);
             }
             try
             {
                 var result = await _articleService.CreateArticleAsync(articleDto);
-                return Success(result, "¤å³¹«Ø¥ß¦¨¥\", 200);
-                //**¸õÂà¨ì¤å³¹¸Ô²Ó­¶­±
+                return Success(result, "æ–‡ç« å»ºç«‹æˆåŠŸ", 200);
+                //**è·³è½‰åˆ°æ–‡ç« è©³ç´°é é¢
             }
             catch (Exception ex)
             {
-                return Failure("INTERNAL_ERROR", "¦øªA¾¹¤º³¡¿ù»~", 500);
+                return Failure("INTERNAL_ERROR", "ä¼ºæœå™¨å…§éƒ¨éŒ¯èª¤", 500);
             }
         }
 
-        //½s¿è¤å³¹
+        //ç·¨è¼¯æ–‡ç« 
         /// <summary>
-        /// ½s¿è¤å³¹
+        /// ç·¨è¼¯æ–‡ç« 
         /// </summary>
         /// <param name="id"></param>
         /// <param name="articleDto"></param>
         /// <returns></returns>
-        /// <response code="400">µL®Äªº¤å³¹½s¸¹</response>
-        /// <response code="404">§ä¤£¨ì¸Ó¤å³¹</response>
-        /// <response code="200">¤å³¹§ó·s¦¨¥\</response>
-        [HttpPut("{id}")]
-        [Tags("ªÀ¸sºŞ²z")]
-        public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
-        {
-            if (id <= 0)
-            {
-                return Failure("INVALID_ID", "µL®Äªº¤å³¹½s¸¹", 400);
-            }
+        /// <response code="400">ç„¡æ•ˆçš„æ–‡ç« ç·¨è™Ÿ</response>
+        /// <response code="404">æ‰¾ä¸åˆ°è©²æ–‡ç« </response>
+        /// <response code="200">æ–‡ç« æ›´æ–°æˆåŠŸ</response>
+        //[HttpPut("{id}")]
+        //[Tags("ç¤¾ç¾¤ç®¡ç†")]
+        //public async Task<IActionResult> Article(int id, [FromBody] ArticleSaveDTO articleDto)
+        //{
+        //    if (id <= 0)
+        //    {
+        //        return Failure("INVALID_ID", "ç„¡æ•ˆçš„æ–‡ç« ç·¨è™Ÿ", 400);
+        //    }
 
-            //¦pªG¤@­P¡A©I¥sservice§ó·s¤å³¹
-            var result = await _articleService.UpdateArticleAsync(id, articleDto);
-            if (result == null)
-            {
-                //¦^¶Ç§ä¤£¨ì¸Ó½s¸¹¤å³¹
-                return Failure("ARTICLE_NOT_FOUND", "§ä¤£¨ì¸Ó¤å³¹", 404);
-            }
-            else
-            {
-                return Success(result, "¤å³¹§ó·s¦¨¥\", 200);
-                //**¸õÂà¨ì¤å³¹¸Ô²Ó­¶­±
-            }
+        //    //å¦‚æœä¸€è‡´ï¼Œå‘¼å«serviceæ›´æ–°æ–‡ç« 
+        //    var result = await _articleService.UpdateArticleAsync(id, articleDto);
+        //    if (result == null)
+        //    {
+        //        //å›å‚³æ‰¾ä¸åˆ°è©²ç·¨è™Ÿæ–‡ç« 
+        //        return Failure("ARTICLE_NOT_FOUND", "æ‰¾ä¸åˆ°è©²æ–‡ç« ", 404);
+        //    }
+        //    else
+        //    {
+        //        return Success(result, "æ–‡ç« æ›´æ–°æˆåŠŸ", 200);
+        //        //**è·³è½‰åˆ°æ–‡ç« è©³ç´°é é¢
+        //    }
 
-        }
+        //}
 
 
 
-        //³n§R°£¤å³¹
+        //è»Ÿåˆªé™¤æ–‡ç« 
         /// <summary>
-        /// ³n§R°£¤å³¹
+        /// è»Ÿåˆªé™¤æ–‡ç« 
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
-        /// <response code="400">µL®Äªº¤å³¹½s¸¹</response>
-        /// <response code="404">§ä¤£¨ì¸Ó¤å³¹</response>
-        /// <response code="200">¤å³¹§R°£¦¨¥\</response>
+        /// <response code="400">ç„¡æ•ˆçš„æ–‡ç« ç·¨è™Ÿ</response>
+        /// <response code="404">æ‰¾ä¸åˆ°è©²æ–‡ç« </response>
+        /// <response code="200">æ–‡ç« åˆªé™¤æˆåŠŸ</response>
         [HttpPatch("{id}")]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> Delete(int id)
         {
-            //ÀË¬did¬O§_¦³®Ä
-            if (id <= 0) return Failure("INVALID_ID", "µL®Äªº¤å³¹½s¸¹", 400);
+            //æª¢æŸ¥idæ˜¯å¦æœ‰æ•ˆ
+            if (id <= 0) return Failure("INVALID_ID", "ç„¡æ•ˆçš„æ–‡ç« ç·¨è™Ÿ", 400);
 
-            //¦³®Äªº¸Ü©I¥sservice
+            //æœ‰æ•ˆçš„è©±å‘¼å«service
             var result = await _articleService.DeleteArticleAsync(id);
-            //­Yservice¦^¶Çfalse¡A¥Nªí§ä¤£¨ì¸Ó¤å³¹
-            //­Yservice¦^¶Çtrue¡A¥Nªí§R°£¦¨¥\
+            //è‹¥serviceå›å‚³falseï¼Œä»£è¡¨æ‰¾ä¸åˆ°è©²æ–‡ç« 
+            //è‹¥serviceå›å‚³trueï¼Œä»£è¡¨åˆªé™¤æˆåŠŸ
             if (result == false)
             {
-                //¦^¶Ç§ä¤£¨ì¸Ó½s¸¹¤å³¹
-                return Failure("ARTICLE_NOT_FOUND", "§ä¤£¨ì¸Ó¤å³¹", 404);
+                //å›å‚³æ‰¾ä¸åˆ°è©²ç·¨è™Ÿæ–‡ç« 
+                return Failure("ARTICLE_NOT_FOUND", "æ‰¾ä¸åˆ°è©²æ–‡ç« ", 404);
             }
             else
             {
-                return Success(result, "¤å³¹§R°£¦¨¥\", 200);
+                return Success(result, "æ–‡ç« åˆªé™¤æˆåŠŸ", 200);
             }
         }
 

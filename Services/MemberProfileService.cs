@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http.HttpResults;
+using Microsoft.AspNetCore.Http.HttpResults;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using System.Diagnostics;
@@ -169,7 +169,8 @@ namespace PawsPort.Services
                         IsSubscribe = userTable.IsSubscribe,
                         IsVerify = userTable.IsVerify,
                         CreatedAt = userTable.CreatedAt,
-                        UpdatedAt = userTable.UpdatedAt
+                        UpdatedAt = userTable.UpdatedAt,
+                        Email = email
                     })
                 .FirstOrDefaultAsync();
 

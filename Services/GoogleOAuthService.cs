@@ -224,6 +224,17 @@ namespace PawsPort.Services
                         _context.UserAuthTables.Add(userAuth);
                         await _context.SaveChangesAsync();
 
+                        // 7. 建立 PlayerProfile
+                        var playerProfile = new PlayerProfile
+                        {
+                            UserId = userEntity.UserId,
+                            CurrentPoint = 0,
+                            UserName = userEntity.Name
+                        };
+
+                        _context.PlayerProfiles.Add(playerProfile);
+                        await _context.SaveChangesAsync();
+
                         // 建立 OAuth 記錄
                         var oauthRecord = new OauthTable
                         {

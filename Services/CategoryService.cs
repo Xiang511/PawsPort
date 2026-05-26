@@ -1,4 +1,4 @@
-﻿using PawsPort.Dtos;
+using PawsPort.Dtos;
 using PawsPort.Models;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,19 +19,19 @@ namespace PawsPort.Services
         public async Task<List<CategoryListDTO>> GetCategoriesAsync()
         {
             var categories = await (from c in _context.Categories
-                                        // 這裡使用 Left Join 連接自己，撈出父分類
-                                    join p in _context.Categories on c.ParentId equals p.CategoryId into parentJoin
+                                    join p in _context.Categories
+                                    on c.ParentId equals p.CategoryId into parentJoin
                                     from p in parentJoin.DefaultIfEmpty()
                                     select new CategoryListDTO
                                     {
-                                        // 如果沒有父分類，就給它空字串或 null
-                                        CategoryId=c.CategoryId,
-                                        ParentId= p != null ? p.ParentId : null,
+                                        CategoryId = c.CategoryId,
+                                        // 這裡要回傳「目前分類自己的 ParentId」
+                                        ParentId = c.ParentId,
+                                        // 這裡才是父分類名稱
                                         ParentCategoryName = p != null ? p.CategoryName : string.Empty,
                                         CategoryName = c.CategoryName,
                                         Level = c.Level
                                     }).ToListAsync();
-
             return categories;
         }
 
@@ -120,7 +120,7 @@ namespace PawsPort.Services
                     .FirstOrDefaultAsync(p => p.CategoryId == categorySaveDTO.ParentId && p.IsExist == true);
                 if (Parent == null) throw new Exception("找不到指定的父分類");
                 if (Parent.Level >= 1) throw new Exception("分類層級過深，不支援此結構"); //最多層級到1，由於必須+1，父分類層級最多到0
-                
+
                 TargetLevel = (Parent.Level ?? 0) + 1;
             }
 
@@ -134,7 +134,7 @@ namespace PawsPort.Services
                 //沒有傳入排序的話
                 //MaxAsync:找同一個parent id下，sortorder欄位的最大值
                 //沒資料(null)的話，值就會=0
-                var MaxSort = await _context.Categories.Where(m => m.ParentId == categorySaveDTO.ParentId && m.IsExist==true)
+                var MaxSort = await _context.Categories.Where(m => m.ParentId == categorySaveDTO.ParentId && m.IsExist == true)
                    .Select(m => (int?)m.SortOrder)
                    .MaxAsync();
                 //如果maxsort=null，那排序=0(-1+1)，如果maxsort=0，那排序=1(0+1)
@@ -165,9 +165,9 @@ namespace PawsPort.Services
         {
             //撈對應id的分類
             var CategoryEntity = await _context.Categories.FirstOrDefaultAsync(c => c.CategoryId == id);
-            
+
             //檢查有沒有該分類，或他是否已被軟刪除
-            if(CategoryEntity == null||CategoryEntity.IsExist == false) return false;
+            if (CategoryEntity == null || CategoryEntity.IsExist == false) return false;
 
             //軟刪除+紀錄編輯時間
             CategoryEntity.IsExist = false;

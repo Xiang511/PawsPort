@@ -33,5 +33,6 @@ namespace PawsPort.Dtos
         public string MainImageUrl { get; set; }
 
         public List<string> TagNames { get; set; }
+        public int CommentCount { get; set; }
     }
 }

@@ -236,6 +236,11 @@ namespace PawsPort.Services
                     .ThenBy(img => img.ImageId)
                     .Select(img => img.ImageUrl)
                     .FirstOrDefault(),
+
+                    CommentCount = _context.Comments.Count(comment =>
+                    comment.ArticleId == x.a.ArticleId &&
+                    comment.IsExist == true &&
+                    comment.IsActive == true),
                 },
                 OriginalContent = x.a.Content
             }).ToListAsync();

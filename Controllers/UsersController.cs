@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Controllers
 {
-    
+
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -25,9 +25,9 @@ namespace PawsPort.Controllers
         private readonly ArticleService _articleService;
         private readonly ClientMissingPetService _clientMissingPetService;
         private readonly FileService _fileService;
+        private readonly CommentService _commentService;
 
-
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService, CommentService commentService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -37,7 +37,7 @@ namespace PawsPort.Controllers
             _articleService = articleService;
             _clientMissingPetService = clientMissingPetService;
             _fileService = fileService;
-
+            _commentService = commentService;
         }
 
         /// <summary>
@@ -592,11 +592,11 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> GetAllArticleList([FromQuery] ArticleQueryDTO queryDto)
         {
             // 首頁撈取時，不限定單一使用者（除非前端特別傳入 ?userId=xxx 撈特定人的公開文）
-            var result = await _articleService.GetAllArticlesAsync(
-                status: queryDto.Status,     // 通常首頁只撈公開的 (Status = 1)
-                isActive: queryDto.IsActive, // 通常首頁只撈未刪除的 (IsActive = true)
-                userId: queryDto.UserId
-            );
+            var result = await _articleService.GetAllArticlesAsync(status: queryDto.Status ?? 1,
+                isActive: queryDto.IsActive ?? true,
+                userId: queryDto.UserId,
+                keyword: queryDto.Keyword,
+                tag: queryDto.Tag);
             return Success(result, "取得全站文章成功", 200);
         }
 
@@ -608,7 +608,7 @@ namespace PawsPort.Controllers
         /// <param name="queryDto"></param>
         /// <returns></returns>
         [Authorize(Policy = "社群系統_一般成員")]
-        [HttpGet("users/{userId}/articles")]
+        [HttpGet("users/{userId:int}/articles")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [Tags("社群管理")]
         public async Task<IActionResult> ArticleList([FromRoute] int userId, [FromQuery] ArticleQueryDTO queryDto)
@@ -680,26 +680,77 @@ namespace PawsPort.Controllers
         [Authorize(Policy = "社群系統_一般成員")]
         [HttpPost("articles")]
         [Tags("社群管理")]
-
         public async Task<IActionResult> Article([FromBody] ArticleSaveDTO articleDto)
         {
             if (!ModelState.IsValid)
             {
                 return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
             }
+
             try
             {
-                var result = await _articleService.CreateArticleAsync(articleDto);
-                return Success(result, "文章建立成功", 200);
-                //**跳轉到文章詳細頁面
+                var currentUserId = GetCurrentUserId();
+                articleDto.UserId = currentUserId;
 
+                var result = await _articleService.CreateArticleAsync(articleDto);
+
+                return Success(result, "文章建立成功", 200);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Failure("UNAUTHORIZED", ex.Message, 401);
             }
             catch (Exception ex)
             {
-                return Failure("INTERNAL_ERROR", "伺服器內部錯誤", 500);
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }
 
+
+        //=====修改文章=====
+        /// <summary>
+        /// 修改文章
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="articleDto"></param>
+        /// <returns></returns>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPut("articles/{id:int}")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> UpdateArticle(int id, [FromBody] ArticleSaveDTO articleDto)
+        {
+            if (id <= 0)
+            {
+                return Failure("INVALID_ARTICLE_ID", "無效的文章編號", 400);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
+            }
+
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+
+                var result = await _articleService.UpdateArticleAsync(id, articleDto, currentUserId);
+
+                if (result == null)
+                {
+                    return Failure("ARTICLE_NOT_FOUND", "找不到文章或無權限修改", 404);
+                }
+
+                return Success(result, "文章更新成功", 200);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Failure("UNAUTHORIZED", ex.Message, 401);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
         //=====取得文章詳細(文章id)=====
         /// <summary>
         /// 取得文章詳細
@@ -710,7 +761,7 @@ namespace PawsPort.Controllers
         /// <response code="200">取得文章詳細成功</response>
         /// <response code="500">伺服器內部錯誤</response>
         [AllowAnonymous]
-        [HttpGet("articles/{id}")]
+        [HttpGet("articles/{id:int}")]
         [Tags("社群管理")]
         public async Task<IActionResult> GetArticleDetail(int id)
         {
@@ -730,6 +781,169 @@ namespace PawsPort.Controllers
                 return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }
+
+        /// <summary>
+        /// 取得目前登入會員的草稿列表
+        /// </summary>
+        /// <returns></returns>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpGet("articles/drafts")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetMyDraftArticles()
+        {
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+                var result = await _articleService.GetDraftArticlesAsync(currentUserId);
+                return Success(result, "取得草稿列表成功", 200);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Failure("UNAUTHORIZED", ex.Message, 401);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
+        //=====取得單篇草稿詳細=====
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpGet("articles/drafts/{id:int}")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetDraftArticleDetail(int id)
+        {
+            if (id <= 0)
+            {
+                return Failure("INVALID_ARTICLE_ID", "無效的文章編號", 400);
+            }
+
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+
+                var result = await _articleService.GetDraftArticleDetailAsync(id, currentUserId);
+
+                if (result == null)
+                {
+                    return Failure("DRAFT_NOT_FOUND", "找不到草稿或無權限讀取", 404);
+                }
+
+                return Success(result, "取得草稿詳細成功", 200);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Failure("UNAUTHORIZED", ex.Message, 401);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
+        //留言列表
+        /// <summary>
+        /// 取得某篇文章的留言列表
+        /// </summary>
+        /// <param name="articleId">文章 ID</param>
+        /// <returns>留言列表</returns>
+        [AllowAnonymous]
+        [HttpGet("articles/{articleId:int}/comments")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> GetCommentsByArticleId(int articleId)
+        {
+            if (articleId <= 0)
+            {
+                return Failure("INVALID_ARTICLE_ID", "無效的文章編號", 400);
+            }
+
+            try
+            {
+                var result = await _commentService.GetCommentsByArticleIdAsync(articleId);
+                return Success(result, "留言列表取得成功", 200);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
+        //新增留言
+        /// <summary>
+        /// 新增文章留言
+        /// </summary>
+        /// <param name="articleId">文章 ID</param>
+        /// <param name="commentSaveDTO">留言內容</param>
+        /// <returns>新建立的留言 ID</returns>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPost("articles/{articleId:int}/comments")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> CreateArticleComment(int articleId, [FromBody] CommentSaveDTO commentSaveDTO)
+        {
+            if (articleId <= 0)
+            {
+                return Failure("INVALID_ARTICLE_ID", "無效的文章編號", 400);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
+            }
+
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+
+                commentSaveDTO.ArticleId = articleId;
+                commentSaveDTO.UserId = currentUserId;
+
+                var result = await _commentService.CreateCommentAsync(commentSaveDTO);
+
+                return Success(result, "留言建立成功", 200);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Failure("UNAUTHORIZED", ex.Message, 401);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
+        //軟刪除文章
+        /// <summary>
+        /// 軟刪除文章
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
+        /// <response code="400">無效的文章編號</response>
+        /// <response code="404">找不到該文章</response>
+        /// <response code="200">文章刪除成功</response>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPatch("articles/{id:int}")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> Delete(int id)
+        {
+            //檢查id是否有效
+            if (id <= 0) return Failure("INVALID_ID", "無效的文章編號", 400);
+
+            //有效的話呼叫service
+            var result = await _articleService.DeleteArticleAsync(id);
+            //若service回傳false，代表找不到該文章
+            //若service回傳true，代表刪除成功
+            if (result == false)
+            {
+                //回傳找不到該編號文章
+                return Failure("ARTICLE_NOT_FOUND", "找不到該文章", 404);
+            }
+            else
+            {
+                return Success(result, "文章刪除成功", 200);
+            }
+        }
+
+
         /// <summary>
         /// 取得所有公開協尋中的遺失寵物列表
         /// </summary>

@@ -1,9 +1,11 @@
 
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Crypto;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using System.Diagnostics;
 using System.Text.RegularExpressions;
+
 
 
 namespace PawsPort.Services
@@ -53,6 +55,26 @@ namespace PawsPort.Services
             //保存更改到資料庫，拿到ArticleId
             await _context.SaveChangesAsync();
 
+            var imageUrls = ExtractImageUrlsFromContent(articleDto.Content);
+
+            if (imageUrls.Any())
+            {
+                var articleImages = imageUrls.Select((url, index) => new ArticleImage
+                {
+                    ArticleId = ArticleEntity.ArticleId,
+                    ImageUrl = url,
+                    SortOrder = index + 1,
+
+                    CreateAt = DateTime.UtcNow,
+                    LastEditTime = DateTime.UtcNow,
+                    IsExist = true,
+                    IsActive = true
+                }).ToList();
+
+                _context.ArticleImages.AddRange(articleImages);
+                await _context.SaveChangesAsync();
+            }
+
             //處理標籤
             var Tags = await PrepareTagsAsync(articleDto.TagNames);
             //建立文章-標籤關聯
@@ -76,10 +98,14 @@ namespace PawsPort.Services
 
 
         //=====修改文章=====
-        public async Task<int?> UpdateArticleAsync(int id, ArticleSaveDTO articleDto)
+        public async Task<int?> UpdateArticleAsync(int id, ArticleSaveDTO articleDto, int userId)
         {
             //比對articleDto.articleId和資料庫裡的ArticleId，去資料庫撈出對應的文章實體
-            var ArticleEntity = await _context.Articles.FirstOrDefaultAsync(a => a.ArticleId == id);
+            var ArticleEntity = await _context.Articles.FirstOrDefaultAsync(a =>
+            a.ArticleId == id &&
+            a.UserId == userId &&
+            a.IsExist == true &&
+            a.IsActive == true);
 
             if (ArticleEntity == null)
             {
@@ -159,14 +185,20 @@ namespace PawsPort.Services
         //=====文章列表(所有文章)=====
         //使用參數來篩選，預設為null(不篩選)，有值的話才篩選
         //status: 0:草稿,1:公開,2:私人
-        public async Task<List<ArticleListDTO>> GetAllArticlesAsync(int? status = null, bool? isActive = null, int? userId = null)
+        public async Task<List<ArticleListDTO>> GetAllArticlesAsync(int? status = null,
+            bool? isActive = null,
+            int? userId = null,
+            string ? keyword = null,
+            string? tag = null)
         {
             //撈文章+使用者名稱+分類名稱，轉換成ArticleListDTO
             var query = from a in _context.Articles
                         join u in _context.UserTables on a.UserId equals u.UserId
                         join c in _context.Categories on a.CategoryId equals c.CategoryId
+                        join pc in _context.Categories on c.ParentId equals pc.CategoryId into parentCategoryGroup
+                        from pc in parentCategoryGroup.DefaultIfEmpty()
                         where a.IsExist == true
-                        select new { a, u, c };
+                        select new { a, u, c, pc };
             //加上篩選條件
             if (status.HasValue)
             {
@@ -182,12 +214,40 @@ namespace PawsPort.Services
             {
                 query = query.Where(x => x.a.UserId == userId.Value);
             }
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var keywordText = keyword.Trim();
+
+                query = query.Where(x =>
+                x.a.Title.Contains(keywordText) ||
+                x.a.Content.Contains(keywordText) ||
+                x.c.CategoryName.Contains(keywordText) ||
+                (x.pc != null && x.pc.CategoryName.Contains(keywordText)) ||
+                x.u.Name.Contains(keywordText)
+);
+            }
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                var tagText = tag.Trim().TrimStart('#');
+
+                query = query.Where(x =>
+                    _context.ArticleTagMaps.Any(m =>
+                        m.ArticleId == x.a.ArticleId &&
+                        m.IsExist == true &&
+                        _context.Tags.Any(t =>
+                            t.TagId == m.TagId &&
+                            t.TagName == tagText
+                        )
+                    )
+                );
+            }
             //
             var ArticleList = await query.Select(x => new
             {
                 DTO = new ArticleListDTO
                 {
                     ArticleId = x.a.ArticleId,
+                    CategoryId = x.c.CategoryId,
                     Title = x.a.Title,
                     Summary = null,
                     CreateAt = x.a.CreateAt,
@@ -198,7 +258,22 @@ namespace PawsPort.Services
                     EventEndDate = x.a.EventEndDate,
                     EventLocation = x.a.EventLocation,
                     CategoryName = x.c.CategoryName,
-                    UserName = x.u.Name
+                    UserName = x.u.Name,
+
+                    MainImageUrl = _context.ArticleImages
+                    .Where(img =>
+                    img.ArticleId == x.a.ArticleId &&
+                    img.IsExist == true &&
+                    img.IsActive == true)
+                    .OrderBy(img => img.SortOrder)
+                    .ThenBy(img => img.ImageId)
+                    .Select(img => img.ImageUrl)
+                    .FirstOrDefault(),
+
+                    CommentCount = _context.Comments.Count(comment =>
+                    comment.ArticleId == x.a.ArticleId &&
+                    comment.IsExist == true &&
+                    comment.IsActive == true),
                 },
                 OriginalContent = x.a.Content
             }).ToListAsync();
@@ -237,19 +312,15 @@ namespace PawsPort.Services
             Console.WriteLine($"開始取得文章詳細：{id}");
             // 先把實體文章撈出來，將資料庫的 ViewCount 真正 +1 並儲存
             var articleEntity = await _context.Articles
-                .FirstOrDefaultAsync(a => a.ArticleId == id && a.IsExist == true);
+                .FirstOrDefaultAsync(a => a.ArticleId == id && a.IsExist == true && a.Status == 1);
 
             if (articleEntity == null)
             {
                 return null; // 文章不存在就直接結束，省去後面不必要的 Join 查詢
             }
-          
-           
-            
-           
-          
+
             articleEntity.ViewCount += 1;
-            await _context.SaveChangesAsync(); 
+            await _context.SaveChangesAsync();
 
             // 1. 先查文章主體 + Category + UserTable
             var articleDetail = await (
@@ -266,19 +337,12 @@ namespace PawsPort.Services
                     Content = a.Content,
                     CreateAt = a.CreateAt,
                     LastEditTime = a.LastEditTime,
-                    Status = a.Status,
-                    ViewCount = a.ViewCount, // 💡 這裡直接拿 a.ViewCount 即可，因為上面已經更新過了
-                    ReportedCount = a.ReportedCount,
-                    LastReported = a.LastReported,
+                    ViewCount = a.ViewCount,
                     EventStartDate = a.EventStartDate,
                     EventEndDate = a.EventEndDate,
                     EventLocation = a.EventLocation,
-                    IsExist = a.IsExist,
                     UserId = a.UserId,
                     CategoryId = a.CategoryId,
-                    DeleteTypeId = a.DeleteTypeId,
-                    DeleteNote = a.DeleteNote,
-                    IsActive = a.IsActive,
 
                     // Category
                     CategoryName = c.CategoryName,
@@ -331,7 +395,128 @@ namespace PawsPort.Services
             return articleDetail;
         }
 
-        //=====查詢文章(文章id)=====
+        //=====取得目前登入會員的草稿列表=====
+        public async Task<List<ArticleListDTO>> GetDraftArticlesAsync(int userId)
+        {
+            var draftList = await (
+                from a in _context.Articles
+                join u in _context.UserTables on a.UserId equals u.UserId
+                join c in _context.Categories on a.CategoryId equals c.CategoryId
+                where a.UserId == userId
+                      && a.Status == 0
+                      && a.IsExist == true
+                      && a.IsActive == true
+                orderby a.LastEditTime descending
+                select new
+                {
+                    DTO = new ArticleListDTO
+                    {
+                        ArticleId = a.ArticleId,
+                        CategoryId = a.CategoryId,
+                        Title = a.Title,
+                        Summary = null,
+                        CreateAt = a.CreateAt,
+                        LastEditTime = a.LastEditTime,
+                        Status = a.Status,
+                        ViewCount = a.ViewCount,
+                        EventStartDate = a.EventStartDate,
+                        EventEndDate = a.EventEndDate,
+                        EventLocation = a.EventLocation,
+                        CategoryName = c.CategoryName,
+                        UserName = u.Name,
+
+                        MainImageUrl = _context.ArticleImages
+                            .Where(img =>
+                                img.ArticleId == a.ArticleId &&
+                                img.IsExist == true &&
+                                img.IsActive == true)
+                            .OrderBy(img => img.SortOrder)
+                            .Select(img => img.ImageUrl)
+                            .FirstOrDefault()
+                    },
+                    OriginalContent = a.Content
+                }
+            ).ToListAsync();
+
+            foreach (var item in draftList)
+            {
+                item.DTO.Summary = GetTextSummary(item.OriginalContent, 60);
+            }
+
+            return draftList.Select(x => x.DTO).ToList();
+        }
+
+        //===取得草稿詳細(id)===
+        public async Task<ArticleDetailDTO?> GetDraftArticleDetailAsync(int id, int userId)
+        {
+            var articleDetail = await (
+                from a in _context.Articles
+                join c in _context.Categories on a.CategoryId equals c.CategoryId
+                join u in _context.UserTables on a.UserId equals u.UserId
+                where a.ArticleId == id
+                      && a.UserId == userId
+                      && a.Status == 0
+                      && a.IsExist == true
+                      && a.IsActive == true
+                select new ArticleDetailDTO
+                {
+                    ArticleId = a.ArticleId,
+                    Title = a.Title,
+                    Content = a.Content,
+                    CreateAt = a.CreateAt,
+                    LastEditTime = a.LastEditTime,
+                    ViewCount = a.ViewCount,
+
+                    EventStartDate = a.EventStartDate,
+                    EventEndDate = a.EventEndDate,
+                    EventLocation = a.EventLocation,
+
+                    UserId = a.UserId,
+                    CategoryId = a.CategoryId,
+
+                    CategoryName = c.CategoryName,
+                    UserName = u.Name,
+                    UserPhoto = u.Photo,
+
+                    BookmarkCount = 0,
+                    CoverImageUrl = null,
+                    ImageUrls = new List<string>(),
+                    Tags = new List<string>()
+                }
+            ).FirstOrDefaultAsync();
+
+            if (articleDetail == null)
+            {
+                return null;
+            }
+
+            articleDetail.Tags = await (
+                from map in _context.ArticleTagMaps
+                join tag in _context.Tags on map.TagId equals tag.TagId
+                where map.ArticleId == id && map.IsExist == true
+                select tag.TagName
+            ).ToListAsync();
+
+            articleDetail.CoverImageUrl = await _context.ArticleImages
+                .Where(img =>
+                    img.ArticleId == id &&
+                    img.IsExist == true &&
+                    img.IsActive == true)
+                .OrderBy(img => img.SortOrder)
+                .Select(img => img.ImageUrl)
+                .FirstOrDefaultAsync();
+
+            articleDetail.ImageUrls = await _context.ArticleImages
+                .Where(img =>
+                    img.ArticleId == id &&
+                    img.IsExist == true &&
+                    img.IsActive == true)
+                .OrderBy(img => img.SortOrder)
+                .Select(img => img.ImageUrl)
+                .ToListAsync();
+
+            return articleDetail;
+        }
 
         //=====查詢文章(關鍵字)=====
 
@@ -386,7 +571,7 @@ namespace PawsPort.Services
             return ExistingTags.Concat(NewTagsList).ToList();
         }
 
-        //處理ArticleList的summery
+        //===處理ArticleList的summery===
         private string GetTextSummary(string htmlContent, int maxLength = 60)
         {
             if (string.IsNullOrEmpty(htmlContent))
@@ -405,6 +590,62 @@ namespace PawsPort.Services
             }
 
             return cleanText;
+        }
+
+        //===處理文章的圖片===
+        private List<string> ExtractImageUrlsFromContent(string? content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return new List<string>();
+            }
+
+            var matches = Regex.Matches(
+                content,
+                "<img[^>]+src=[\"'](?<src>[^\"']+)[\"'][^>]*>",
+                RegexOptions.IgnoreCase
+            );
+
+            return matches
+                .Select(m => m.Groups["src"].Value)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Distinct()
+                .ToList();
+        }
+
+        //===圖片同步===
+        private async Task SyncArticleImagesAsync(int articleId, string? content)
+        {
+            var oldImages = await _context.ArticleImages
+                .Where(img => img.ArticleId == articleId && img.IsExist == true)
+                .ToListAsync();
+
+            foreach (var img in oldImages)
+            {
+                img.IsExist = false;
+                img.IsActive = false;
+                img.LastEditTime = DateTime.UtcNow;
+            }
+
+            var imageUrls = ExtractImageUrlsFromContent(content);
+
+            if (!imageUrls.Any())
+            {
+                return;
+            }
+
+            var newImages = imageUrls.Select((url, index) => new ArticleImage
+            {
+                ArticleId = articleId,
+                ImageUrl = url,
+                SortOrder = index + 1,
+                CreateAt = DateTime.UtcNow,
+                LastEditTime = DateTime.UtcNow,
+                IsExist = true,
+                IsActive = true
+            }).ToList();
+
+            _context.ArticleImages.AddRange(newImages);
         }
     }
 }

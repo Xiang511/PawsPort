@@ -1,9 +1,10 @@
-﻿namespace PawsPort.Dtos
+namespace PawsPort.Dtos
 {
     public class ArticleListDTO
     {
         //===隱藏===
         public int ArticleId { get; set; }
+        public int CategoryId { get; set; }
 
         //===條件顯示===
         public DateTime? EventStartDate { get; set; }
@@ -32,5 +33,6 @@
         public string MainImageUrl { get; set; }
 
         public List<string> TagNames { get; set; }
+        public int CommentCount { get; set; }
     }
 }

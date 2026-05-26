@@ -12,13 +12,7 @@ namespace PawsPort.Dtos
 
         public string Content { get; set; }
 
-        public int Status { get; set; }
-
         public int ViewCount { get; set; }
-
-        public int ReportedCount { get; set; }
-
-        public DateTime? LastReported { get; set; }
 
         public DateTime? EventStartDate { get; set; }
 
@@ -26,17 +20,10 @@ namespace PawsPort.Dtos
 
         public string EventLocation { get; set; }
 
-        public bool IsExist { get; set; }
-
         public int UserId { get; set; }
 
         public int CategoryId { get; set; }
 
-        public int? DeleteTypeId { get; set; }
-
-        public string DeleteNote { get; set; }
-
-        public bool IsActive { get; set; }
 
         //
         public string CategoryName { get; set; } = string.Empty;

@@ -79,7 +79,8 @@ namespace PawsPort.Services
                 QuestionType = dto.QuestionType,
                 ChiefComplaint = dto.ChiefComplaint,
                 ChatContent = dto.ChatContent,
-                QuestionDate = DateTime.Now
+                QuestionDate = DateTime.Now,
+                Note = "未處理"
             };
 
             _db.QARecords.Add(newQa);

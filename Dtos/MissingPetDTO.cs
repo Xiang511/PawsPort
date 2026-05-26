@@ -16,12 +16,12 @@ namespace PawsPort.Dtos
         public string Feature { get; set; } // 對應 Features
         public string Photo { get; set; }
         public string Color { get; set; } // 解析自 Note
+        public string Species { get; set; } // 前端 ANIM，對應 Species
     }
 
     // 供 MissingPetDetailView.vue 詳細頁使用
     public class MissingPetDetailDTO : MissingPetListDTO
     {
-        public string Species { get; set; } // 前端 ANIM，對應 Species
         public string ReporterName { get; set; } // 前端 FDRNAME
         public string ContactPhone { get; set; } // 前端 L_HTEL
         public string ContactEmail { get; set; } // 前端 L_EMAIL

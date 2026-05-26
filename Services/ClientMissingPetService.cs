@@ -64,7 +64,8 @@ namespace PawsPort.Services
                     ChipId = chipId,
                     Feature = r.Features ?? "",
                     Photo = string.IsNullOrEmpty(r.Photo) ? "https://images.unsplash.com/photo-1583511655857-d19b40a7a54e?auto=format&fit=crop&q=80&w=400" : r.Photo,
-                    Color = color
+                    Color = color,
+                    Species = r.Species ?? "狗"
                 };
             }).ToList();
 

@@ -34,7 +34,7 @@ namespace PawsPort.Hubs
             if (string.IsNullOrEmpty(apiKey)) return "系統錯誤：找不到 AI API Key";
 
             // Gemini 2.5 Flash 模型的官方端點
-            string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={apiKey}";
+            string url = $"https://generativelanguage.googleapis.com/v1beta/models/gemini-3.5-flash:generateContent?key={apiKey}";
 
             // 依照 Google 規定的 JSON 格式打包問題
             var requestBody = new
@@ -78,6 +78,8 @@ namespace PawsPort.Hubs
                     return reply ?? "AI 沒有產生任何文字。";
                 }
 
+                var errorBody = await response.Content.ReadAsStringAsync();
+                Console.WriteLine($"[SignalR] Gemini API 錯誤回應: {response.StatusCode} - {errorBody}");
                 return $"AI 思考時發生錯誤，狀態碼：{response.StatusCode}";
             }
             catch (Exception ex)

@@ -185,7 +185,10 @@ namespace PawsPort.Services
         //=====文章列表(所有文章)=====
         //使用參數來篩選，預設為null(不篩選)，有值的話才篩選
         //status: 0:草稿,1:公開,2:私人
-        public async Task<List<ArticleListDTO>> GetAllArticlesAsync(int? status = null, bool? isActive = null, int? userId = null)
+        public async Task<List<ArticleListDTO>> GetAllArticlesAsync(int? status = null,
+            bool? isActive = null,
+            int? userId = null,
+            string ? keyword = null)
         {
             //撈文章+使用者名稱+分類名稱，轉換成ArticleListDTO
             var query = from a in _context.Articles
@@ -207,6 +210,17 @@ namespace PawsPort.Services
             if (userId.HasValue)
             {
                 query = query.Where(x => x.a.UserId == userId.Value);
+            }
+            if (!string.IsNullOrWhiteSpace(keyword))
+            {
+                var keywordText = keyword.Trim();
+
+                query = query.Where(x =>
+                    x.a.Title.Contains(keywordText) ||
+                    x.a.Content.Contains(keywordText) ||
+                    x.c.CategoryName.Contains(keywordText) ||
+                    x.u.Name.Contains(keywordText)
+                );
             }
             //
             var ArticleList = await query.Select(x => new

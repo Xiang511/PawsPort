@@ -593,9 +593,10 @@ namespace PawsPort.Controllers
         {
             // 首頁撈取時，不限定單一使用者（除非前端特別傳入 ?userId=xxx 撈特定人的公開文）
             var result = await _articleService.GetAllArticlesAsync(
-                  status: queryDto.Status ?? 1,
-                  isActive: queryDto.IsActive ?? true,
-                  userId: queryDto.UserId
+                   status: queryDto.Status ?? 1,
+                   isActive: queryDto.IsActive ?? true,
+                   userId: queryDto.UserId,
+                   keyword: queryDto.Keyword
             );
             return Success(result, "取得全站文章成功", 200);
         }

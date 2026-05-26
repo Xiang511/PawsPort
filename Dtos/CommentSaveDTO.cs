@@ -1,4 +1,4 @@
-﻿namespace PawsPort.Dtos
+namespace PawsPort.Dtos
 {
     public class CommentSaveDTO
     {
@@ -13,7 +13,7 @@
 
         public int? ParentId { get; set; }
 
-        public int Status { get; set; }
+        //public int Status { get; set; }
 
         //public List<IFormFile>? ImageFiles { get; set; }
     }

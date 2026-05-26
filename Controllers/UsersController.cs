@@ -10,7 +10,7 @@ using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Controllers
 {
-    
+
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
@@ -27,7 +27,7 @@ namespace PawsPort.Controllers
         private readonly FileService _fileService;
         private readonly CommentService _commentService;
 
-        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService,CommentService commentService)
+        public UsersController(PetDbContext context, MemberProfileService memberProfileService, MemberPermissionService memberPermissionService, PetAdoptionService petAdoptionService, PetPassportService petPassportService, PlayerService playerService, ArticleService articleService, ClientMissingPetService clientMissingPetService, FileService fileService, CommentService commentService)
         {
             _memberProfileService = memberProfileService;
             _memberPermissionService = memberPermissionService;
@@ -751,6 +751,49 @@ namespace PawsPort.Controllers
             {
                 var result = await _commentService.GetCommentsByArticleIdAsync(articleId);
                 return Success(result, "留言列表取得成功", 200);
+            }
+            catch (Exception ex)
+            {
+                return Failure("INTERNAL_ERROR", ex.Message, 500);
+            }
+        }
+
+        //新增留言
+        /// <summary>
+        /// 新增文章留言
+        /// </summary>
+        /// <param name="articleId">文章 ID</param>
+        /// <param name="commentSaveDTO">留言內容</param>
+        /// <returns>新建立的留言 ID</returns>
+        [Authorize(Policy = "社群系統_一般成員")]
+        [HttpPost("articles/{articleId}/comments")]
+        [Tags("社群管理")]
+        public async Task<IActionResult> CreateArticleComment(int articleId, [FromBody] CommentSaveDTO commentSaveDTO)
+        {
+            if (articleId <= 0)
+            {
+                return Failure("INVALID_ARTICLE_ID", "無效的文章編號", 400);
+            }
+
+            if (!ModelState.IsValid)
+            {
+                return Failure("VALIDATION_ERROR", "資料驗證失敗", 400);
+            }
+
+            try
+            {
+                var currentUserId = GetCurrentUserId();
+
+                commentSaveDTO.ArticleId = articleId;
+                commentSaveDTO.UserId = currentUserId;
+
+                var result = await _commentService.CreateCommentAsync(commentSaveDTO);
+
+                return Success(result, "留言建立成功", 200);
+            }
+            catch (UnauthorizedAccessException ex)
+            {
+                return Failure("UNAUTHORIZED", ex.Message, 401);
             }
             catch (Exception ex)
             {

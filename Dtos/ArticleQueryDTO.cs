@@ -7,5 +7,6 @@ namespace PawsPort.Dtos
         public int? UserId { get; set; }
 
         public string? Keyword { get; set; }
+        public string? Tag { get; set; }
     }
 }

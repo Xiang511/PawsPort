@@ -188,7 +188,8 @@ namespace PawsPort.Services
         public async Task<List<ArticleListDTO>> GetAllArticlesAsync(int? status = null,
             bool? isActive = null,
             int? userId = null,
-            string ? keyword = null)
+            string ? keyword = null,
+            string? tag = null)
         {
             //撈文章+使用者名稱+分類名稱，轉換成ArticleListDTO
             var query = from a in _context.Articles
@@ -224,6 +225,21 @@ namespace PawsPort.Services
                 (x.pc != null && x.pc.CategoryName.Contains(keywordText)) ||
                 x.u.Name.Contains(keywordText)
 );
+            }
+            if (!string.IsNullOrWhiteSpace(tag))
+            {
+                var tagText = tag.Trim().TrimStart('#');
+
+                query = query.Where(x =>
+                    _context.ArticleTagMaps.Any(m =>
+                        m.ArticleId == x.a.ArticleId &&
+                        m.IsExist == true &&
+                        _context.Tags.Any(t =>
+                            t.TagId == m.TagId &&
+                            t.TagName == tagText
+                        )
+                    )
+                );
             }
             //
             var ArticleList = await query.Select(x => new

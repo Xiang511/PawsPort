@@ -6,6 +6,7 @@ using System.Diagnostics;
 using System.Text.RegularExpressions;
 
 
+
 namespace PawsPort.Services
 {
     public class ArticleService
@@ -52,6 +53,26 @@ namespace PawsPort.Services
             _context.Articles.Add(ArticleEntity);
             //保存更改到資料庫，拿到ArticleId
             await _context.SaveChangesAsync();
+
+            var imageUrls = ExtractImageUrlsFromContent(articleDto.Content);
+
+            if (imageUrls.Any())
+            {
+                var articleImages = imageUrls.Select((url, index) => new ArticleImage
+                {
+                    ArticleId = ArticleEntity.ArticleId,
+                    ImageUrl = url,
+                    SortOrder = index + 1,
+
+                    CreateAt = DateTime.UtcNow,
+                    LastEditTime = DateTime.UtcNow,
+                    IsExist = true,
+                    IsActive = true
+                }).ToList();
+
+                _context.ArticleImages.AddRange(articleImages);
+                await _context.SaveChangesAsync();
+            }
 
             //處理標籤
             var Tags = await PrepareTagsAsync(articleDto.TagNames);
@@ -199,7 +220,17 @@ namespace PawsPort.Services
                     EventEndDate = x.a.EventEndDate,
                     EventLocation = x.a.EventLocation,
                     CategoryName = x.c.CategoryName,
-                    UserName = x.u.Name
+                    UserName = x.u.Name,
+
+                    MainImageUrl = _context.ArticleImages
+                    .Where(img =>
+                    img.ArticleId == x.a.ArticleId &&
+                    img.IsExist == true &&
+                    img.IsActive == true)
+                    .OrderBy(img => img.SortOrder)
+                    .ThenBy(img => img.ImageId)
+                    .Select(img => img.ImageUrl)
+                    .FirstOrDefault(),
                 },
                 OriginalContent = x.a.Content
             }).ToListAsync();
@@ -263,7 +294,7 @@ namespace PawsPort.Services
                     Content = a.Content,
                     CreateAt = a.CreateAt,
                     LastEditTime = a.LastEditTime,
-                    ViewCount = a.ViewCount, 
+                    ViewCount = a.ViewCount,
                     EventStartDate = a.EventStartDate,
                     EventEndDate = a.EventEndDate,
                     EventLocation = a.EventLocation,
@@ -376,7 +407,7 @@ namespace PawsPort.Services
             return ExistingTags.Concat(NewTagsList).ToList();
         }
 
-        //處理ArticleList的summery
+        //===處理ArticleList的summery===
         private string GetTextSummary(string htmlContent, int maxLength = 60)
         {
             if (string.IsNullOrEmpty(htmlContent))
@@ -395,6 +426,27 @@ namespace PawsPort.Services
             }
 
             return cleanText;
+        }
+
+        //===處理文章的圖片===
+        private List<string> ExtractImageUrlsFromContent(string? content)
+        {
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                return new List<string>();
+            }
+
+            var matches = Regex.Matches(
+                content,
+                "<img[^>]+src=[\"'](?<src>[^\"']+)[\"'][^>]*>",
+                RegexOptions.IgnoreCase
+            );
+
+            return matches
+                .Select(m => m.Groups["src"].Value)
+                .Where(url => !string.IsNullOrWhiteSpace(url))
+                .Distinct()
+                .ToList();
         }
     }
 }

@@ -18,6 +18,7 @@ namespace PawsPort.Dtos
         public string? Note { get; set; }
         public bool? IsDesex { get; set; }
         public string? Microchip { get; set; }
+        public int? UserId { get; set; }
     }
 
    

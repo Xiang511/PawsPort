@@ -269,13 +269,36 @@ namespace PawsPort.Controllers
                 return Failure("Email 不可為空", "Invalid_Input", 400);
             }
 
-            // 調用服務發送驗證碼
-            var (success, message) = await _authService.SendLoginVerificationCodeAsync(model.Email, model.Password);
+            // 調用服務發送驗證碼（若距上次成功登入 ≤ 20 分鐘，會直接回傳 token 跳過驗證）
+            var (success, message, directToken, skipVerification) = await _authService.SendLoginVerificationCodeAsync(model.Email, model.Password);
+
+            if (success && skipVerification)
+            {
+                // 距上次登入未超過 20 分鐘，直接完成登入
+                var userInfo = await _memberProfileService.GetUserInfoByEmailAsync(model.Email);
+
+                if (userInfo != null)
+                {
+                    Response.Cookies.Append("X-Access-Token", directToken, new CookieOptions
+                    {
+                        HttpOnly = true,
+                        Secure = Request.IsHttps,
+                        SameSite = SameSiteMode.Lax,
+                        Path = "/",
+                        Expires = DateTimeOffset.UtcNow.AddHours(2)
+                    });
+
+                    await _loginLogService.LogUserLoginAsync(userInfo.UserId, model.Email, ipAddress, userAgent);
+
+                    Log.Information("[AuthController] RequestLoginVerificationCode - 跳過驗證直接登入成功: {Email}, IP: {IP}", model.Email, ipAddress);
+                    return Success(new { Token = directToken, User = userInfo, Message = message, SkipVerification = true });
+                }
+            }
 
             if (success)
             {
                 Log.Information("[AuthController] RequestLoginVerificationCode - 驗證碼已發送: {Email}", model.Email);
-                return Success(new { Message = message, Email = model.Email });
+                return Success(new { Message = message, Email = model.Email, SkipVerification = false });
             }
             else
             {

@@ -228,7 +228,7 @@ namespace PawsPort.Services
                         var playerProfile = new PlayerProfile
                         {
                             UserId = userEntity.UserId,
-                            CurrentPoint = 0,
+                            CurrentPoint = 500,
                             UserName = userEntity.Name
                         };
 

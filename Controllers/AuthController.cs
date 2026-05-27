@@ -456,6 +456,13 @@ namespace PawsPort.Controllers
         {
             Log.Debug("[AuthController] Logout POST - Entry");
 
+            // 手動登出時，讓 20 分鐘免驗證失效，強制下次登入重新寄 Email 驗證碼
+            var userIdClaim = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+            if (int.TryParse(userIdClaim, out var userId))
+            {
+                await _loginLogService.InvalidateRecentLoginAsync(userId);
+            }
+
             // 檢查 Cookie 是否存在
             if (Request.Cookies.ContainsKey("X-Access-Token"))
             {

@@ -68,6 +68,35 @@ namespace PawsPort.Services
         }
 
         /// <summary>
+        /// 手動登出時，將最近一筆成功登入記錄標記為已登出（Status = null），
+        /// 使 20 分鐘免驗證條件失效，強制下次登入重新寄送 Email 驗證碼。
+        /// </summary>
+        public async Task<bool> InvalidateRecentLoginAsync(int userId)
+        {
+            try
+            {
+                var recentLogin = await _context.LoginActivities
+                    .Where(x => x.UserId == userId && x.Status == true)
+                    .OrderByDescending(x => x.LoginTime)
+                    .FirstOrDefaultAsync();
+
+                if (recentLogin != null)
+                {
+                    recentLogin.Status = null;
+                    await _context.SaveChangesAsync();
+                    Log.Information("[LoginLogService] 已將 UserId={UserId} 的最近登入記錄標記為已登出", userId);
+                }
+
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Log.Error(ex, "[LoginLogService] 標記登出失敗，UserId: {UserId}", userId);
+                return false;
+            }
+        }
+
+        /// <summary>
         /// 記錄失敗的登入嘗試
         /// </summary>
         public async Task<bool> LogFailedLoginAsync(string email, string ipAddress, string userAgent, string failureReason)

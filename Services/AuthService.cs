@@ -263,11 +263,20 @@ namespace PawsPort.Services
                 var playerProfile = new PlayerProfile
                 {
                     UserId = userEntity.UserId,
-                    CurrentPoint = 0,
+                    CurrentPoint = 500,
                     UserName = userEntity.Name
                 };
 
                 _context.PlayerProfiles.Add(playerProfile);
+                await _context.SaveChangesAsync();
+
+                var inventory = new Inventory
+                {
+                    PlayerId = playerProfile.PlayerId,
+                    SkinId = 2, // 預設道具 ID
+                    Enable = true
+                };
+                _context.Inventories.Add(inventory);
                 await _context.SaveChangesAsync();
 
                 Log.Information("[AuthService] VerifyRegisterEmail - Email 驗證成功，帳號已啟用: {Email}, UserId={UserId}",

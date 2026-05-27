@@ -235,6 +235,16 @@ namespace PawsPort.Services
                         _context.PlayerProfiles.Add(playerProfile);
                         await _context.SaveChangesAsync();
 
+                        var inventory = new Inventory
+                        {
+                            PlayerId = playerProfile.PlayerId,
+                            SkinId = 2, // 預設道具 ID
+                            Enable = true
+                        };
+                        _context.Inventories.Add(inventory);
+                        await _context.SaveChangesAsync();
+                         
+
                         // 建立 OAuth 記錄
                         var oauthRecord = new OauthTable
                         {

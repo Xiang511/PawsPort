@@ -6,16 +6,20 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
+using Microsoft.AspNetCore.Hosting;
+using PawsPort.Helpers;
 
 namespace PawsPort.Services
 {
     public class ClientMissingPetService
     {
         private readonly PetDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public ClientMissingPetService(PetDbContext context)
+        public ClientMissingPetService(PetDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         // 解析 Note 欄位取得 Color 與 ChipId
@@ -134,7 +138,7 @@ namespace PawsPort.Services
                 Features = dto.Features,
                 ContactPhone = dto.ContactPhone,
                 ContactEmail = dto.ContactEmail,
-                Photo = dto.Photo,
+                Photo = ImageUploadHelper.SaveBase64Image(dto.Photo, "missingreports", _env.WebRootPath),
                 Note = noteJson,
                 IsActive = true,
                 CreatedAt = DateTime.UtcNow,

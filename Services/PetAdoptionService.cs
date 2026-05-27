@@ -4,16 +4,20 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Hosting;
+using PawsPort.Helpers;
 
 namespace PawsPort.Services
 {
     public class PetAdoptionService
     {
         private readonly PetDbContext _db;
+        private readonly IWebHostEnvironment _env;
 
-        public PetAdoptionService(PetDbContext db)
+        public PetAdoptionService(PetDbContext db, IWebHostEnvironment env)
         {
             _db = db;
+            _env = env;
         }
 
         public async Task<List<PetAdoptionDTO>> GetAdoptionPetsAsync()
@@ -53,13 +57,14 @@ namespace PawsPort.Services
                 Size = dto.Size,
                 CoatColor = dto.CoatColor,
                 BirthDate = dto.BirthDate,
-                Photo = dto.Photo,
+                Photo = ImageUploadHelper.SaveBase64Image(dto.Photo, "pets", _env.WebRootPath),
                 CurrentStatus = dto.CurrentStatus ?? 1, // 預設 1 表示開放領養/有效狀態
                 BehavioralTraits = dto.BehavioralTraits,
                 IsHighMaintenance = dto.IsHighMaintenance,
                 Note = dto.Note,
                 IsDesex = dto.IsDesex,
                 Microchip = dto.Microchip,
+                UserId = dto.UserId,
                 CreatedAt = System.DateTime.Now
             };
 

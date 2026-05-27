@@ -5,16 +5,20 @@ using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
+using Microsoft.AspNetCore.Hosting;
+using PawsPort.Helpers;
 
 namespace PawsPort.Services
 {
     public class PetPassportService
     {
         private readonly PetDbContext _context;
+        private readonly IWebHostEnvironment _env;
 
-        public PetPassportService(PetDbContext context)
+        public PetPassportService(PetDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
         // 任務 1：取得使用者的所有護照清單
@@ -129,7 +133,7 @@ namespace PawsPort.Services
             hp.RecordDate = dto.RecordDate;
             hp.Weight = dto.Weight;
             hp.Note = dto.Note;
-            if (!string.IsNullOrEmpty(dto.Photo)) hp.Photo = dto.Photo;
+            if (!string.IsNullOrEmpty(dto.Photo)) hp.Photo = ImageUploadHelper.SaveBase64Image(dto.Photo, "passports", _env.WebRootPath);
             hp.UpdatedAt = DateTime.UtcNow;
 
             // 聯動更新 Pet 資料表部分健康屬性
@@ -159,7 +163,7 @@ namespace PawsPort.Services
                     Gender = dto.Gender,
                     IsDesex = dto.IsDesex,
                     BirthDate = dto.BirthDate,
-                    Photo = dto.Photo ?? "default_pet.jpg",
+                    Photo = ImageUploadHelper.SaveBase64Image(dto.Photo, "pets", _env.WebRootPath) ?? "default_pet.jpg",
                     UserId = userId,
                     CreatedAt = DateTime.UtcNow,
                     UpdatedAt = DateTime.UtcNow
@@ -178,7 +182,7 @@ namespace PawsPort.Services
                     if (dto.Gender.HasValue) pet.Gender = dto.Gender;
                     pet.IsDesex = dto.IsDesex;
                     if (dto.BirthDate.HasValue) pet.BirthDate = dto.BirthDate;
-                    if (!string.IsNullOrEmpty(dto.Photo)) pet.Photo = dto.Photo;
+                    if (!string.IsNullOrEmpty(dto.Photo)) pet.Photo = ImageUploadHelper.SaveBase64Image(dto.Photo, "pets", _env.WebRootPath);
                     pet.UpdatedAt = DateTime.UtcNow;
                     _context.Pets.Update(pet);
                 }
@@ -191,7 +195,7 @@ namespace PawsPort.Services
                 RecordDate = dto.RecordDate ?? DateOnly.FromDateTime(DateTime.Today),
                 Weight = dto.Weight,
                 Note = dto.Note,
-                Photo = dto.Photo ?? "default_pet.jpg",
+                Photo = ImageUploadHelper.SaveBase64Image(dto.Photo, "passports", _env.WebRootPath) ?? "default_pet.jpg",
                 CreatedAt = DateTime.UtcNow,
                 UpdatedAt = DateTime.UtcNow
             };
@@ -334,7 +338,7 @@ namespace PawsPort.Services
                     .FirstOrDefaultAsync(hp => hp.PassportId == passportId && hp.DeletedAt == null);
                 if (passport != null)
                 {
-                    passport.Photo = dto.PhotoBase64;
+                    passport.Photo = ImageUploadHelper.SaveBase64Image(dto.PhotoBase64, "passports", _env.WebRootPath);
                     if (!string.IsNullOrEmpty(dto.PhotoNote))
                     {
                         passport.Note = dto.PhotoNote;

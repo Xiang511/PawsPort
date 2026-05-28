@@ -11,7 +11,8 @@ using Serilog;
 using System.Text;
 
 var builder = WebApplication.CreateBuilder(args);
-
+// 判斷目前是否為本機開發環境
+var isDevelopment = builder.Environment.IsDevelopment();
 // 1. 讀取 JWT 設定
 var jwtSettings = builder.Configuration.GetSection("JwtSettings");
 var secretKey = Encoding.UTF8.GetBytes(jwtSettings["SecretKey"]);
@@ -60,15 +61,23 @@ builder.Services.AddPawsPortAuthorization();
 
 builder.Services.AddControllers();
 
+// 4. 設定 CORS 政策
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("PawsPortPolicy", policy =>
     {
-        // 允許你的 Vue 前端網址
-        policy.WithOrigins("https://localhost:5173")
-        .WithOrigins("https://localhost:5174")
-        .WithOrigins("https://localhost:5175")
-              .AllowAnyHeader()
+        if (isDevelopment)
+        {
+            //  本機開發環境：允許 Vue 本地 Port
+            policy.WithOrigins("https://localhost:5173", "https://localhost:5174", "https://localhost:5175");
+        }
+        else
+        {
+            //  線上生產環境：除了本地埠，額外允許你的正式網域與前端串接
+            policy.WithOrigins("https://petmily.online", "http://petmily.online");
+        }
+
+        policy.AllowAnyHeader()
               .AllowAnyMethod()
               .AllowCredentials();
     });

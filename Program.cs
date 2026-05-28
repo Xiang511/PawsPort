@@ -280,7 +280,11 @@ app.UseStaticFiles(new StaticFileOptions
 
 app.UseSerilogRequestLogging();
 
-app.UseHttpsRedirection();
+// 生產環境由 Cloudflare 處理 HTTPS，不需要在應用層再次重導
+if (isDevelopment)
+{
+    app.UseHttpsRedirection();
+}
 app.UseRouting();
 
 

@@ -249,16 +249,16 @@ if (!app.Environment.IsDevelopment())
     // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
-// 啟用 OpenAPI 端點
-app.MapOpenApi();
-
-// 啟用 Scalar UI（現代化 API 文件介面）
-app.MapScalarApiReference(options =>
+// 啟用 OpenAPI 端點 + Scalar UI（僅開發環境）
+if (app.Environment.IsDevelopment())
 {
-    options.WithTitle("PawsPort 會員系統 API")
-           // 將預設顯示的程式碼切換為 JavaScript 的 Axios
-           .WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Axios);
-});
+    app.MapOpenApi();
+    app.MapScalarApiReference(options =>
+    {
+        options.WithTitle("PawsPort 會員系統 API")
+               .WithDefaultHttpClient(ScalarTarget.JavaScript, ScalarClient.Axios);
+    });
+}
 app.UseStaticFiles();
 
 // 開放讀取 API：讓瀏覽器可以直接透過網址讀取實體圖片
@@ -291,8 +291,15 @@ app.UseAuthorization();  // 授權：你能做什麼？
 
 
 app.MapStaticAssets();
-// 根路徑重定向到 Scalar API 文件  ← 新增這兩行
-app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
+// 根路徑：開發環境導向 Scalar 文件，生產環境導向首頁
+if (app.Environment.IsDevelopment())
+{
+    app.MapGet("/", () => Results.Redirect("/scalar/v1")).ExcludeFromDescription();
+}
+else
+{
+    app.MapGet("/", () => Results.Redirect("https://petmily.online")).ExcludeFromDescription();
+}
 
 app.MapControllerRoute(
     name: "default",

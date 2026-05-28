@@ -14,10 +14,10 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("¤ÀÃşºŞ²z")]
+    [Tags("åˆ†é¡ç®¡ç†")]
     public class CategoryController : ApiControllerBase
     {
-        //ª`¤J¸ê®Æ®w©Mservice
+        //æ³¨å…¥è³‡æ–™åº«å’Œservice
         private readonly PetDbContext _context;
         private readonly CategoryService _categoryService;
 
@@ -27,37 +27,37 @@ namespace PawsPort.Controllers
             _categoryService = categoryService;
         }
 
-        //¨ú±o¤ÀÃş¦Cªí
+        //å–å¾—åˆ†é¡åˆ—è¡¨
         /// <summary>
-        /// ¨ú±o©Ò¦³¤ÀÃş¦Cªí
+        /// å–å¾—æ‰€æœ‰åˆ†é¡åˆ—è¡¨
         /// </summary>
         /// <returns></returns>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> GetCategories()
         {
             try
             {
-                // ©I¥s­è­è¼g¦nªº Service ¼´¨ú¸ê®Æ¡]¤£±a°Ñ¼Æ¡^
+                // å‘¼å«å‰›å‰›å¯«å¥½çš„ Service æ’ˆå–è³‡æ–™ï¼ˆä¸å¸¶åƒæ•¸ï¼‰
                 var result = await _categoryService.GetCategoriesAsync();
 
-                // ¥é·Ó§Aªº®æ¦¡¡A¦^¶Ç 200 ¦¨¥\»P¸ê®Æ
-                return Success(result, "¤ÀÃş¦Cªí¨ú±o¦¨¥\", 200);
+                // ä»¿ç…§ä½ çš„æ ¼å¼ï¼Œå›å‚³ 200 æˆåŠŸèˆ‡è³‡æ–™
+                return Success(result, "åˆ†é¡åˆ—è¡¨å–å¾—æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                // ¨Ï¥Î§A±M®×¤¤°t¸mªº Serilog ¬ö¿ı¿ù»~¡]«ØÄ³¥[¤W¡A¤è«K°lÂÜ Log¡^
-                // _logger.LogError(ex, "¨ú±o¤ÀÃş¦Cªí®Éµo¥Í²§±`");
+                // ä½¿ç”¨ä½ å°ˆæ¡ˆä¸­é…ç½®çš„ Serilog ç´€éŒ„éŒ¯èª¤ï¼ˆå»ºè­°åŠ ä¸Šï¼Œæ–¹ä¾¿è¿½è¹¤ Logï¼‰
+                // _logger.LogError(ex, "å–å¾—åˆ†é¡åˆ—è¡¨æ™‚ç™¼ç”Ÿç•°å¸¸");
 
                 return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }
 
-        //·s¼W¤ÀÃş
+        //æ–°å¢åˆ†é¡
         /// <summary>
-        /// ·s¼W¤ÀÃş
+        /// æ–°å¢åˆ†é¡
         /// </summary>
         /// <param name="categorySaveDTO"></param>
         /// <returns></returns>
@@ -65,18 +65,18 @@ namespace PawsPort.Controllers
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> Category([FromBody] CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ", 400);
+                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—", 400);
             }
             try
             {
                 var result = await _categoryService.CreateCategoryAsync(categorySaveDTO);
-                return Success(result, "¤ÀÃş«Ø¥ß¦¨¥\", 200);
-                //**¸õÂà¨ì¤ÀÃşºŞ²z­¶­±
+                return Success(result, "åˆ†é¡å»ºç«‹æˆåŠŸ", 200);
+                //**è·³è½‰åˆ°åˆ†é¡ç®¡ç†é é¢
             }
             catch (Exception ex)
             {
@@ -86,24 +86,24 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// ½s¿è¤ÀÃş
+        /// ç·¨è¼¯åˆ†é¡
         /// </summary>
         /// <param name="id"></param>
         /// <param name="categorySaveDTO"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> Category(int id,[FromBody]CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ", 400);
+                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—", 400);
             }
             try
             {
                 var result = await _categoryService.UpdateCategoryAsync(id,categorySaveDTO);
-                return Success(result, "¤ÀÃş§ó·s¦¨¥\", 200);
-                //**¸õÂà¨ì¤ÀÃşºŞ²z­¶­±
+                return Success(result, "åˆ†é¡æ›´æ–°æˆåŠŸ", 200);
+                //**è·³è½‰åˆ°åˆ†é¡ç®¡ç†é é¢
             }
             catch (Exception ex)
             {
@@ -111,27 +111,27 @@ namespace PawsPort.Controllers
             }
         }
 
-        //³n§R°£¤ÀÃş
+        //è»Ÿåˆªé™¤åˆ†é¡
         /// <summary>
-        /// §R°£¤ÀÃş
+        /// åˆªé™¤åˆ†é¡
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPatch("{id}")]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> Delete(int id)
         {
-            if (id <= 0) return Failure("INVALID_ID", "µL®Äªº¤ÀÃş½s¸¹", 400);
+            if (id <= 0) return Failure("INVALID_ID", "ç„¡æ•ˆçš„åˆ†é¡ç·¨è™Ÿ", 400);
 
             var result = await _categoryService.DeleteCategoryAsync(id);
 
             if(result == false)
             {
-                return Failure("CATEGORY_NOT_FOUND", "§ä¤£¨ì¸Ó¤ÀÃş", 404);
+                return Failure("CATEGORY_NOT_FOUND", "æ‰¾ä¸åˆ°è©²åˆ†é¡", 404);
             }
             else
             {
-                return Success(result, "¤ÀÃş§R°£¦¨¥\", 200);
+                return Success(result, "åˆ†é¡åˆªé™¤æˆåŠŸ", 200);
             }      
         }
 

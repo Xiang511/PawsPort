@@ -12,10 +12,10 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("¯d¨¥ºŞ²z")]
+    [Tags("ç•™è¨€ç®¡ç†")]
     public class CommentController : ApiControllerBase
     {
-        //ª`¤J¸ê®Æ®w©Mservice
+        //æ³¨å…¥è³‡æ–™åº«å’Œservice
         private readonly PetDbContext _context;
         private readonly CommentService _commentService;
 
@@ -28,27 +28,27 @@ namespace PawsPort.Controllers
             _commentService = commentService;
         }
 
-        //¯d¨¥¦Cªí
+        //ç•™è¨€åˆ—è¡¨
 
-        //·s¼W¯d¨¥
+        //æ–°å¢ç•™è¨€
         /// <summary>
-        /// ·s¼W¯d¨¥
+        /// æ–°å¢ç•™è¨€
         /// </summary>
         /// <param name="commentSaveDTO"></param>
         /// <returns></returns>
         [HttpPost]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> Comment(CommentSaveDTO commentSaveDTO)
         {
             if (!ModelState.IsValid)
             {
-                return Failure("VALIDATION_ERROR", "¸ê®ÆÅçÃÒ¥¢±Ñ", 400);
+                return Failure("VALIDATION_ERROR", "è³‡æ–™é©—è­‰å¤±æ•—", 400);
             }
             try
             {
                 var result = await _commentService.CreateCommentAsync(commentSaveDTO);
-                return Success(result, "¯d¨¥«Ø¥ß¦¨¥\", 200);
-                //**¸õÂà¨ì¤å³¹¸Ô²Ó­¶­±
+                return Success(result, "ç•™è¨€å»ºç«‹æˆåŠŸ", 200);
+                //**è·³è½‰åˆ°æ–‡ç« è©³ç´°é é¢
             }
             catch (Exception ex)
             {
@@ -56,41 +56,41 @@ namespace PawsPort.Controllers
             }
         }
 
-        //³n§R°£¯d¨¥
+        //è»Ÿåˆªé™¤ç•™è¨€
         /// <summary>
-        /// ³n§R°£¯d¨¥
+        /// è»Ÿåˆªé™¤ç•™è¨€
         /// </summary>
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpPatch("{id}")]
-        [Tags("ªÀ¸sºŞ²z")]
+        [Tags("ç¤¾ç¾¤ç®¡ç†")]
         public async Task<IActionResult> Delete(int id)
         {
-            //ÀË¬did¬O§_¥¿±`
-            if (id <= 0) return Failure("INVALID_ID", "µL®Äªº¯d¨¥½s¸¹", 400);
+            //æª¢æŸ¥idæ˜¯å¦æ­£å¸¸
+            if (id <= 0) return Failure("INVALID_ID", "ç„¡æ•ˆçš„ç•™è¨€ç·¨è™Ÿ", 400);
             try
             {
                 var result = await _commentService.DeleteCommentAsync(id);
                 if (result == false)
                 {
-                    return Failure("COMMENT_NOT_FOUND", "§ä¤£¨ì¸Ó¯d¨¥", 404);
+                    return Failure("COMMENT_NOT_FOUND", "æ‰¾ä¸åˆ°è©²ç•™è¨€", 404);
                 }
                 else
                 {
-                    return Success(result, "¯d¨¥§R°£¦¨¥\", 200);
+                    return Success(result, "ç•™è¨€åˆªé™¤æˆåŠŸ", 200);
                 }
             }
             catch (InvalidOperationException ex)
             {
-                // ±Mªù³B²z¡u³Q«Ì½ª¦Ó¸T¤î§R°£¡vªº±¡ªp
+                // å°ˆé–€è™•ç†ã€Œè¢«å±è”½è€Œç¦æ­¢åˆªé™¤ã€çš„æƒ…æ³
                 return Failure("FORBIDDEN_ACTION", ex.Message, 403);
             }
             catch (Exception)
             {
-                return Failure("INTERNAL_ERROR", "¦øªA¾¹¿ù»~", 500);
+                return Failure("INTERNAL_ERROR", "ä¼ºæœå™¨éŒ¯èª¤", 500);
             }
         }
 
-        //ºŞ²z¯d¨¥
+        //ç®¡ç†ç•™è¨€
     }
 }

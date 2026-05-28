@@ -12,7 +12,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("Åv­­ºŞ²z")]
+    [Tags("æ¬Šé™ç®¡ç†")]
 
     public class PermissionsController : ApiControllerBase
     {
@@ -26,49 +26,49 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o©Ò¦³¨Ï¥ÎªÌªºÅv­­¦Cªí
+        /// å–å¾—æ‰€æœ‰ä½¿ç”¨è€…çš„æ¬Šé™åˆ—è¡¨
         /// </summary>
-        /// <returns>¨Ï¥ÎªÌÅv­­¦Cªí JSON</returns>
-        /// <response code="200">¦¨¥\¨ú±o¨Ï¥ÎªÌÅv­­¦Cªí</response>
-        [Authorize(Policy = "·|­û¨t²Î_¨t²ÎºŞ²z­û")]
+        /// <returns>ä½¿ç”¨è€…æ¬Šé™åˆ—è¡¨ JSON</returns>
+        /// <response code="200">æˆåŠŸå–å¾—ä½¿ç”¨è€…æ¬Šé™åˆ—è¡¨</response>
+        [Authorize(Policy = "æœƒå“¡ç³»çµ±_ç³»çµ±ç®¡ç†å“¡")]
         [HttpGet("users")]
         [ProducesResponseType(typeof(IEnumerable<MemberPermissionUserDTO>), StatusCodes.Status200OK)]
-        [Tags("Åv­­ºŞ²z")]
+        [Tags("æ¬Šé™ç®¡ç†")]
         public async Task<IActionResult> UserPermission()
         {
 
             var userPermissions = await _memberPermissionService.GetAllUserPermissionAsync();
-            Log.Debug("¨ú±o¨Ï¥ÎªÌÅv­­¦Cªí¦¨¥\¡AÁ`¼Æ: {Count}", userPermissions.Count());
+            Log.Debug("å–å¾—ä½¿ç”¨è€…æ¬Šé™åˆ—è¡¨æˆåŠŸï¼Œç¸½æ•¸: {Count}", userPermissions.Count());
             return Success(userPermissions, "Success", 200);
         }
         /// <summary>
-        /// ¨ú±o©Ò¦³¨t²Î¦Cªí
+        /// å–å¾—æ‰€æœ‰ç³»çµ±åˆ—è¡¨
         /// </summary>
-        /// <returns>¨t²Î¦Cªí JSON</returns>
-        /// <response code="200">¦¨¥\¨ú±o¨t²Î¦Cªí</response>
-        [Authorize(Policy = "·|­û¨t²Î_¨t²ÎºŞ²z­û")]
+        /// <returns>ç³»çµ±åˆ—è¡¨ JSON</returns>
+        /// <response code="200">æˆåŠŸå–å¾—ç³»çµ±åˆ—è¡¨</response>
+        [Authorize(Policy = "æœƒå“¡ç³»çµ±_ç³»çµ±ç®¡ç†å“¡")]
         [HttpGet("systems")]
         [ProducesResponseType(typeof(MemberPermissionSystemDTO), StatusCodes.Status200OK)]
-        [Tags("Åv­­ºŞ²z")]
+        [Tags("æ¬Šé™ç®¡ç†")]
 
         public async Task<IActionResult> System()
         {
 
             var result = await _memberPermissionService.GetMemberPermissionSystemAsync();
 
-            Log.Debug("¨ú±o¨t²Î¦Cªí¦¨¥\¡AÁ`¼Æ: {Count}", result.Systems.Count());
+            Log.Debug("å–å¾—ç³»çµ±åˆ—è¡¨æˆåŠŸï¼Œç¸½æ•¸: {Count}", result.Systems.Count());
             return Success(result, "Success", 200);
         }
 
         /// <summary>
-        /// ¨ú±o©Ò¦³¨¤¦â¦Cªí
+        /// å–å¾—æ‰€æœ‰è§’è‰²åˆ—è¡¨
         /// </summary>
-        /// <returns>¨¤¦â¦Cªí JSON</returns>
-        /// <response code="200">¦¨¥\¨ú±o¨¤¦â¦Cªí</response>
-        [Authorize(Policy = "·|­û¨t²Î_¨t²ÎºŞ²z­û")]
+        /// <returns>è§’è‰²åˆ—è¡¨ JSON</returns>
+        /// <response code="200">æˆåŠŸå–å¾—è§’è‰²åˆ—è¡¨</response>
+        [Authorize(Policy = "æœƒå“¡ç³»çµ±_ç³»çµ±ç®¡ç†å“¡")]
         [HttpGet("roles")]
         [ProducesResponseType(typeof(MemberPermissionRoleDTO), StatusCodes.Status200OK)]
-        [Tags("Åv­­ºŞ²z")]
+        [Tags("æ¬Šé™ç®¡ç†")]
 
         public async Task<IActionResult> Roles()
         {
@@ -76,53 +76,53 @@ namespace PawsPort.Controllers
             var result = await _memberPermissionService.GetMemberPermissionRoleAsync();
 
 
-            Log.Debug("¨ú±o¨¤¦â¦Cªí¦¨¥\¡AÁ`¼Æ: {Count}", result.Roles.Count());
+            Log.Debug("å–å¾—è§’è‰²åˆ—è¡¨æˆåŠŸï¼Œç¸½æ•¸: {Count}", result.Roles.Count());
             return Success(result, "Success", 200);
         }
         /// <summary>
-        /// ¨ú±o©Ò¦³³Q«ÊÂêªº·|­û¦Cªí
+        /// å–å¾—æ‰€æœ‰è¢«å°é–çš„æœƒå“¡åˆ—è¡¨
         /// </summary>
-        /// <returns>³Q«ÊÂêªº·|­û¦Cªí</returns>
-        /// <response code="200">¦¨¥\¨ú±o³Q«ÊÂêªº·|­û¦Cªí</response>
-        [Authorize(Policy = "·|­û¨t²Î_´¶³qºŞ²z­û")]
+        /// <returns>è¢«å°é–çš„æœƒå“¡åˆ—è¡¨</returns>
+        /// <response code="200">æˆåŠŸå–å¾—è¢«å°é–çš„æœƒå“¡åˆ—è¡¨</response>
+        [Authorize(Policy = "æœƒå“¡ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpGet("block/users")]
         [ProducesResponseType(typeof(List<MemberBlockListDTO>), StatusCodes.Status200OK)]
-        [Tags("Åv­­ºŞ²z")]
+        [Tags("æ¬Šé™ç®¡ç†")]
         public async Task<IActionResult> BlockList()
         {
             Log.Debug("[BlacklistController] BlockList GET - Entry");
 
-            Log.Debug("[BlacklistController] ½Õ¥Î MemberBlockListService.GetBannedUsersAsync");
+            Log.Debug("[BlacklistController] èª¿ç”¨ MemberBlockListService.GetBannedUsersAsync");
             var bannedUsers = await _memberBlockListService.GetBannedUsersAsync();
 
-            Log.Debug("[BlacklistController] ¦¨¥\¨ú±o³Q«ÊÂêªº·|­û¦Cªí, ¦@ {Count} µ§", bannedUsers.Count);
+            Log.Debug("[BlacklistController] æˆåŠŸå–å¾—è¢«å°é–çš„æœƒå“¡åˆ—è¡¨, å…± {Count} ç­†", bannedUsers.Count);
             return Success(bannedUsers, "Success", 200);
 
         }
 
         /// <summary>
-        /// «ÊÂê/¸Ñ«Ê«ü©w·|­û
+        /// å°é–/è§£å°æŒ‡å®šæœƒå“¡
         /// </summary>
-        /// <param name="id">·|­û ID</param>
-        /// <param name="user">«ÊÂê¸ê®Æ¡]¥]§t«ÊÂê­ì¦]µ¥¸ê°T¡^</param>
-        /// <returns>«ÊÂê¦¨¥\ªº·|­û¸ê®Æ</returns>
-        /// <response code="200">¦¨¥\«ÊÂê·|­û</response>
-        /// <response code="400">½Ğ¨D¸ê®Æ®æ¦¡¿ù»~</response>
-        /// <response code="404">§ä¤£¨ì«ü©wªº·|­û</response>
-        [Authorize(Policy = "·|­û¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="id">æœƒå“¡ ID</param>
+        /// <param name="user">å°é–è³‡æ–™ï¼ˆåŒ…å«å°é–åŸå› ç­‰è³‡è¨Šï¼‰</param>
+        /// <returns>å°é–æˆåŠŸçš„æœƒå“¡è³‡æ–™</returns>
+        /// <response code="200">æˆåŠŸå°é–æœƒå“¡</response>
+        /// <response code="400">è«‹æ±‚è³‡æ–™æ ¼å¼éŒ¯èª¤</response>
+        /// <response code="404">æ‰¾ä¸åˆ°æŒ‡å®šçš„æœƒå“¡</response>
+        [Authorize(Policy = "æœƒå“¡ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpPatch("block/users/{id}")]
         [ProducesResponseType(typeof(MemberBlockListDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
-        [Tags("Åv­­ºŞ²z")]
+        [Tags("æ¬Šé™ç®¡ç†")]
         public async Task<IActionResult> BlockListCreate(int? id, MemberBlockListEditDTO user)
         {
             Log.Debug("[BlacklistController] BlockListCreate POST - Entry, UserId: {UserId}", id);
 
-            Log.Debug("[BlacklistController] ½Õ¥Î MemberBlockListService.CreateBannedUsersAsync, UserId: {UserId}", id);
+            Log.Debug("[BlacklistController] èª¿ç”¨ MemberBlockListService.CreateBannedUsersAsync, UserId: {UserId}", id);
             var result = await _memberBlockListService.CreateBannedUsersAsync(id, user);
 
-            Log.Debug("[BlacklistController] «ÊÂê·|­û¦¨¥\, UserId: {UserId}, ¦WºÙ: {Name}", id, result.Name);
+            Log.Debug("[BlacklistController] å°é–æœƒå“¡æˆåŠŸ, UserId: {UserId}, åç¨±: {Name}", id, result.Name);
             return Success(result, "Success", 200);
         }
     }

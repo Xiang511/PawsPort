@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PawsPort.ViewModels; 
 using PawsPort.DTOs;
 using PawsPort.Services;
 using Serilog;
@@ -9,7 +8,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("Ãdª«ºŞ²z")]
+    [Tags("å¯µç‰©ç®¡ç†")]
     public class AdoptionRecordController : ApiControllerBase
     {
         private readonly AdoptionRecordService _service;
@@ -20,7 +19,7 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o©Ò¦³»â¾i¬ö¿ı¦Cªí
+        /// å–å¾—æ‰€æœ‰é ˜é¤Šç´€éŒ„åˆ—è¡¨
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<AdoptionRecordListDto>), StatusCodes.Status200OK)]
@@ -33,37 +32,37 @@ namespace PawsPort.Controllers
                 return NoContent();
             }
 
-            return Success(dtoList, "¦¨¥\¨ú±o»â¾i¬ö¿ı¦Cªí", 200);
+            return Success(dtoList, "æˆåŠŸå–å¾—é ˜é¤Šç´€éŒ„åˆ—è¡¨", 200);
         }
 
         /// <summary>
-        /// ¨ú±o¨Ñ½s¿è¥Îªº³æµ§»â¾i¸ê®Æ
+        /// å–å¾—ä¾›ç·¨è¼¯ç”¨çš„å–®ç­†é ˜é¤Šè³‡æ–™
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEditData(int id)
         {
             var dto = await _service.GetRecordForEditAsync(id);
             if (dto == null)
-                return Failure("RECORD_NOT_FOUND", "§ä¤£¨ì«ü©wªº»â¾i¬ö¿ı", 404);
+                return Failure("RECORD_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„é ˜é¤Šç´€éŒ„", 404);
 
-            return Success(dto, "¦¨¥\¨ú±o½s¿è¸ê®Æ", 200);
+            return Success(dto, "æˆåŠŸå–å¾—ç·¨è¼¯è³‡æ–™", 200);
         }
 
         /// <summary>
-        /// ³Ğ«Ø·s»â¾i¬ö¿ı
+        /// å‰µå»ºæ–°é ˜é¤Šç´€éŒ„
         /// </summary>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Create([FromBody] AdoptionRecordCreateDto dto)
         {
             await _service.CreateRecordAsync(dto);
-            Log.Information("³Ğ«Ø»â¾i¬ö¿ı¦¨¥\ PetId:{PetId}, UserId:{UserId}", dto.PetId, dto.UserId);
+            Log.Information("å‰µå»ºé ˜é¤Šç´€éŒ„æˆåŠŸ PetId:{PetId}, UserId:{UserId}", dto.PetId, dto.UserId);
 
-            return Success(dto, "·s¼W»â¾i¬ö¿ı¦¨¥\¡I", 200);
+            return Success(dto, "æ–°å¢é ˜é¤Šç´€éŒ„æˆåŠŸï¼", 200);
         }
 
         /// <summary>
-        /// §ó·s»â¾i¬ö¿ı
+        /// æ›´æ–°é ˜é¤Šç´€éŒ„
         /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -72,29 +71,29 @@ namespace PawsPort.Controllers
         {
             if (id != dto.AdoptionId)
             {
-                return Failure("ID_MISMATCH", "»â¾i¬ö¿ıID¤£¤@­P", 400);
+                return Failure("ID_MISMATCH", "é ˜é¤Šç´€éŒ„IDä¸ä¸€è‡´", 400);
             }
 
             await _service.UpdateRecordAsync(dto);
-            Log.Information("§ó·s»â¾i¬ö¿ı¦¨¥\ AdoptionId:{AdoptionId}", id);
+            Log.Information("æ›´æ–°é ˜é¤Šç´€éŒ„æˆåŠŸ AdoptionId:{AdoptionId}", id);
 
             return NoContent();
         }
 
         /// <summary>
-        /// ³n§R°£»â¾i¬ö¿ı (±N¬ö¿ı¼Ğ°O¬°¤w§R°£)
+        /// è»Ÿåˆªé™¤é ˜é¤Šç´€éŒ„ (å°‡ç´€éŒ„æ¨™è¨˜ç‚ºå·²åˆªé™¤)
         /// </summary>
-        /// <param name="id">»â¾i¬ö¿ı ID</param>
-        [HttpPatch("{id}")] 
+        /// <param name="id">é ˜é¤Šç´€éŒ„ ID</param>
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        public async Task<IActionResult> SoftDelete(int id) //¤èªk¦W¦P¨B­×§ï
+        public async Task<IActionResult> SoftDelete(int id) //æ–¹æ³•ååŒæ­¥ä¿®æ”¹
         {
-            // ©I¥s Service °õ¦æ³n§R°£ÅŞ¿è
+            // å‘¼å« Service åŸ·è¡Œè»Ÿåˆªé™¤é‚è¼¯
             await _service.DeleteRecordAsync(id);
 
-            Log.Information("³n§R°£»â¾i¬ö¿ı¦¨¥\ AdoptionId:{AdoptionId}", id);
+            Log.Information("è»Ÿåˆªé™¤é ˜é¤Šç´€éŒ„æˆåŠŸ AdoptionId:{AdoptionId}", id);
 
-            // ÁöµM¬O§ó·s¡A¦ı¦]¬°¨S¦³­n¦^¶Ç·s¸ê®Æ¡A¦^¶Ç 204 No Content ¨ÌµM¬O¼Ğ·Ç§@ªk
+            // é›–ç„¶æ˜¯æ›´æ–°ï¼Œä½†å› ç‚ºæ²’æœ‰è¦å›å‚³æ–°è³‡æ–™ï¼Œå›å‚³ 204 No Content ä¾ç„¶æ˜¯æ¨™æº–ä½œæ³•
             return NoContent();
         }
     }

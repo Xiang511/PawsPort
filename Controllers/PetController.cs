@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PawsPort.ViewModels;
 using PawsPort.Dtos;
 using PawsPort.Services;
 using Serilog;
@@ -9,7 +8,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("Ãdª«ºŞ²z")]
+    [Tags("å¯µç‰©ç®¡ç†")]
     public class PetController : ApiControllerBase
     {
         private readonly PetService _service;
@@ -20,7 +19,7 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o©Ò¦³Ãdª«¦Cªí
+        /// å–å¾—æ‰€æœ‰å¯µç‰©åˆ—è¡¨
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<PetListDto>), StatusCodes.Status200OK)]
@@ -33,37 +32,37 @@ namespace PawsPort.Controllers
                 return NoContent();
             }
 
-            return Success(dtoList, "¦¨¥\¨ú±oÃdª«¦Cªí", 200);
+            return Success(dtoList, "æˆåŠŸå–å¾—å¯µç‰©åˆ—è¡¨", 200);
         }
 
         /// <summary>
-        /// ¨ú±o¨Ñ½s¿è¥Îªº³æµ§Ãdª«¸ê®Æ
+        /// å–å¾—ä¾›ç·¨è¼¯ç”¨çš„å–®ç­†å¯µç‰©è³‡æ–™
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEditData(int id)
         {
             var dto = await _service.GetPetForEditAsync(id);
             if (dto == null)
-                return Failure("PET_NOT_FOUND", "§ä¤£¨ì«ü©wªºÃdª«¸ê®Æ", 404);
+                return Failure("PET_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„å¯µç‰©è³‡æ–™", 404);
 
-            return Success(dto, "¦¨¥\¨ú±o½s¿è¸ê®Æ", 200);
+            return Success(dto, "æˆåŠŸå–å¾—ç·¨è¼¯è³‡æ–™", 200);
         }
 
         /// <summary>
-        /// ³Ğ«Ø·sÃdª«¸ê®Æ
+        /// å‰µå»ºæ–°å¯µç‰©è³‡æ–™
         /// </summary>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Create([FromBody] PetCreateDto dto)
         {
             await _service.CreatePetAsync(dto);
-            Log.Information("³Ğ«ØÃdª«¸ê®Æ¦¨¥\ Name:{Name}", dto.Name);
+            Log.Information("å‰µå»ºå¯µç‰©è³‡æ–™æˆåŠŸ Name:{Name}", dto.Name);
 
-            return Success(dto, "·s¼WÃdª«¸ê®Æ¦¨¥\¡I", 200);
+            return Success(dto, "æ–°å¢å¯µç‰©è³‡æ–™æˆåŠŸï¼", 200);
         }
 
         /// <summary>
-        /// §ó·sÃdª«¸ê®Æ
+        /// æ›´æ–°å¯µç‰©è³‡æ–™
         /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -72,31 +71,31 @@ namespace PawsPort.Controllers
         {
             if (id != dto.PetId)
             {
-                return Failure("ID_MISMATCH", "Ãdª«ID¤£¤@­P", 400);
+                return Failure("ID_MISMATCH", "å¯µç‰©IDä¸ä¸€è‡´", 400);
             }
 
             await _service.UpdatePetAsync(dto);
-            Log.Information("§ó·sÃdª«¸ê®Æ¦¨¥\ PetId:{PetId}", id);
+            Log.Information("æ›´æ–°å¯µç‰©è³‡æ–™æˆåŠŸ PetId:{PetId}", id);
 
             return NoContent();
         }
 
         /// <summary>
-        /// §R°£Ãdª« (³n§R°£)
+        /// åˆªé™¤å¯µç‰© (è»Ÿåˆªé™¤)
         /// </summary>
         /// <remarks>
-        /// ±N¸ê®Æ¼Ğ°O¬°§R°£ª¬ºA¡A¤£·|±q¸ê®Æ®w¤¤ª«²z²¾°£¡C
+        /// å°‡è³‡æ–™æ¨™è¨˜ç‚ºåˆªé™¤ç‹€æ…‹ï¼Œä¸æœƒå¾è³‡æ–™åº«ä¸­ç‰©ç†ç§»é™¤ã€‚
         /// </remarks>
-        /// <param name="id">±ı§R°£ªºÃdª« ID</param>
-        /// <returns>¦^¶Ç 204 NoContent ªí¥Ü§R°£¦¨¥\</returns>
-        /// <response code="204">³n§R°£¦¨¥\</response>
+        /// <param name="id">æ¬²åˆªé™¤çš„å¯µç‰© ID</param>
+        /// <returns>å›å‚³ 204 NoContent è¡¨ç¤ºåˆªé™¤æˆåŠŸ</returns>
+        /// <response code="204">è»Ÿåˆªé™¤æˆåŠŸ</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(int id)
         {
-            // ª`·N³o¸Ì¹ïÀ³ªº¬O§A Service ¸Ìªº SoftDeletePet
+            // æ³¨æ„é€™è£¡å°æ‡‰çš„æ˜¯ä½  Service è£¡çš„ SoftDeletePet
             await _service.SoftDeletePetAsync(id);
-            Log.Information("³n§R°£Ãdª«¸ê®Æ¦¨¥\ PetId:{PetId}", id);
+            Log.Information("è»Ÿåˆªé™¤å¯µç‰©è³‡æ–™æˆåŠŸ PetId:{PetId}", id);
 
             return NoContent();
         }

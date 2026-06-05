@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PawsPort.ViewModels;
 using PawsPort.Dtos;
 using PawsPort.Services;
 using Serilog;
@@ -9,7 +8,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("Ãdª«ºŞ²z")]
+    [Tags("å¯µç‰©ç®¡ç†")]
     public class MissingReportsController : ApiControllerBase
     {
         private readonly MissingReportsService _service;
@@ -20,7 +19,7 @@ namespace PawsPort.Controllers
         }
 
         /// <summary>
-        /// ¨ú±o¥¢ÂÜ³ø®×¦Cªí
+        /// å–å¾—å¤±è¹¤å ±æ¡ˆåˆ—è¡¨
         /// </summary>
         [HttpGet]
         [ProducesResponseType(typeof(IEnumerable<MissingReportListDto>), StatusCodes.Status200OK)]
@@ -33,37 +32,37 @@ namespace PawsPort.Controllers
                 return NoContent();
             }
 
-            return Success(dtoList, "¦¨¥\¨ú±o³ø®×¦Cªí", 200);
+            return Success(dtoList, "æˆåŠŸå–å¾—å ±æ¡ˆåˆ—è¡¨", 200);
         }
 
         /// <summary>
-        /// ¨ú±o¨Ñ½s¿è¥Îªº³æµ§³ø®×¸ê®Æ
+        /// å–å¾—ä¾›ç·¨è¼¯ç”¨çš„å–®ç­†å ±æ¡ˆè³‡æ–™
         /// </summary>
         [HttpGet("{id}")]
         public async Task<IActionResult> GetEditData(int id)
         {
             var dto = await _service.GetReportForEditAsync(id);
             if (dto == null)
-                return Failure("REPORT_NOT_FOUND", "§ä¤£¨ì«ü©wªº³ø®×¸ê®Æ", 404);
+                return Failure("REPORT_NOT_FOUND", "æ‰¾ä¸åˆ°æŒ‡å®šçš„å ±æ¡ˆè³‡æ–™", 404);
 
-            return Success(dto, "¦¨¥\¨ú±o½s¿è¸ê®Æ", 200);
+            return Success(dto, "æˆåŠŸå–å¾—ç·¨è¼¯è³‡æ–™", 200);
         }
 
         /// <summary>
-        /// ³Ğ«Ø·s¥¢ÂÜ³ø®×
+        /// å‰µå»ºæ–°å¤±è¹¤å ±æ¡ˆ
         /// </summary>
         [HttpPost]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> Create([FromBody] MissingReportCreateDto dto)
         {
             await _service.CreateReportAsync(dto);
-            Log.Information("³Ğ«Ø¥¢ÂÜ³ø®×¦¨¥\ PetId:{PetId}", dto.PetId);
+            Log.Information("å‰µå»ºå¤±è¹¤å ±æ¡ˆæˆåŠŸ PetId:{PetId}", dto.PetId);
 
-            return Success(dto, "·s¼W³ø®×¦¨¥\¡I", 200);
+            return Success(dto, "æ–°å¢å ±æ¡ˆæˆåŠŸï¼", 200);
         }
 
         /// <summary>
-        /// §ó·s¥¢ÂÜ³ø®×¸ê®Æ
+        /// æ›´æ–°å¤±è¹¤å ±æ¡ˆè³‡æ–™
         /// </summary>
         [HttpPut("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
@@ -72,30 +71,30 @@ namespace PawsPort.Controllers
         {
             if (id != dto.ReportId)
             {
-                return Failure("ID_MISMATCH", "³ø®×ID¤£¤@­P", 400);
+                return Failure("ID_MISMATCH", "å ±æ¡ˆIDä¸ä¸€è‡´", 400);
             }
 
             await _service.UpdateReportAsync(dto);
-            Log.Information("§ó·s³ø®×¦¨¥\ ReportId:{ReportId}", id);
+            Log.Information("æ›´æ–°å ±æ¡ˆæˆåŠŸ ReportId:{ReportId}", id);
 
             return NoContent();
         }
 
         /// <summary>
-        /// §R°£¥¢ÂÜ³ø®×
+        /// åˆªé™¤å¤±è¹¤å ±æ¡ˆ
         /// </summary>
         /// <remarks>
-        /// ±N¸ê®Æ¼Ğ°O¬°§R°£ª¬ºA¡A¤£·|±q¸ê®Æ®w¤¤ª«²z²¾°£¡C
+        /// å°‡è³‡æ–™æ¨™è¨˜ç‚ºåˆªé™¤ç‹€æ…‹ï¼Œä¸æœƒå¾è³‡æ–™åº«ä¸­ç‰©ç†ç§»é™¤ã€‚
         /// </remarks>
-        /// <param name="id">±ı§R°£ªº³ø®× ID</param>
-        /// <returns>¦^¶Ç 204 NoContent ªí¥Ü§R°£¦¨¥\</returns>
-        /// <response code="204">³n§R°£¦¨¥\</response>
+        /// <param name="id">æ¬²åˆªé™¤çš„å ±æ¡ˆ ID</param>
+        /// <returns>å›å‚³ 204 NoContent è¡¨ç¤ºåˆªé™¤æˆåŠŸ</returns>
+        /// <response code="204">è»Ÿåˆªé™¤æˆåŠŸ</response>
         [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> Delete(int id)
         {
             await _service.DeleteReportAsync(id);
-            Log.Information("§R°£³ø®×¦¨¥\ ReportId:{ReportId}", id);
+            Log.Information("åˆªé™¤å ±æ¡ˆæˆåŠŸ ReportId:{ReportId}", id);
 
             return NoContent();
         }

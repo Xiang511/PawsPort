@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
-using PawsPort.ViewModels;
-using Serilog;
-using Serilog.Events;
 
 namespace PawsPort.Controllers
 {

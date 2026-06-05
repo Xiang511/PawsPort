@@ -1,11 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Data.SqlClient;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
-using PawsPort.ViewModels;
-using Serilog;
-using Serilog.Events;
 
 
 
@@ -80,7 +76,7 @@ namespace PawsPort.Controllers
             }
             catch (Exception ex)
             {
-             
+
                 return Failure("INTERNAL_ERROR", ex.Message, 500);
             }
         }
@@ -93,7 +89,7 @@ namespace PawsPort.Controllers
         /// <returns></returns>
         [HttpPut("{id}")]
         [Tags("社群管理")]
-        public async Task<IActionResult> Category(int id,[FromBody]CategorySaveDTO categorySaveDTO)
+        public async Task<IActionResult> Category(int id, [FromBody] CategorySaveDTO categorySaveDTO)
         {
             if (!ModelState.IsValid)
             {
@@ -101,7 +97,7 @@ namespace PawsPort.Controllers
             }
             try
             {
-                var result = await _categoryService.UpdateCategoryAsync(id,categorySaveDTO);
+                var result = await _categoryService.UpdateCategoryAsync(id, categorySaveDTO);
                 return Success(result, "分類更新成功", 200);
                 //**跳轉到分類管理頁面
             }
@@ -125,14 +121,14 @@ namespace PawsPort.Controllers
 
             var result = await _categoryService.DeleteCategoryAsync(id);
 
-            if(result == false)
+            if (result == false)
             {
                 return Failure("CATEGORY_NOT_FOUND", "找不到該分類", 404);
             }
             else
             {
                 return Success(result, "分類刪除成功", 200);
-            }      
+            }
         }
 
     }

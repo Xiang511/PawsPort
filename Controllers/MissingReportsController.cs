@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PawsPort.ViewModels;
 using PawsPort.Dtos;
 using PawsPort.Services;
 using Serilog;

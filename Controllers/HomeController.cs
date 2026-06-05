@@ -7,19 +7,8 @@ namespace PawsPort.Controllers
 {
     public class HomeController : Controller
     {
+        [NonAction]
         public IActionResult Index()
-        {
-            return View();
-        }
-
-        public IActionResult List()
-        {
-            PetDbContext db = new PetDbContext();
-            var p = db.UserTables.ToList();
-            return View(p);
-        }
-
-        public IActionResult Privacy()
         {
             return View();
         }

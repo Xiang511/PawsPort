@@ -1,5 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using PawsPort.ViewModels; 
 using PawsPort.DTOs;
 using PawsPort.Services;
 using Serilog;
@@ -85,7 +84,7 @@ namespace PawsPort.Controllers
         /// 軟刪除領養紀錄 (將紀錄標記為已刪除)
         /// </summary>
         /// <param name="id">領養紀錄 ID</param>
-        [HttpPatch("{id}")] 
+        [HttpPatch("{id}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         public async Task<IActionResult> SoftDelete(int id) //方法名同步修改
         {

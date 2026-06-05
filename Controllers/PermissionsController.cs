@@ -3,7 +3,6 @@ using Microsoft.AspNetCore.Mvc;
 using PawsPort.Dtos;
 using PawsPort.Models;
 using PawsPort.Services;
-using PawsPort.ViewModels;
 using Serilog;
 
 namespace PawsPort.Controllers

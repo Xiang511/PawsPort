@@ -1,10 +1,7 @@
-﻿using Humanizer;
 using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
-using PawsPort.ViewModels;
 using Serilog;
-using static Microsoft.CodeAnalysis.CSharp.SyntaxTokenParser;
 
 namespace PawsPort.Services
 {

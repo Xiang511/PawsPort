@@ -1,8 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore;
 using PawsPort.Dtos;
 using PawsPort.Models;
-using PawsPort.ViewModels;
-using Serilog;
 using System.Data;
 namespace PawsPort.Services
 {
@@ -27,11 +25,11 @@ namespace PawsPort.Services
                                      Note = u.Note,
                                      UpdatedAt = u.UpdatedAt
                                  }).ToListAsync();
-        
+
             return bannedUsers;
         }
 
-        public async Task<MemberBlockListDTO> CreateBannedUsersAsync(int? id , MemberBlockListEditDTO user)
+        public async Task<MemberBlockListDTO> CreateBannedUsersAsync(int? id, MemberBlockListEditDTO user)
         {
             var userEntity = await _context.UserTables.FirstOrDefaultAsync(u => u.UserId == id);
 

@@ -10,7 +10,7 @@ namespace PawsPort.Controllers
     [ApiController]
     [Route("api/[controller]")]
     [Produces("application/json")]
-    [Tags("¹CÀ¸¨t²Î")]
+    [Tags("éŠæˆ²ç³»çµ±")]
     public class QuestionsController : ApiControllerBase
     {
         private readonly QuestionsService _questionsService;
@@ -22,12 +22,12 @@ namespace PawsPort.Controllers
 
         // GET: api/Questions
         /// <summary>
-        /// ¨ú±oÃD®w¦Cªí
+        /// å–å¾—é¡Œåº«åˆ—è¡¨
         /// </summary>
-        /// <param name="category">ÃD¥Ø¤ÀÃş¡]¿ï¶ñ¡^</param>
-        /// <returns>¥]§tÃD¥Ø¤º®e»P¤ÀÃş¿ï¶µªº JSON</returns>
-        /// <response code="200">¦¨¥\¨ú±oÃD®w¦Cªí</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="category">é¡Œç›®åˆ†é¡ï¼ˆé¸å¡«ï¼‰</param>
+        /// <returns>åŒ…å«é¡Œç›®å…§å®¹èˆ‡åˆ†é¡é¸é …çš„ JSON</returns>
+        /// <response code="200">æˆåŠŸå–å¾—é¡Œåº«åˆ—è¡¨</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpGet]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> List(string category = "")
@@ -42,23 +42,23 @@ namespace PawsPort.Controllers
                     QuestionContent = data,
                     Categories = categories,
                     SelectedCategory = category
-                }, "¨ú±o¦¨¥\", 200);
+                }, "å–å¾—æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "QuestionsController: ¨ú±oÃD®w¦Cªí¥¢±Ñ");
-                return Failure("QUESTIONS_LIST_FAILED", "¦øªA¾¹¨ú±o¸ê®Æ¥¢±Ñ", 500);
+                Log.Error(ex, "QuestionsController: å–å¾—é¡Œåº«åˆ—è¡¨å¤±æ•—");
+                return Failure("QUESTIONS_LIST_FAILED", "ä¼ºæœå™¨å–å¾—è³‡æ–™å¤±æ•—", 500);
             }
         }
 
         // POST: api/Questions
         /// <summary>
-        /// ³Ğ«Ø·sÃD¥Ø
+        /// å‰µå»ºæ–°é¡Œç›®
         /// </summary>
-        /// <param name="createDto">ÃD¥Ø«Ø¥ß¸ê®Æ</param>
-        /// <returns>«Ø¥ß¦¨¥\ªºÃD¥Ø¸ê®Æ</returns>
-        /// <response code="200">¦¨¥\·s¼WÃD¥Ø</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="createDto">é¡Œç›®å»ºç«‹è³‡æ–™</param>
+        /// <returns>å»ºç«‹æˆåŠŸçš„é¡Œç›®è³‡æ–™</returns>
+        /// <response code="200">æˆåŠŸæ–°å¢é¡Œç›®</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpPost]
         [ProducesResponseType(typeof(QuestionsCreateDTO), StatusCodes.Status200OK)]
         public async Task<IActionResult> Create(QuestionsCreateDTO createDto)
@@ -73,26 +73,26 @@ namespace PawsPort.Controllers
                 Log.Information("Rewards: {Rewards}", createDto.Rewards);
                 Log.Information("Type: {Type}", createDto.Type);
                 await _questionsService.CreateQuestionAsync(createDto);
-                return Success(createDto, "·s¼W¦¨¥\", 200);
+                return Success(createDto, "æ–°å¢æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                Log.Error(ex, "QuestionsController: ·s¼W¥¢±Ñ");
-                return Failure("QUESTION_CREATE_FAILED", "Àx¦sÃD¥Ø®Éµo¥Í¿ù»~", 500);
+                Log.Error(ex, "QuestionsController: æ–°å¢å¤±æ•—");
+                return Failure("QUESTION_CREATE_FAILED", "å„²å­˜é¡Œç›®æ™‚ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // PUT: api/Questions/{id}
         /// <summary>
-        /// §ó·s«ü©wÃD¥Ø¸ê°T
+        /// æ›´æ–°æŒ‡å®šé¡Œç›®è³‡è¨Š
         /// </summary>
-        /// <param name="id">ÃD¥Ø ID</param>
-        /// <param name="editDto">§ó·sªºÃD¥Ø¸ê®Æ</param>
-        /// <returns>§ó·s«áªº¸ê®Æ</returns>
-        /// <response code="200">¦¨¥\§ó·sÃD¥Ø</response>
-        /// <response code="400">ID ¤£¤@­P</response>
-        /// <response code="404">§ä¤£¨ì¸ÓÃD¥Ø</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="id">é¡Œç›® ID</param>
+        /// <param name="editDto">æ›´æ–°çš„é¡Œç›®è³‡æ–™</param>
+        /// <returns>æ›´æ–°å¾Œçš„è³‡æ–™</returns>
+        /// <response code="200">æˆåŠŸæ›´æ–°é¡Œç›®</response>
+        /// <response code="400">ID ä¸ä¸€è‡´</response>
+        /// <response code="404">æ‰¾ä¸åˆ°è©²é¡Œç›®</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpPut("{id}")]
         [ProducesResponseType(typeof(QuestionsEditDTO), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -100,31 +100,31 @@ namespace PawsPort.Controllers
         public async Task<IActionResult> Edit(int id, QuestionsEditDTO editDto)
         {
             if (id != editDto.GameId)
-                return Failure("QUESTION_ID_MISMATCH", "ºô§} ID »P¸ê®Æ¤º®e¤£²Å", 400);
+                return Failure("QUESTION_ID_MISMATCH", "ç¶²å€ ID èˆ‡è³‡æ–™å…§å®¹ä¸ç¬¦", 400);
 
             try
             {
                 await _questionsService.UpdateQuestionAsync(editDto);
-                return Success(editDto, "§ó·s¦¨¥\", 200);
+                return Success(editDto, "æ›´æ–°æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("§ä¤£¨ì"))
-                    return Failure("QUESTION_NOT_FOUND", "§ä¤£¨ì¸ÓÃD¥Ø", 404);
+                if (ex.Message.Contains("æ‰¾ä¸åˆ°"))
+                    return Failure("QUESTION_NOT_FOUND", "æ‰¾ä¸åˆ°è©²é¡Œç›®", 404);
 
-                Log.Error(ex, "QuestionsController: §ó·s ID {id} ¥¢±Ñ", id);
-                return Failure("QUESTION_UPDATE_FAILED", "§ó·s¹Lµ{µo¥Í¿ù»~", 500);
+                Log.Error(ex, "QuestionsController: æ›´æ–° ID {id} å¤±æ•—", id);
+                return Failure("QUESTION_UPDATE_FAILED", "æ›´æ–°éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
         // DELETE: api/Questions/{id}
         /// <summary>
-        /// §R°£«ü©wÃD¥Ø
+        /// åˆªé™¤æŒ‡å®šé¡Œç›®
         /// </summary>
-        /// <param name="id">ÃD¥Ø ID</param>
-        /// <response code="200">¦¨¥\§R°£ÃD¥Ø</response>
-        /// <response code="404">§ä¤£¨ì±ı§R°£ªºÃD¥Ø</response>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_´¶³qºŞ²z­û")]
+        /// <param name="id">é¡Œç›® ID</param>
+        /// <response code="200">æˆåŠŸåˆªé™¤é¡Œç›®</response>
+        /// <response code="404">æ‰¾ä¸åˆ°æ¬²åˆªé™¤çš„é¡Œç›®</response>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_æ™®é€šç®¡ç†å“¡")]
         [HttpDelete("{id}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status404NotFound)]
@@ -133,39 +133,39 @@ namespace PawsPort.Controllers
             try
             {
                 await _questionsService.DeleteQuestionAsync(id);
-                return Success(id, "§R°£¦¨¥\", 200);
+                return Success(id, "åˆªé™¤æˆåŠŸ", 200);
             }
             catch (Exception ex)
             {
-                if (ex.Message.Contains("§ä¤£¨ì"))
-                    return Failure("QUESTION_NOT_FOUND", "§ä¤£¨ì±ı§R°£ªºÃD¥Ø", 404);
+                if (ex.Message.Contains("æ‰¾ä¸åˆ°"))
+                    return Failure("QUESTION_NOT_FOUND", "æ‰¾ä¸åˆ°æ¬²åˆªé™¤çš„é¡Œç›®", 404);
 
-                Log.Error(ex, "QuestionsController: §R°£ ID {id} ¥¢±Ñ", id);
-                return Failure("QUESTION_DELETE_FAILED", "§R°£¹Lµ{µo¥Í¿ù»~", 500);
+                Log.Error(ex, "QuestionsController: åˆªé™¤ ID {id} å¤±æ•—", id);
+                return Failure("QUESTION_DELETE_FAILED", "åˆªé™¤éç¨‹ç™¼ç”ŸéŒ¯èª¤", 500);
             }
         }
 
-        // GET: api/Questions/game-level?category=»{¾i¶·ª¾
+        // GET: api/Questions/game-level?category=èªé¤Šé ˆçŸ¥
         /// <summary>
-        /// ¹CÀ¸«e¥x¡G®Ú¾ÚÃö¥d¤ÀÃş¨ú±oÃD¥Ø(ÀH¾÷)
+        /// éŠæˆ²å‰å°ï¼šæ ¹æ“šé—œå¡åˆ†é¡å–å¾—é¡Œç›®(éš¨æ©Ÿ)
         /// </summary>
-        /// <param name="category">Ãö¥d¤ÀÃş¦WºÙ (GameName¡A¨Ò¦p¡G»{¾i¶·ª¾)</param>
-        [Authorize(Policy = "¹CÀ¸¨t²Î_¤@¯ë¦¨­û")]
+        /// <param name="category">é—œå¡åˆ†é¡åç¨± (GameNameï¼Œä¾‹å¦‚ï¼šèªé¤Šé ˆçŸ¥)</param>
+        [Authorize(Policy = "éŠæˆ²ç³»çµ±_ä¸€èˆ¬æˆå“¡")]
         [HttpGet("game-level")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         public async Task<IActionResult> GetGameLevelQuestions([FromQuery] string category)
         {
-            // °Ó·~ÅŞ¿èÅçÃÒ¡G¦pªG«eºİº|¶Ç°Ñ¼Æ¡A¥D°Ê¦^¶Ç Failure¡]³o¤£¬O¨t²Î±Y¼ì¡A¬OÄİ©ó¥¿±`ÅçÃÒ¡A©Ò¥H¤£¥Î try/catch¡^
+            // å•†æ¥­é‚è¼¯é©—è­‰ï¼šå¦‚æœå‰ç«¯æ¼å‚³åƒæ•¸ï¼Œä¸»å‹•å›å‚³ Failureï¼ˆé€™ä¸æ˜¯ç³»çµ±å´©æ½°ï¼Œæ˜¯å±¬æ–¼æ­£å¸¸é©—è­‰ï¼Œæ‰€ä»¥ä¸ç”¨ try/catchï¼‰
             if (string.IsNullOrEmpty(category))
             {
-                return Failure("CATEGORY_REQUIRED", "¥²¶·´£¨ÑÃö¥d¤ÀÃş¦WºÙ¡]GameName¡^", 400);
+                return Failure("CATEGORY_REQUIRED", "å¿…é ˆæä¾›é—œå¡åˆ†é¡åç¨±ï¼ˆGameNameï¼‰", 400);
             }
 
-            // ®Ö¤ß·~°È¡Gª½±µ©I¥s Service ¼´¨ú¸ê®Æ¡C
+            // æ ¸å¿ƒæ¥­å‹™ï¼šç›´æ¥å‘¼å« Service æ’ˆå–è³‡æ–™ã€‚
             var questions = await _questionsService.GetLevelQuestionsAsync(category, 10);
 
-            // ¶Ç¦^¦¨¥\¥]¸Ëªº JSON
-            return Success(questions, "¦¨¥\¨ú±o¹CÀ¸Ãö¥dÃD®w", 200);
+            // å‚³å›æˆåŠŸåŒ…è£çš„ JSON
+            return Success(questions, "æˆåŠŸå–å¾—éŠæˆ²é—œå¡é¡Œåº«", 200);
         }
     }
 }

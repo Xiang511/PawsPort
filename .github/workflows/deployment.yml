@@ -1,8 +1,6 @@
 name: Deploy .NET 10 App to Oracle Cloud (ARM64)
 
 on:
-  push:
-    branches: [ "dev" ]
   workflow_dispatch: 
 
 # 解決 Node.js 24 警告：全域開啟強制開關
@@ -22,8 +20,6 @@ jobs:
         dotnet-version: '10.0.x'
 
     - name: Publish App for ARM64
-      # ⚠️ 修改重點：請將 "YourProjectName.csproj" 替換成你實際的專案檔名
-      # 如果你的專案檔就在根目錄，可以用 ./Name.csproj
       run: |
         dotnet publish ./PawsPort.csproj -c Release -r linux-arm64 --self-contained false -o ./publish
 
